@@ -154,9 +154,9 @@
     <section class="hero" id="inicio" style="text-align: left !important;">
         <div class="container text-center text-white">
             <div data-aos="fade-up" style="text-align: left !important;">
-                <p class="fecha" style="font-size: 30px; padding: 30px 0px">12 JUNIO / VIRGIN, UTAH</p>
+                <p class="fecha" style="font-size: 30px; padding: 30px 0px">12 - 14 JUNIO 2026</p>
                 <h1>VUELTA A LA <span>FRIA</span></h1>
-                <p class="subtitulo" style="font-size: 30px; padding: 30px 0px">Una carrera de montaña larga, dura y técnica</p>
+                <p class="subtitulo" style="font-size: 30px; padding: 30px 0px">LA VUELTA MENOR MAS IMPORTANTE DE VENEZUELA</p>
                 <div>
                     <a href="#inscripcion" class="btn-custom">Inscribirme Ahora</a>
                     <a href="#acerca" class="btn-custom btn-outline-custom">Más Información</a>

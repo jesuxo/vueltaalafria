@@ -7,7 +7,7 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-4 mb-4">
-                <h4>RedRock Epic</h4>
+                <h4>Vuelta a la Fria</h4>
                 <p>Long tough and technical mountain bike race since 1997. Join the adventure!</p>
                 <div class="social-links">
                     <a href="#"><i class="fab fa-facebook-f"></i></a>
