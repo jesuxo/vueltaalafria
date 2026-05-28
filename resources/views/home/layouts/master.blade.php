@@ -682,7 +682,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
 <script>
     // Inicializar AOS
     AOS.init({
@@ -712,6 +711,14 @@
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth' });
+
+                // CERRAR EL MENÚ EN MOBILE DESPUÉS DE HACER CLIC
+                const navbarCollapse = document.querySelector('.navbar-collapse');
+                const navbarToggler = document.querySelector('.navbar-toggler');
+
+                if (window.innerWidth <= 991 && navbarCollapse.classList.contains('show')) {
+                    navbarToggler.click();
+                }
             }
         });
     });
@@ -719,6 +726,23 @@
     // Back to top
     document.querySelector('.back-to-top').addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // También cerrar menú cuando se hace clic fuera de él (opcional)
+    document.addEventListener('click', function(event) {
+        const navbar = document.querySelector('.navbar');
+        const navbarCollapse = document.querySelector('.navbar-collapse');
+        const navbarToggler = document.querySelector('.navbar-toggler');
+
+        if (window.innerWidth <= 991 && navbarCollapse.classList.contains('show')) {
+            // Si el clic no fue dentro del navbar ni en el botón toggler
+            if (!navbar.contains(event.target) || event.target === navbarToggler) {
+                // No hacer nada si es el toggler
+                if (event.target !== navbarToggler && !navbarToggler.contains(event.target)) {
+                    navbarToggler.click();
+                }
+            }
+        }
     });
 </script>
 
