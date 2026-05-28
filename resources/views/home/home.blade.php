@@ -146,6 +146,12 @@
             --bs-btn-bg: #00ecfe;
             --bs-btn-border-color: #00ecfe;
         }
+
+        @media (max-width: 768px) {
+            .hero .container .row img {
+                max-height: 50px !important;
+            }
+        }
     </style>
 @endsection
 
@@ -154,15 +160,30 @@
     <section class="hero" id="inicio" style="text-align: left !important;">
         <div class="container text-center text-white">
             <div data-aos="fade-up" style="text-align: left !important;">
-                <p class="fecha" style="font-size: 30px; padding: 30px 0px">12 - 14 JUNIO 2026</p>
-                <h1>VUELTA A LA <span>FRIA</span></h1>
-                <p class="subtitulo" style="font-size: 30px; padding: 30px 0px">LA VUELTA MENOR MAS IMPORTANTE DE VENEZUELA</p>
+                <p class="fecha" style="font-size: 30px; padding: 20px 0px">12 - 14 JUNIO 2026</p>
+                <h1 style="margin:0px;">VUELTA A LA <br><span>FRIA</span></h1>
+                <p class="subtitulo" style="font-size: 20px;  ">LA VUELTA MENOR MAS IMPORTANTE DE VENEZUELA</p>
                 <div>
                     <a href="#inscripcion" class="btn-custom">Inscribirme Ahora</a>
                     <a href="#acerca" class="btn-custom btn-outline-custom">Más Información</a>
                 </div>
+                <div class="row mt-5">
+                    <div class="col-12 mt-2 col-md-6">
+                        <div class="row justify-content-center align-items-center">
+                            <div class="col-4 col-md-4 text-center">
+                                <img src="/img/gob1.png" class="img-fluid" style="max-height: 70px; width: auto;">
+                            </div>
+                            <div class="col-4 col-md-3 text-center">
+                                <img src="/img/gob2.png" class="img-fluid" style="max-height: 70px; width: auto; margin-left: 0;">
+                            </div>
+                            <div class="col-4 col-md-4 text-left">
+                                <img src="/img/gob3.png" class="img-fluid" style="max-height: 70px; width: auto;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6"></div>
+                </div>
             </div>
-        </div>
     </section>
 
     <!-- Divisor de Montañas -->

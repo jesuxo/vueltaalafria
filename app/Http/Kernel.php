@@ -67,5 +67,7 @@ class Kernel extends HttpKernel
         'check.admin'      => \App\Http\Middleware\CheckAdminUser::class,
         'permission'       => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
         'check.user'       => \App\Http\Middleware\CheckApiUser::class,
+        'admin'            => \App\Http\Middleware\AdminMiddleware::class,
+        'team.auth'        => \App\Http\Middleware\TeamAuth::class,
     ];
 }
