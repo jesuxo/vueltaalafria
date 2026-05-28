@@ -588,6 +588,55 @@
                 margin-bottom: 10px;
             }
         }
+        /* ============================================ */
+        /* FIX MENÚ RESPONSIVE - BLANCO */
+        /* ============================================ */
+
+        /* Navbar en mobile */
+        @media (max-width: 991.98px) {
+            /* Fondo del navbar en mobile */
+            .navbar {
+                background-color: #181d34 !important;
+            }
+
+            /* Color del texto del menú */
+            .navbar-nav .nav-link {
+                color: #ffffff !important;
+            }
+
+            .navbar-nav .nav-link:hover {
+                color: #00ecfe !important;
+            }
+
+            /* Ícono hamburguesa - blanco */
+            .navbar-toggler {
+                border-color: rgba(255, 255, 255, 0.5) !important;
+            }
+
+            .navbar-toggler-icon {
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+            }
+
+            /* Cerrar el menú al hacer click */
+            .navbar-collapse {
+                background-color: #181d34;
+                padding: 15px;
+                border-radius: 10px;
+                margin-top: 10px;
+            }
+        }
+
+        /* Para pantallas aún más pequeñas */
+        @media (max-width: 576px) {
+            .navbar-brand {
+                color: white !important;
+            }
+
+            .navbar-brand span {
+                color: white !important;
+            }
+        }
+
     </style>
 
     @yield('css')
