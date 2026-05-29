@@ -1,44 +1,46 @@
 <footer class="footer">
-
     <div class="mountain-divider-modern" style="position: relative; height: 150px; overflow: hidden; margin-top: -154px;">
-        <div style="position: absolute; bottom: 50px; left: 0; width: 100%; height: 100px;
-        background: url('/images/mountains_pattern_05.png') repeat-x bottom; background-size: auto 100%;"></div>
+        <div style="position: absolute; bottom: 50px; left: 0; width: 100%; height: 100px; background: url('/images/mountains_pattern_05.png') repeat-x bottom; background-size: auto 100%;"></div>
     </div>
     <div class="container">
         <div class="row">
             <div class="col-lg-4 mb-4">
-                <h4>Vuelta a la Fria</h4>
-                <p>Long tough and technical mountain bike race since 1997. Join the adventure!</p>
+                <h4>Vuelta a la Fría</h4>
+                <p>La Vuelta Menor más importante de Venezuela. Un evento que forma jóvenes talentos y promueve el ciclismo en el municipio García de Hevia, estado Táchira.</p>
                 <div class="social-links">
                     <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
                     <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-whatsapp"></i></a>
                     <a href="#"><i class="fab fa-youtube"></i></a>
-                    <a href="#"><i class="fab fa-strava"></i></a>
                 </div>
             </div>
             <div class="col-lg-4 mb-4">
-                <h4>Quick Links</h4>
+                <h4>Enlaces Rápidos</h4>
                 <ul class="list-unstyled">
-                    <li><a href="#about" class="text-decoration-none text-secondary">About</a></li>
-                    <li class="mt-2"><a href="#route" class="text-decoration-none text-secondary">Route</a></li>
-                    <li class="mt-2"><a href="#register" class="text-decoration-none text-secondary">Register</a></li>
-                    <li class="mt-2"><a href="#contact" class="text-decoration-none text-secondary">Contact</a></li>
+                    <li><a href="#informacion" class="text-decoration-none text-secondary">La Carrera</a></li>
+                    <li class="mt-2"><a href="#programa" class="text-decoration-none text-secondary">Etapas</a></li>
+                    <li class="mt-2"><a href="#categorias" class="text-decoration-none text-secondary">Categorías</a></li>
+                    <li class="mt-2"><a href="#preinscripcion" class="text-decoration-none text-secondary">Inscripciones</a></li>
+                    <li class="mt-2"><a href="#contacto" class="text-decoration-none text-secondary">Contacto</a></li>
                 </ul>
             </div>
             <div class="col-lg-4 mb-4">
-                <h4>Newsletter</h4>
-                <p>Subscribe for race updates and news</p>
-                <form>
-                    <div class="input-group">
-                        <input type="email" class="form-control" placeholder="Your email">
-                        <button class="btn btn-danger" type="submit">Subscribe</button>
-                    </div>
-                </form>
+                <h4>Contacto Directo</h4>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-user-tie me-2" style="color: #00ecfe;"></i> Rubén Osorio Espinoza</li>
+                    <li class="mt-2"><i class="fas fa-envelope me-2" style="color: #00ecfe;"></i> vueltalafria@gmail.com</li>
+                    <li class="mt-2"><i class="fas fa-phone me-2" style="color: #00ecfe;"></i> +58 424-7371101 (Inscripciones)</li>
+                    <li class="mt-2"><i class="fas fa-map-marker-alt me-2" style="color: #00ecfe;"></i> La Fría, Municipio García de Hevia, Táchira, Venezuela</li>
+                </ul>
             </div>
         </div>
-        <div class="text-center mt-4 pt-3 border-top border-secondary">
-            <p>&copy; 2024 RedRock Epic. All rights reserved.</p>
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="text-center border-top border-secondary pt-4">
+                    <p class="mb-2">&copy; 2026 Vuelta a la Fría - Todos los derechos reservados</p>
+                    <p class="small text-muted">Evento avalado por la Federación Venezolana de Ciclismo (FVC) y el Instituto Municipal de Deporte (IMDERE)</p>
+                </div>
+            </div>
         </div>
     </div>
 </footer>
