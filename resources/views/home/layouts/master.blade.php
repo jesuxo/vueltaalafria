@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Vuelta a la Fria 2026</title>
+    <title>Vuelta a la Fría 2026 | La Vuelta Menor Más Importante de Venezuela</title>
 
     <link rel="shortcut icon" href="{{asset('img/logo.png')}}" type="image/x-icon">
 
@@ -32,7 +32,7 @@
         /* ============================================ */
         :root {
             --primary: #00ecfe;
-            --primary-dark: #00ecfe;
+            --primary-dark: #00c4d4;
             --secondary: #1a1a2e;
             --dark: #0a0a0a;
             --light: #f8f9fa;
@@ -98,12 +98,40 @@
             color: var(--primary) !important;
         }
 
+        /* Botón inscripción navbar */
+        .btn-navbar {
+            background: var(--primary);
+            color: #000 !important;
+            padding: 8px 25px !important;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            border: none;
+        }
+
+        .btn-navbar:hover {
+            background: #00c4d4;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,236,254,0.3);
+            color: #000 !important;
+        }
+
+        /* Fecha en navbar */
+        .navbar-date {
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
         /* ============================================ */
         /* HERO SECTION - Full width épico */
         /* ============================================ */
         .hero {
             min-height: 100vh;
-            background:  url('/images/background_01.jpg');
+            background: url('/images/background_01.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -128,14 +156,14 @@
             text-align: left !important;
         }
 
-        .hero .date {
+        .hero .fecha {
             font-size: 1.2rem;
             letter-spacing: 5px;
             margin-bottom: 1rem;
             text-transform: uppercase;
         }
 
-        .hero .subtitle {
+        .hero .subtitulo {
             font-size: 1.3rem;
             margin-bottom: 2rem;
             font-weight: 400;
@@ -144,7 +172,7 @@
         /* Botones modernos */
         .btn-custom {
             background: var(--primary);
-            color: white;
+            color: #000;
             padding: 14px 40px;
             border-radius: 50px;
             text-decoration: none;
@@ -160,9 +188,9 @@
 
         .btn-custom:hover {
             background: var(--primary-dark);
-            color: white;
+            color: #000;
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(227,30,37,0.3);
+            box-shadow: 0 10px 20px rgba(0,236,254,0.3);
         }
 
         .btn-outline-custom {
@@ -388,12 +416,12 @@
 
         .price-card.featured {
             transform: scale(1.05);
-            box-shadow: 0 20px 50px rgba(227,30,37,0.2);
+            box-shadow: 0 20px 50px rgba(0,236,254,0.2);
         }
 
         .price-card .price-header {
             background: var(--primary);
-            color: white;
+            color: #000;
             padding: 30px;
             text-align: center;
         }
@@ -454,7 +482,7 @@
             width: 50px;
             height: 50px;
             background: var(--primary);
-            color: white;
+            color: #000;
             border-radius: 50%;
             text-align: center;
             line-height: 50px;
@@ -504,7 +532,7 @@
 
         .footer .social-links a:hover {
             background: var(--primary);
-            color: white;
+            color: #000;
             transform: translateY(-3px);
         }
 
@@ -518,7 +546,7 @@
             width: 50px;
             height: 50px;
             background: var(--primary);
-            color: white;
+            color: #000;
             border-radius: 50%;
             text-align: center;
             line-height: 50px;
@@ -573,7 +601,7 @@
                 font-size: 2.5rem;
                 letter-spacing: -1px;
             }
-            .hero .subtitle {
+            .hero .subtitulo {
                 font-size: 1rem;
             }
             .btn-custom {
@@ -588,6 +616,7 @@
                 margin-bottom: 10px;
             }
         }
+
         /* ============================================ */
         /* FIX MENÚ RESPONSIVE - BLANCO */
         /* ============================================ */
@@ -624,6 +653,20 @@
                 border-radius: 10px;
                 margin-top: 10px;
             }
+
+            /* Botón navbar en mobile */
+            .btn-navbar {
+                display: inline-block;
+                width: auto;
+                text-align: center;
+                margin: 15px 15px 5px;
+            }
+
+            .navbar-date {
+                text-align: center;
+                padding: 10px 0;
+                justify-content: center !important;
+            }
         }
 
         /* Para pantallas aún más pequeñas */
@@ -634,6 +677,11 @@
 
             .navbar-brand span {
                 color: white !important;
+            }
+
+            .hero .fecha {
+                font-size: 0.9rem;
+                letter-spacing: 3px;
             }
         }
 
@@ -646,8 +694,8 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg">
     <div class="container">
-        <a class="navbar-brand" href="#">
-            <img src="/images/logo.png"  style="max-width: 100%;   max-height: 40px;"/>
+        <a class="navbar-brand" href="#inicio">
+            <img src="/images/logo.png" alt="Vuelta a la Fría 2026" style="max-width: 100%; max-height: 45px;">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -655,13 +703,24 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link" href="#inicio">Inicio</a></li>
-                <li class="nav-item"><a class="nav-link" href="#informacion">Informaci&oacute;n</a></li>
-                <li class="nav-item"><a class="nav-link" href="#programa">Programa</a></li>
-                <li class="nav-item"><a class="nav-link" href="#etapas">Etapas</a></li>
-                <li class="nav-item"><a class="nav-link" href="#fotos">Fotos</a></li>
-                <li class="nav-item"><a class="nav-link" href="#preinscripcion">Pre-Inscricion</a></li>
+                <li class="nav-item"><a class="nav-link" href="#informacion">La Carrera</a></li>
+                <li class="nav-item"><a class="nav-link" href="#programa">Etapas</a></li>
+                <li class="nav-item d-none"><a class="nav-link" href="#categorias">Categorías</a></li>
+                <li class="nav-item d-none"><a class="nav-link" href="#clasificaciones">Premios</a></li>
                 <li class="nav-item"><a class="nav-link" href="#contacto">Contacto</a></li>
             </ul>
+
+            <!-- Fecha del evento -->
+            <div class="navbar-date text-white ms-lg-3 mt-3 mt-lg-0 d-flex align-items-center">
+                <i class="fas fa-calendar-alt me-1" style="color: #00ecfe;"></i>
+                <small class="d-none d-lg-block">11-14 JUN 2026</small>
+                <small class="d-lg-none">11-14 Junio 2026</small>
+            </div>
+
+            <!-- Botón inscripción -->
+            <a href="#preinscripcion" class="btn-navbar ms-lg-3 mt-3 mt-lg-0">
+                <i class="fas fa-user-plus me-1"></i> Inscribirme
+            </a>
         </div>
     </div>
 </nav>
@@ -682,6 +741,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
 <script>
     // Inicializar AOS
     AOS.init({
@@ -704,43 +764,48 @@
         }
     });
 
-    // Smooth scroll
+    // Smooth scroll y cierre de menú en mobile
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth' });
-
-                // CERRAR EL MENÚ EN MOBILE DESPUÉS DE HACER CLIC
-                const navbarCollapse = document.querySelector('.navbar-collapse');
-                const navbarToggler = document.querySelector('.navbar-toggler');
-
-                if (window.innerWidth <= 991 && navbarCollapse.classList.contains('show')) {
-                    navbarToggler.click();
+            const href = this.getAttribute('href');
+            if (href === '#' || href === '#inicio') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                const target = document.querySelector(href);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth' });
                 }
+            }
+
+            // Cerrar menú en mobile
+            const navbarCollapse = document.querySelector('.navbar-collapse');
+            const navbarToggler = document.querySelector('.navbar-toggler');
+
+            if (window.innerWidth <= 991 && navbarCollapse.classList.contains('show')) {
+                navbarToggler.click();
             }
         });
     });
 
     // Back to top
-    document.querySelector('.back-to-top').addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+    const backToTop = document.querySelector('.back-to-top');
+    if (backToTop) {
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
 
-    // También cerrar menú cuando se hace clic fuera de él (opcional)
+    // Cerrar menú al hacer clic fuera
     document.addEventListener('click', function(event) {
         const navbar = document.querySelector('.navbar');
         const navbarCollapse = document.querySelector('.navbar-collapse');
         const navbarToggler = document.querySelector('.navbar-toggler');
 
-        if (window.innerWidth <= 991 && navbarCollapse.classList.contains('show')) {
-            // Si el clic no fue dentro del navbar ni en el botón toggler
-            if (!navbar.contains(event.target) || event.target === navbarToggler) {
-                // No hacer nada si es el toggler
-                if (event.target !== navbarToggler && !navbarToggler.contains(event.target)) {
-                    navbarToggler.click();
-                }
+        if (window.innerWidth <= 991 && navbarCollapse && navbarCollapse.classList.contains('show')) {
+            if (!navbar.contains(event.target) && event.target !== navbarToggler && !navbarToggler.contains(event.target)) {
+                navbarToggler.click();
             }
         }
     });
