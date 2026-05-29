@@ -198,7 +198,7 @@
             <div class="container" style="text-align: left !important;">
                 <div class="section-title" data-aos="fade-up">
                     <h2>INFORMACIÓN</h2>
-                    <p>Carrera de montaña legendaria desde 1997</p>
+                    <p>La primera edición fué en 1992 </p>
                 </div>
                 <div class="row align-items-center g-5">
                     <div class="col-lg-6" data-aos="fade-right">
@@ -526,21 +526,21 @@
                             <i class="fas fa-wrench"></i>
                             <div>
                                 <strong>Valentín Durán</strong><br>
-                                Dirección Técnica - +58 412-6851119
+                                Dirección Técnica - <a href="https://api.whatsapp.com/send/?phone=584126851119&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0" target="_blank" style="color:#999 !important; text-decoration: none !important;">+58 412-6851119</a>
                             </div>
                         </div>
                         <div class="contact-info">
                             <i class="fas fa-file-alt"></i>
                             <div>
                                 <strong>Gustavo Uzcátegui Rosales</strong><br>
-                                Secretario General - +58 424-7038594
+                                Secretario General - <a href="https://api.whatsapp.com/send/?phone=584247038594&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0" target="_blank" style="color:#999 !important; text-decoration: none !important;">+58 424-7038594</a>
                             </div>
                         </div>
                         <div class="contact-info">
                             <i class="fas fa-user-check"></i>
                             <div>
                                 <strong>Jhoana Noriega</strong><br>
-                                Coordinadora de Preinscripción - +58 424-7371101
+                                Coordinadora de Preinscripción - <a href="https://api.whatsapp.com/send/?phone=584247371101&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0" target="_blank" style="color:#999 !important; text-decoration: none !important;">+58 424-7371101</a>
                             </div>
                         </div>
                         <div class="contact-info">

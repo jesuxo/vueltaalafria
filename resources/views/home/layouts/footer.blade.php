@@ -8,10 +8,9 @@
                 <h4>Vuelta a la Fría</h4>
                 <p>La Vuelta Menor más importante de Venezuela. Un evento que forma jóvenes talentos y promueve el ciclismo en el municipio García de Hevia, estado Táchira.</p>
                 <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-whatsapp"></i></a>
-                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="https://www.instagram.com/vueltalafria/" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="https://api.whatsapp.com/send/?phone=584247371101&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" class="d-none"><i class="fab fa-youtube"></i></a>
                 </div>
             </div>
             <div class="col-lg-4 mb-4">
@@ -29,7 +28,7 @@
                 <ul class="list-unstyled">
                     <li><i class="fas fa-user-tie me-2" style="color: #00ecfe;"></i> Rubén Osorio Espinoza</li>
                     <li class="mt-2"><i class="fas fa-envelope me-2" style="color: #00ecfe;"></i> vueltalafria@gmail.com</li>
-                    <li class="mt-2"><i class="fas fa-phone me-2" style="color: #00ecfe;"></i> +58 424-7371101 (Inscripciones)</li>
+                    <li class="mt-2"><a href="https://api.whatsapp.com/send/?phone=584247371101&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0" target="_blank" style="text-decoration: none !important;"><i class="fab fa-whatsapp me-2" style="color: #00ecfe;"></i> <span style="color: #999999 !important;">+58 424-7371101</span> </a>(Inscripciones)</li>
                     <li class="mt-2"><i class="fas fa-map-marker-alt me-2" style="color: #00ecfe;"></i> La Fría, Municipio García de Hevia, Táchira, Venezuela</li>
                 </ul>
             </div>
