@@ -1,5 +1,5 @@
 @extends('layouts.master-auth')
-@section('title') Iniciar Sesión - Stars Motors @endsection
+@section('title') Iniciar Sesión - Vuelta a la Fria @endsection
 
 @section('content')
     <div class="container-fluid p-0">
@@ -9,7 +9,7 @@
                 <div class="w-100" style="max-width: 380px; padding: 2rem;">
                     <!-- Logo -->
                     <div class="text-center mb-5">
-                        <img src="{{ URL::asset('build/images/logo-dark.png') }}" alt="Stars Motors" height="60" class="mb-3">
+                        <img src="{{ URL::asset('build/images/logo-dark.png') }}" alt="Vuelta a la Fria" height="60" class="mb-3">
                         <h2 class="fw-bold mb-1" style="color: #0c192c;">¡Bienvenido!</h2>
                         <p class="text-muted">Inicia sesión para continuar</p>
                     </div>
@@ -118,7 +118,7 @@
                     <div class="text-center mt-5">
                         <p class="small text-muted mb-0">
                             <i class="ri-copyright-line align-middle me-1"></i>
-                            {{ date('Y') }} Stars Motors. Todos los derechos reservados.
+                            {{ date('Y') }} Vuelta a la Fria. Todos los derechos reservados.
                         </p>
                         <p class="small text-muted">
                             Desarrollado por <a href="https://CelisWeb.com.ve" target="_blank" class="text-primary text-decoration-none">CelisWeb</a>
@@ -131,70 +131,7 @@
             <div class="col-lg-8 col-md-6 d-none d-md-block" style="background: linear-gradient(135deg, #0c192c 0%, #132846 100%);">
                 <div class="h-100 d-flex align-items-center justify-content-center p-5">
                     <div class="text-center text-white" style="max-width: 600px;">
-                        <!-- Icono principal -->
-                        <div class="mb-5">
-                            <div class="d-inline-block p-4  "  >
-                                <img src="{{ URL::asset('build/images/logo-white.png') }}" alt="Stars Motors" height="60" class="mb-3">
-                            </div>
-                        </div>
 
-                        <!-- Título -->
-
-                        <p class="lead mb-5 opacity-75">Sistema Integral de Gestión para Talleres Automotrices</p>
-
-                        <!-- Features -->
-                        <div class="row g-4">
-                            <div class="col-6">
-                                <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px);">
-                                    <i class="ri-speed-line fs-2 mb-2 d-block text-warning"></i>
-                                    <h6 class="fw-semibold text-white">Registro Rápido</h6>
-                                    <small class="opacity-75">Mantenimientos express en 3 pasos</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px);">
-                                    <i class="ri-history-line fs-2 mb-2 d-block text-info"></i>
-                                    <h6 class="fw-semibold text-white">Historial Completo</h6>
-                                    <small class="opacity-75">Todos los mantenimientos por vehículo</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px);">
-                                    <i class="ri-camera-line fs-2 mb-2 d-block text-success"></i>
-                                    <h6 class="fw-semibold text-white">Evidencia Fotográfica</h6>
-                                    <small class="opacity-75">Fotos de cada servicio</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px);">
-                                    <i class="ri-whatsapp-line fs-2 mb-2 d-block text-success"></i>
-                                    <h6 class="fw-semibold text-white">Notificaciones</h6>
-                                    <small class="opacity-75">Comparte con tus clientes</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Estadísticas -->
-                        <div class="row mt-5 pt-3 g-4">
-                            <div class="col-4">
-                                <div class="border-start border-2 ps-3" style="border-color: #0072c5 !important;">
-                                    <h3 class="fw-bold mb-0 text-white">500+</h3>
-                                    <small class="opacity-75">Vehículos</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="border-start border-2 ps-3" style="border-color: #0072c5 !important;">
-                                    <h3 class="fw-bold mb-0 text-white">1.2k+</h3>
-                                    <small class="opacity-75">Mantenimientos</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="border-start border-2 ps-3" style="border-color: #0072c5 !important;">
-                                    <h3 class="fw-bold mb-0 text-white">2.5k+</h3>
-                                    <small class="opacity-75">Clientes</small>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -221,7 +158,7 @@
 
         // Fill demo credentials
         function fillDemoCredentials() {
-            document.getElementById('email').value = 'demo@starsmotors.com';
+            document.getElementById('email').value = 'demo@vueltalafria.com';
             document.getElementById('password').value = 'Demo123';
 
             // Animación simple
