@@ -206,7 +206,7 @@
                     </div>
                     <div class="col-lg-6" data-aos="fade-left">
                         <p >La Vuelta Menor a La Fría es un evento de ruta por etapas que se realizará del 11 al 14 de junio de 2026 en el municipio García de Hevia, estado Táchira, Venezuela.</p>
-                        <p>El evento está regido por el reglamento de la Unión Ciclista Internacional (UCI) y la Federación Venezolana de Ciclismo (FVC). La participación es abierta para ciclistas independientes y equipos organizados como clubes y escuelas, mediante invitación para las categorías menores desde Stryder hasta Juvenil.</p>
+                        <p>El evento está regido por el reglamento de la Unión Ciclista Internacional (UCI) y la Federación Venezolana de Ciclismo (FVC). La participación es abierta para ciclistas independientes y equipos organizados como clubes y escuelas, mediante invitación para las categorías menores desde Strider hasta Juvenil.</p>
                         <p class="mt-3">La carrera cuenta con el aval de la Asociación Tachirense de Ciclismo, la Comisión Nacional de Ciclismo Menor y Juvenil, la Federación Venezolana de Ciclismo (FVC), el Instituto Municipal de Deporte (IMDERE) y el Instituto del Deporte Tachirense (IDT).</p>
                         <div class="mt-4">
                             <div class="row  ">
@@ -276,7 +276,7 @@
                                 <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Pre-Infantil</strong> (11-12 años) - Nacidos 2015-2014</li>
                                 <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Infantil</strong> (13-14 años) - Nacidos 2013-2012</li>
                                 <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Pre-Juvenil</strong> (15-16 años) - Nacidos 2011-2010</li>
-                                <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Juvenil</strong> (17-18 años)</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Juvenil</strong> (17-18 años) - Nacidos 2009-2008</li>
                             </ul>
                             <div class="mt-3 p-3 bg-light rounded">
                                 <small><strong>Rueda máxima:</strong> RIN 700 | <strong>Pedales:</strong> Automáticos</small>
@@ -287,8 +287,8 @@
                         <div class="p-4 bg-white rounded-4 h-100 shadow-sm">
                             <h3 class="text-danger mb-4"><i class="fas fa-bicycle me-2"></i> Categorías 1 Día (Exhibición)</h3>
                             <ul class="list-unstyled">
-                                <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Compota Strider</strong> (3-4 años)</li>
-                                <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Compota Pedales</strong> (3-4 años)</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Compota Strider</strong> (3-4 años - Nacidos 2023-2022)</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Compota Pedales</strong> (3-4 años - Nacidos 2023-2022)</li>
                                 <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Iniciación "A"</strong> (5-6 años) - Nacidos 2021-2020</li>
                                 <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Iniciación "B"</strong> (7-8 años) - Nacidos 2019-2018</li>
                                 <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> <strong>Exhibición</strong> (9-10 años) - Nacidos 2017-2016</li>
@@ -312,7 +312,7 @@
                 <div class="schedule-timeline">
                     <div class="schedule-item" data-aos="fade-up">
                         <div class="schedule-time">Jueves 11/06</div>
-                        <div class="schedule-event">2:00 pm - Revisión de licencias, documentos y uniformes (Sede Osorio Group)</div>
+                        <div class="schedule-event">2:00 pm - Revisión de licencias, documentos y uniformes (Sede Osorio Group Av. Aeropuerto La Fria)</div>
                     </div>
                     <div class="schedule-item" data-aos="fade-up">
                         <div class="schedule-time">Viernes 12/06 - 8:00 am</div>
@@ -374,14 +374,17 @@
                         <div class="route-card">
                             <i class="fas fa-road"></i>
                             <h4>Exhibición</h4>
-                            <p>Domingo 14/06: 7.2 km (Circuito Corto 900m)</p>
+                            <p>  Strider  <br>  Compota  </p>
+                            <p>Domingo 14/06: 100mts  </p>
                         </div>
                     </div>
                     <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="500">
                         <div class="route-card">
                             <i class="fas fa-road"></i>
-                            <h4>Iniciación A y B</h4>
-                            <p>Iniciación "A": 1.8 km<br>Iniciación "B": 3.6 km</p>
+                            <h4>Iniciación A, B y C</h4>
+                            <p>     Iniciación "A": 1.8 km
+                                <br>Iniciación "B": 3.6 km
+                                <br>Iniciación "C": 7.2 km</p>
                         </div>
                     </div>
                 </div>
@@ -581,24 +584,24 @@
                                                     <option value="">Seleccionar categoría</option>
                                                     <optgroup label="3 Etapas (Viernes a Domingo)">
                                                         @if(old('gender') == 'Masculino' || !old('gender'))
-                                                            <option value="Pre-Infantil" {{ old('category') == 'Pre-Infantil' ? 'selected' : '' }}>Pre-Infantil Masculino (11-12 años)</option>
-                                                            <option value="Infantil" {{ old('category') == 'Infantil' ? 'selected' : '' }}>Infantil Masculino (13-14 años)</option>
-                                                            <option value="Pre-Juvenil" {{ old('category') == 'Pre-Juvenil' ? 'selected' : '' }}>Pre-Juvenil Masculino (15-16 años)</option>
-                                                            <option value="Juvenil" {{ old('category') == 'Juvenil' ? 'selected' : '' }}>Juvenil Masculino (17-18 años)</option>
+                                                            <option value="Pre-Infantil" {{ old('category') == 'Pre-Infantil' ? 'selected' : '' }}>Pre-Infantil Masculino (11-12 años - Nacidos 2015-2014)</option>
+                                                            <option value="Infantil" {{ old('category') == 'Infantil' ? 'selected' : '' }}>Infantil Masculino (13-14 años - Nacidos 2013-2012)</option>
+                                                            <option value="Pre-Juvenil" {{ old('category') == 'Pre-Juvenil' ? 'selected' : '' }}>Pre-Juvenil Masculino (15-16 años - Nacidos 2011-2010)</option>
+                                                            <option value="Juvenil" {{ old('category') == 'Juvenil' ? 'selected' : '' }}>Juvenil Masculino (17-18 años - Nacidos 2009-2008)</option>
                                                         @endif
                                                         @if(old('gender') == 'Femenino' || !old('gender'))
-                                                            <option value="Pre-Infantil" {{ old('category') == 'Pre-Infantil' ? 'selected' : '' }}>Pre-Infantil Femenino (11-12 años)</option>
-                                                            <option value="Infantil" {{ old('category') == 'Infantil' ? 'selected' : '' }}>Infantil Femenino (13-14 años)</option>
-                                                            <option value="Pre-Juvenil" {{ old('category') == 'Pre-Juvenil' ? 'selected' : '' }}>Pre-Juvenil Femenino (15-16 años)</option>
-                                                            <option value="Juvenil" {{ old('category') == 'Juvenil' ? 'selected' : '' }}>Juvenil Femenino (17-18 años)</option>
+                                                            <option value="Pre-Infantil" {{ old('category') == 'Pre-Infantil' ? 'selected' : '' }}>Pre-Infantil Femenino (11-12 años - Nacidos 2015-2014)</option>
+                                                            <option value="Infantil" {{ old('category') == 'Infantil' ? 'selected' : '' }}>Infantil Femenino (13-14 años - Nacidos 2013-2012)</option>
+                                                            <option value="Pre-Juvenil" {{ old('category') == 'Pre-Juvenil' ? 'selected' : '' }}>Pre-Juvenil Femenino (15-16 años - Nacidos 2011-2010)</option>
+                                                            <option value="Juvenil" {{ old('category') == 'Juvenil' ? 'selected' : '' }}>Juvenil Femenino (17-18 años -  Nacidos 2009-2008)</option>
                                                         @endif
                                                     </optgroup>
                                                     <optgroup label="1 Día (Domingo) - Exhibición">
-                                                        <option value="Iniciación A" {{ old('category') == 'Iniciación A' ? 'selected' : '' }}>Iniciación A (5-6 años)</option>
-                                                        <option value="Iniciación B" {{ old('category') == 'Iniciación B' ? 'selected' : '' }}>Iniciación B (7-8 años)</option>
-                                                        <option value="Exhibición" {{ old('category') == 'Exhibición' ? 'selected' : '' }}>Exhibición (9-10 años)</option>
-                                                        <option value="Compota Strider" {{ old('category') == 'Compota Strider' ? 'selected' : '' }}>Compota Strider (3-4 años)</option>
-                                                        <option value="Compota Pedales" {{ old('category') == 'Compota Pedales' ? 'selected' : '' }}>Compota Pedales (3-4 años)</option>
+                                                        <option value="Iniciación A" {{ old('category') == 'Iniciación A' ? 'selected' : '' }}>Iniciación A (5-6 años - Nacidos 2021-2020)</option>
+                                                        <option value="Iniciación B" {{ old('category') == 'Iniciación B' ? 'selected' : '' }}>Iniciación B (7-8 años - Nacidos 2019-2018)</option>
+                                                        <option value="Iniciación C" {{ old('category') == 'Iniciación C' ? 'selected' : '' }}>Iniciación C (9-10 años - Nacidos 2017-2016)</option>
+                                                        <option value="Compota Strider" {{ old('category') == 'Compota Strider' ? 'selected' : '' }}>Compota Strider (3-4 años - Nacidos 2023-2022)</option>
+                                                        <option value="Compota Pedales" {{ old('category') == 'Compota Pedales' ? 'selected' : '' }}>Compota Pedales (3-4 años - Nacidos 2023-2022)</option>
                                                     </optgroup>
                                                 </select>
                                                 @error('category')

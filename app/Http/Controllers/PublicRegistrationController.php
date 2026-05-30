@@ -231,7 +231,7 @@ class PublicRegistrationController extends Controller
             'COMPOTAS' => '3-4 años (2022-2023)',
             'INICIACIÓN A' => '5-6 años (2020-2021)',
             'INICIACIÓN B' => '7-8 años (2018-2019)',
-            'EXHIBICIÓN' => '9-10 años (2016-2017)',
+            'INICIACIÓN C' => '9-10 años (2018-2019)',
             'PRE-INFANTIL D' => '11-12 años (2014-2015)',
             'INFANTIL' => '13-14 años (2012-2013)',
             'PRE-JUVENIL' => '15-16 años (2010-2011)',

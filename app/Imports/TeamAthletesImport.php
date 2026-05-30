@@ -24,6 +24,7 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
         'COMPOTAS' => 'COMPOTAS',
         'INICIACIÓN A' => 'INICIACIÓN A',
         'INICIACIÓN B' => 'INICIACIÓN B',
+        'INICIACIÓN C' => 'INICIACIÓN C',
         'EXHIBICIÓN' => 'EXHIBICIÓN',
         'PRE-INFANTIL D' => 'PRE-INFANTIL D',
         'INFANTIL' => 'INFANTIL',
@@ -127,14 +128,15 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
     private function validateAgeByCategory($category, $age)
     {
         $ageRanges = [
-            'COMPOTAS' => [3, 4],
-            'INICIACIÓN A' => [5, 6],
-            'INICIACIÓN B' => [7, 8],
-            'EXHIBICIÓN' => [9, 10],
+            'COMPOTAS'       => [3, 4],
+            'Strider'        => [3, 4],
+            'INICIACIÓN A'   => [5, 6],
+            'INICIACIÓN B'   => [7, 8],
+            'INICIACIÓN C'   => [9, 10],
             'PRE-INFANTIL D' => [11, 12],
-            'INFANTIL' => [13, 14],
-            'PRE-JUVENIL' => [15, 16],
-            'JUVENIL' => [17, 18]
+            'INFANTIL'       => [13, 14],
+            'PRE-JUVENIL'    => [15, 16],
+            'JUVENIL'        => [17, 18]
         ];
 
         if (!isset($ageRanges[$category])) {

@@ -206,6 +206,7 @@ class RegistrationController extends Controller
             'Juvenil' => ['Masculino' => 'Juvenil Masculino', 'Femenino' => 'Juvenil Femenino'],
             'Iniciación A' => 'Iniciación A',
             'Iniciación B' => 'Iniciación B',
+            'Iniciación C' => 'Iniciación C',
             'Exhibición' => 'Exhibición',
             'Compota Strider' => 'Compota Strider',
             'Compota Pedales' => 'Compota Pedales'
@@ -227,6 +228,7 @@ class RegistrationController extends Controller
             'Juvenil' => 'Juvenil (17-18 años)',
             'Iniciación A' => 'Iniciación A (5-6 años)',
             'Iniciación B' => 'Iniciación B (7-8 años)',
+            'Iniciación C' => 'Iniciación C (9-10 años)',
             'Exhibición' => 'Exhibición (9-10 años)',
             'Compota Strider' => 'Compota Strider (3-4 años)',
             'Compota Pedales' => 'Compota Pedales (3-4 años)'
