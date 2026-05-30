@@ -161,7 +161,7 @@ class RegistrationController extends Controller
         ]);
 
         return redirect()->route('home')
-            ->with('individual_success', '¡Inscripción registrada exitosamente para la ' . $event->name . '! Tu dorsal es: ' . $dorsalNumber)
+            ->with('individual_success', '¡Inscripción registrada exitosamente para la ' . $event->name)
             ->with('form_success', 'individual');
     }
 
