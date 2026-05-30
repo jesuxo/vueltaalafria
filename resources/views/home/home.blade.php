@@ -205,7 +205,7 @@
                         <img src="/images/home1.jpg" style="border-radius: 6px;" alt="Ciclismo  Menor" class="about-img">
                     </div>
                     <div class="col-lg-6" data-aos="fade-left">
-                        <p class="lead">La Vuelta Menor a La Fría es un evento de ruta por etapas que se realizará del 11 al 14 de junio de 2026 en el municipio García de Hevia, estado Táchira, Venezuela.</p>
+                        <p >La Vuelta Menor a La Fría es un evento de ruta por etapas que se realizará del 11 al 14 de junio de 2026 en el municipio García de Hevia, estado Táchira, Venezuela.</p>
                         <p>El evento está regido por el reglamento de la Unión Ciclista Internacional (UCI) y la Federación Venezolana de Ciclismo (FVC). La participación es abierta para ciclistas independientes y equipos organizados como clubes y escuelas, mediante invitación para las categorías menores desde Stryder hasta Juvenil.</p>
                         <p class="mt-3">La carrera cuenta con el aval de la Asociación Tachirense de Ciclismo, la Comisión Nacional de Ciclismo Menor y Juvenil, la Federación Venezolana de Ciclismo (FVC), el Instituto Municipal de Deporte (IMDERE) y el Instituto del Deporte Tachirense (IDT).</p>
                         <div class="mt-4">
