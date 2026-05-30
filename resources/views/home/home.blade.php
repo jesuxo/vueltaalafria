@@ -485,7 +485,7 @@
                 </div>
 
                 <!-- FORMULARIO INDIVIDUAL (oculto inicialmente) -->
-                <div id="individualForm" class="form-container" style="display: none;">
+                <div id="individualForm" class="form-container" style="display: {{ session('form_error') == 'individual' || session('form_success') == 'individual' ? 'block' : 'none' }};">
                     <div class="row justify-content-center">
                         <div class="col-lg-8">
                             <div class="card shadow-sm border-0">
@@ -497,84 +497,131 @@
                                     </div>
 
                                     @if(session('individual_success'))
-                                        <div class="alert alert-success">
+                                        <div class="alert alert-success alert-dismissible fade show" role="alert">
                                             <i class="fas fa-check-circle me-2"></i> {{ session('individual_success') }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                                         </div>
                                     @endif
 
-                                    @if($errors->any() && !session('import_errors'))
-                                        <div class="alert alert-danger">
-                                            <ul class="mb-0">
+                                    {{-- Mostrar errores específicos --}}
+                                    @if($errors->any() && session('form_error') == 'individual')
+                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                            <strong><i class="fas fa-exclamation-triangle me-2"></i> Por favor, corrige los siguientes errores:</strong>
+                                            <ul class="mb-0 mt-2">
                                                 @foreach($errors->all() as $error)
                                                     <li>{{ $error }}</li>
                                                 @endforeach
                                             </ul>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('registration.individual.submit') }}" method="POST">
+                                    <form action="{{ route('registration.individual.submit') }}" method="POST" id="individualFormSubmit">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label required-field">Nombres</label>
-                                                <input type="text" name="first_name" class="form-control" required value="{{ old('first_name') }}">
+                                                <input type="text" name="first_name"
+                                                       class="form-control @error('first_name') is-invalid @enderror"
+                                                       required value="{{ old('first_name') }}">
+                                                @error('first_name')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label required-field">Apellidos</label>
-                                                <input type="text" name="last_name" class="form-control" required value="{{ old('last_name') }}">
+                                                <input type="text" name="last_name"
+                                                       class="form-control @error('last_name') is-invalid @enderror"
+                                                       required value="{{ old('last_name') }}">
+                                                @error('last_name')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label required-field">Email</label>
-                                                <input type="email" name="email" class="form-control" required value="{{ old('email') }}">
+                                                <input type="email" name="email"
+                                                       class="form-control @error('email') is-invalid @enderror"
+                                                       required value="{{ old('email') }}">
+                                                @error('email')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label required-field">Teléfono/WhatsApp</label>
-                                                <input type="text" name="phone" class="form-control" required value="{{ old('phone') }}">
+                                                <input type="text" name="phone"
+                                                       class="form-control @error('phone') is-invalid @enderror"
+                                                       required value="{{ old('phone') }}">
+                                                @error('phone')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label required-field">Género</label>
-                                                <select name="gender" class="form-select" required>
+                                                <select name="gender" class="form-select @error('gender') is-invalid @enderror" required>
                                                     <option value="">Seleccionar</option>
-                                                    <option value="Masculino">Masculino</option>
-                                                    <option value="Femenino">Femenino</option>
+                                                    <option value="Masculino" {{ old('gender') == 'Masculino' ? 'selected' : '' }}>Masculino</option>
+                                                    <option value="Femenino" {{ old('gender') == 'Femenino' ? 'selected' : '' }}>Femenino</option>
                                                 </select>
+                                                @error('gender')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label required-field">Fecha de Nacimiento</label>
-                                                <input type="date" name="birth_date" class="form-control" required value="{{ old('birth_date') }}">
+                                                <input type="date" name="birth_date"
+                                                       class="form-control @error('birth_date') is-invalid @enderror"
+                                                       required value="{{ old('birth_date') }}">
+                                                @error('birth_date')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                             <div class="col-md-12 mb-3">
                                                 <label class="form-label required-field">Categoría</label>
-                                                <select name="category" class="form-select" required>
+                                                <select name="category" class="form-select @error('category') is-invalid @enderror" required>
                                                     <option value="">Seleccionar categoría</option>
                                                     <optgroup label="3 Etapas (Viernes a Domingo)">
-                                                        <option value="Pre-Infantil">Pre-Infantil (11-12 años)</option>
-                                                        <option value="Infantil">Infantil (13-14 años)</option>
-                                                        <option value="Pre-Juvenil">Pre-Juvenil (15-16 años)</option>
-                                                        <option value="Juvenil">Juvenil (17-18 años)</option>
+                                                        <option value="Pre-Infantil" {{ old('category') == 'Pre-Infantil' ? 'selected' : '' }}>Pre-Infantil (11-12 años)</option>
+                                                        <option value="Infantil" {{ old('category') == 'Infantil' ? 'selected' : '' }}>Infantil (13-14 años)</option>
+                                                        <option value="Pre-Juvenil" {{ old('category') == 'Pre-Juvenil' ? 'selected' : '' }}>Pre-Juvenil (15-16 años)</option>
+                                                        <option value="Juvenil" {{ old('category') == 'Juvenil' ? 'selected' : '' }}>Juvenil (17-18 años)</option>
                                                     </optgroup>
                                                     <optgroup label="1 Día (Domingo)">
-                                                        <option value="Iniciación A">Iniciación A (5-6 años)</option>
-                                                        <option value="Iniciación B">Iniciación B (7-8 años)</option>
-                                                        <option value="Exhibición">Exhibición (9-10 años)</option>
-                                                        <option value="Compota Strider">Compota Strider (3-4 años)</option>
-                                                        <option value="Compota Pedales">Compota Pedales (3-4 años)</option>
+                                                        <option value="Iniciación A" {{ old('category') == 'Iniciación A' ? 'selected' : '' }}>Iniciación A (5-6 años)</option>
+                                                        <option value="Iniciación B" {{ old('category') == 'Iniciación B' ? 'selected' : '' }}>Iniciación B (7-8 años)</option>
+                                                        <option value="Exhibición" {{ old('category') == 'Exhibición' ? 'selected' : '' }}>Exhibición (9-10 años)</option>
+                                                        <option value="Compota Strider" {{ old('category') == 'Compota Strider' ? 'selected' : '' }}>Compota Strider (3-4 años)</option>
+                                                        <option value="Compota Pedales" {{ old('category') == 'Compota Pedales' ? 'selected' : '' }}>Compota Pedales (3-4 años)</option>
                                                     </optgroup>
                                                 </select>
+                                                @error('category')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                             <div class="col-md-12 mb-3">
                                                 <label class="form-label required-field">Contacto de Emergencia</label>
-                                                <input type="text" name="emergency_contact" class="form-control" required placeholder="Nombre y teléfono" value="{{ old('emergency_contact') }}">
+                                                <input type="text" name="emergency_contact"
+                                                       class="form-control @error('emergency_contact') is-invalid @enderror"
+                                                       required placeholder="Nombre completo y teléfono de contacto"
+                                                       value="{{ old('emergency_contact') }}">
+                                                @error('emergency_contact')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <small class="text-muted">Ej: Juan Pérez - 0414XXXXXX</small>
                                             </div>
                                             <div class="col-12 mb-3">
                                                 <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input" id="acceptTermsIndividual" name="accept_terms" required>
+                                                    <input type="checkbox" class="form-check-input @error('accept_terms') is-invalid @enderror"
+                                                           id="acceptTermsIndividual" name="accept_terms" required>
                                                     <label class="form-check-label" for="acceptTermsIndividual">
                                                         Acepto los <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">términos y condiciones</a> de la competencia
                                                     </label>
+                                                    @error('accept_terms')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
                                                 </div>
                                             </div>
                                             <div class="col-12 text-center">
+                                                <!-- Si no tienes reCAPTCHA, comenta esta línea -->
                                                 <div class="g-recaptcha mb-3" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
                                                 <button type="submit" class="btn-custom">
                                                     <i class="fas fa-paper-plane me-2"></i> Enviar Inscripción
@@ -1190,6 +1237,85 @@
                 @if(session('import_errors') || ($errors->any() && session('import_errors')))
                 showTeamForm();
                 @endif
+
+                // Validación del formulario individual antes de enviar
+                document.getElementById('individualFormSubmit')?.addEventListener('submit', function(e) {
+                    let errors = [];
+                    let firstError = null;
+
+                    // Validar campos
+                    const fields = [
+                        { name: 'first_name', label: 'Nombres' },
+                        { name: 'last_name', label: 'Apellidos' },
+                        { name: 'email', label: 'Email' },
+                        { name: 'phone', label: 'Teléfono' },
+                        { name: 'gender', label: 'Género' },
+                        { name: 'birth_date', label: 'Fecha de nacimiento' },
+                        { name: 'category', label: 'Categoría' },
+                        { name: 'emergency_contact', label: 'Contacto de emergencia' }
+                    ];
+
+                    fields.forEach(field => {
+                        const input = document.querySelector(`[name="${field.name}"]`);
+                        if (input && !input.value.trim()) {
+                            errors.push(`❌ El campo "${field.label}" es obligatorio`);
+                            input.classList.add('is-invalid');
+                            if (!firstError) firstError = input;
+                        } else if (input) {
+                            input.classList.remove('is-invalid');
+                        }
+                    });
+
+                    // Validar email
+                    const email = document.querySelector('[name="email"]');
+                    if (email && email.value.trim()) {
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(email.value)) {
+                            errors.push(`❌ El email ingresado no es válido`);
+                            email.classList.add('is-invalid');
+                            if (!firstError) firstError = email;
+                        }
+                    }
+
+                    // Validar términos
+                    const terms = document.getElementById('acceptTermsIndividual');
+                    if (terms && !terms.checked) {
+                        errors.push(`❌ Debes aceptar los términos y condiciones`);
+                        terms.classList.add('is-invalid');
+                    } else if (terms) {
+                        terms.classList.remove('is-invalid');
+                    }
+
+                    // Validar reCAPTCHA si está activo
+                    const recaptcha = document.querySelector('.g-recaptcha');
+                    if (recaptcha && typeof grecaptcha !== 'undefined') {
+                        const token = document.querySelector('[name="g-recaptcha-response"]');
+                        if (token && !token.value) {
+                            errors.push(`❌ Debes completar la verificación humana`);
+                        }
+                    }
+
+                    if (errors.length > 0) {
+                        e.preventDefault();
+
+                        // Mostrar alerta con todos los errores
+                        let errorMsg = '⚠️ Por favor, corrige los siguientes errores:\n\n';
+                        errors.forEach(err => {
+                            errorMsg += err + '\n';
+                        });
+                        alert(errorMsg);
+
+                        // Scroll al primer error
+                        if (firstError) {
+                            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            firstError.focus();
+                        }
+
+                        return false;
+                    }
+
+                    return true;
+                });
             </script>
         @endsection
     @endsection
