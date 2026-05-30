@@ -4,9 +4,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Event extends Model
 {
+    protected $table = 'events';
+
     protected $fillable = [
         'year', 'name', 'description', 'start_date', 'end_date',
         'registration_start', 'registration_end', 'is_active'
@@ -32,8 +35,11 @@ class Event extends Model
 
     public function isRegistrationOpen()
     {
-        $now = now();
-        return $now->between($this->registration_start, $this->registration_end);
+        $now = Carbon::now();
+        $start = Carbon::parse($this->registration_start);
+        $end = Carbon::parse($this->registration_end);
+
+        return $now->between($start, $end);
     }
 
     public function getFullNameAttribute()

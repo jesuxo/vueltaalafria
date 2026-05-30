@@ -18,7 +18,7 @@ class RegistrationController extends Controller
     {
         $event = Event::where('is_active', true)->first();
 
-        if (!isset($event)) {
+        if (!$event) {
             // Si no hay evento activo, crear uno por defecto para 2026
             $event = Event::create([
                 'year'               => 2026,
@@ -34,6 +34,83 @@ class RegistrationController extends Controller
         return $event;
     }
 
+    // Validar edad por categoría
+    private function validateAgeByCategory($birthDate, $category, $gender)
+    {
+        $age = Carbon::parse($birthDate)->age;
+
+        $ageRanges = [
+            'Pre-Infantil' => ['min' => 11, 'max' => 12],
+            'Infantil' => ['min' => 13, 'max' => 14],
+            'Pre-Juvenil' => ['min' => 15, 'max' => 16],
+            'Juvenil' => ['min' => 17, 'max' => 18],
+            'Iniciación A' => ['min' => 5, 'max' => 6],
+            'Iniciación B' => ['min' => 7, 'max' => 8],
+            'Iniciación C' => ['min' => 9, 'max' => 10],
+            'Exhibición' => ['min' => 9, 'max' => 10],
+            'Compota Strider' => ['min' => 3, 'max' => 4],
+            'Compota Pedales' => ['min' => 3, 'max' => 4]
+        ];
+
+        if (!isset($ageRanges[$category])) {
+            return false;
+        }
+
+        $range = $ageRanges[$category];
+        return $age >= $range['min'] && $age <= $range['max'];
+    }
+
+    // Generar dorsal para el evento
+    private function generateDorsalNumberForEvent($eventId)
+    {
+        $lastParticipation = AthleteEventParticipation::where('event_id', $eventId)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $number = $lastParticipation ? intval(substr($lastParticipation->dorsal_number, 1)) + 1 : 1;
+        return 'D' . str_pad($number, 4, '0', STR_PAD_LEFT);
+    }
+
+    // Mapear categoría
+    private function mapCategory($category, $gender)
+    {
+        $mapping = [
+            'Pre-Infantil' => ['Masculino' => 'Pre-Infantil Masculino', 'Femenino' => 'Pre-Infantil Femenino'],
+            'Infantil' => ['Masculino' => 'Infantil Masculino', 'Femenino' => 'Infantil Femenino'],
+            'Pre-Juvenil' => ['Masculino' => 'Pre-Juvenil Masculino', 'Femenino' => 'Pre-Juvenil Femenino'],
+            'Juvenil' => ['Masculino' => 'Juvenil Masculino', 'Femenino' => 'Juvenil Femenino'],
+            'Iniciación A' => 'Iniciación A',
+            'Iniciación B' => 'Iniciación B',
+            'Iniciación C' => 'Iniciación C',
+            'Exhibición' => 'Exhibición',
+            'Compota Strider' => 'Compota Strider',
+            'Compota Pedales' => 'Compota Pedales'
+        ];
+
+        if (isset($mapping[$category]) && is_array($mapping[$category])) {
+            return $mapping[$category][$gender] ?? null;
+        }
+
+        return $mapping[$category] ?? null;
+    }
+
+    // Obtener categorías
+    private function getCategories()
+    {
+        return [
+            'Pre-Infantil' => 'Pre-Infantil (11-12 años)',
+            'Infantil' => 'Infantil (13-14 años)',
+            'Pre-Juvenil' => 'Pre-Juvenil (15-16 años)',
+            'Juvenil' => 'Juvenil (17-18 años)',
+            'Iniciación A' => 'Iniciación A (5-6 años)',
+            'Iniciación B' => 'Iniciación B (7-8 años)',
+            'Iniciación C' => 'Iniciación C (9-10 años)',
+            'Exhibición' => 'Exhibición (9-10 años)',
+            'Compota Strider' => 'Compota Strider (3-4 años)',
+            'Compota Pedales' => 'Compota Pedales (3-4 años)'
+        ];
+    }
+
     // Formulario inscripción individual
     public function individualForm()
     {
@@ -42,6 +119,7 @@ class RegistrationController extends Controller
         return view('home.registration.individual', compact('categories', 'event'));
     }
 
+    // Procesar inscripción individual
     public function individualSubmit(Request $request)
     {
         // Validación
@@ -71,7 +149,7 @@ class RegistrationController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
+            return redirect()->route('home')
                 ->withErrors($validator)
                 ->withInput()
                 ->with('form_error', 'individual');
@@ -81,12 +159,22 @@ class RegistrationController extends Controller
 
         // Validar fechas de inscripción
         if (!$event->isRegistrationOpen()) {
-            return redirect()->back()
+            return redirect()->route('home')
                 ->withErrors(['error' => 'El período de inscripción para este evento ha cerrado.'])
-                ->withInput();
+                ->withInput()
+                ->with('form_error', 'individual');
         }
 
-        // Verificar si el ciclista ya existe por documento o por nombre+fecha
+        // Validar edad vs categoría
+        $age = Carbon::parse($request->birth_date)->age;
+        if (!$this->validateAgeByCategory($request->birth_date, $request->category, $request->gender)) {
+            return redirect()->route('home')
+                ->withErrors(['category' => "La categoría seleccionada no corresponde con tu edad ({$age} años)." . $this->getCategoryAgeRange($request->category)])
+                ->withInput()
+                ->with('form_error', 'individual');
+        }
+
+        // Verificar si el ciclista ya existe
         $existingAthlete = null;
 
         if ($request->identification_document) {
@@ -107,7 +195,7 @@ class RegistrationController extends Controller
                 ->exists();
 
             if ($existingParticipation) {
-                return redirect()->back()
+                return redirect()->route('home')
                     ->withErrors(['error' => 'Este ciclista ya está inscrito para la ' . $event->name . '.'])
                     ->withInput()
                     ->with('form_error', 'individual');
@@ -127,26 +215,26 @@ class RegistrationController extends Controller
                 'nationality'     => $request->nationality ?? 'Venezolana',
                 'document_type'   => $request->document_type ?? 'V',
                 'document_number' => $request->identification_document,
-                'is_active' => true
+                'is_active'       => true
             ]);
         }
 
         // Generar dorsal para este evento
-        //$dorsalNumber = $this->generateDorsalNumberForEvent($event->id);
+        $dorsalNumber = $this->generateDorsalNumberForEvent($event->id);
 
         // Actualizar dorsal del atleta
-        //$athlete->dorsal_number = (isset($dorsalNumber))? $dorsalNumber : '';
+        $athlete->dorsal_number = $dorsalNumber;
         $athlete->save();
 
         // Crear participación en el evento
         AthleteEventParticipation::create([
             'athlete_id'    => $athlete->id,
             'event_id'      => $event->id,
-           // 'dorsal_number' => (isset($dorsalNumber))? $dorsalNumber : '',
+            'dorsal_number' => $dorsalNumber,
             'status'        => 'registered'
         ]);
 
-        // Registrar la inscripción - AHORA CON event_id
+        // Registrar la inscripción
         $registration = Registration::create([
             'event_id'          => $event->id,
             'registration_type' => 'individual',
@@ -155,14 +243,24 @@ class RegistrationController extends Controller
             'phone'             => $request->phone,
             'status'            => 'pending',
             'notes'             => json_encode([
-                                       'emergency_contact' => $request->emergency_contact
-                                   ]),
+                'emergency_contact' => $request->emergency_contact
+            ]),
             'registered_at'     => now()
         ]);
 
+        // Redirigir con modal de éxito
         return redirect()->route('home')
-            ->with('individual_success', '¡Inscripción registrada exitosamente para la ' . $event->name)
-            ->with('form_success', 'individual');
+            ->with('success_modal', true)
+            ->with('success_title', '¡Inscripción Registrada!')
+            ->with('success_message', "¡Inscripción registrada exitosamente para la {$event->name}!")
+            ->with('success_details', [
+                'nombre'    => $athlete->first_name . ' ' . $athlete->last_name,
+                'dorsal'    => $dorsalNumber,
+                'categoria' => $athlete->category,
+                'email'     => $request->email,
+                'telefono'  => $request->phone
+            ])
+            ->with('form_error', 'none');
     }
 
     // Verificar estado de inscripción
@@ -180,57 +278,33 @@ class RegistrationController extends Controller
             ->first();
 
         if (!$registration) {
-            return redirect()->back()->with('check_error', 'No se encontró ninguna inscripción para este evento con ese correo.');
+            return redirect()->route('home')
+                ->with('error', 'No se encontró ninguna inscripción para este evento con ese correo.')
+                ->with('form_error', 'none');
         }
 
-        return view('home.registration.status', compact('registration', 'event'));
+        return redirect()->route('home')
+            ->with('show_status_modal', true)
+            ->with('status_data', $registration)
+            ->with('form_error', 'none');
     }
 
-    private function generateDorsalNumberForEvent($eventId)
+    // Obtener rango de edad de la categoría (para mensajes de error)
+    private function getCategoryAgeRange($category)
     {
-        $lastParticipation = AthleteEventParticipation::where('event_id', $eventId)
-            ->orderBy('id', 'desc')
-            ->first();
-
-        $number = $lastParticipation ? intval(substr($lastParticipation->dorsal_number, 1)) + 1 : 1;
-        return 'D' . str_pad($number, 4, '0', STR_PAD_LEFT);
-    }
-
-    private function mapCategory($category, $gender)
-    {
-        $mapping = [
-            'Pre-Infantil' => ['Masculino' => 'Pre-Infantil Masculino', 'Femenino' => 'Pre-Infantil Femenino'],
-            'Infantil' => ['Masculino' => 'Infantil Masculino', 'Femenino' => 'Infantil Femenino'],
-            'Pre-Juvenil' => ['Masculino' => 'Pre-Juvenil Masculino', 'Femenino' => 'Pre-Juvenil Femenino'],
-            'Juvenil' => ['Masculino' => 'Juvenil Masculino', 'Femenino' => 'Juvenil Femenino'],
-            'Iniciación A' => 'Iniciación A',
-            'Iniciación B' => 'Iniciación B',
-            'Iniciación C' => 'Iniciación C',
-            'Exhibición' => 'Exhibición',
-            'Compota Strider' => 'Compota Strider',
-            'Compota Pedales' => 'Compota Pedales'
+        $ageRanges = [
+            'Pre-Infantil' => ' (11-12 años)',
+            'Infantil' => ' (13-14 años)',
+            'Pre-Juvenil' => ' (15-16 años)',
+            'Juvenil' => ' (17-18 años)',
+            'Iniciación A' => ' (5-6 años)',
+            'Iniciación B' => ' (7-8 años)',
+            'Iniciación C' => ' (9-10 años)',
+            'Exhibición' => ' (9-10 años)',
+            'Compota Strider' => ' (3-4 años)',
+            'Compota Pedales' => ' (3-4 años)'
         ];
 
-        if (isset($mapping[$category]) && is_array($mapping[$category])) {
-            return $mapping[$category][$gender] ?? null;
-        }
-
-        return $mapping[$category] ?? null;
-    }
-
-    private function getCategories()
-    {
-        return [
-            'Pre-Infantil' => 'Pre-Infantil (11-12 años)',
-            'Infantil' => 'Infantil (13-14 años)',
-            'Pre-Juvenil' => 'Pre-Juvenil (15-16 años)',
-            'Juvenil' => 'Juvenil (17-18 años)',
-            'Iniciación A' => 'Iniciación A (5-6 años)',
-            'Iniciación B' => 'Iniciación B (7-8 años)',
-            'Iniciación C' => 'Iniciación C (9-10 años)',
-            'Exhibición' => 'Exhibición (9-10 años)',
-            'Compota Strider' => 'Compota Strider (3-4 años)',
-            'Compota Pedales' => 'Compota Pedales (3-4 años)'
-        ];
+        return $ageRanges[$category] ?? '';
     }
 }

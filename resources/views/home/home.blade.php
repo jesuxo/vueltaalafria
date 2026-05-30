@@ -149,6 +149,59 @@
                 transform: translateY(0);
             }
         }
+
+        /* Animación del checkmark */
+        .success-animation {
+            margin: 0 auto;
+        }
+        .checkmark-circle {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            display: inline-block;
+            vertical-align: top;
+            border-radius: 50%;
+            background: #00ecfe;
+            animation: scale 0.3s ease-in-out;
+        }
+        .checkmark {
+            border-radius: 5px;
+        }
+        .checkmark.draw:after {
+            animation-duration: 0.3s;
+            animation-delay: 0.1s;
+            animation-timing-function: ease;
+            animation-name: checkmark;
+            transform: scaleX(-1) rotate(135deg);
+            animation-fill-mode: forwards;
+            opacity: 0;
+            content: "";
+            position: absolute;
+            top: 35px;
+            left: 25px;
+            height: 25px;
+            width: 12.5px;
+            border-right: 5px solid white;
+            border-bottom: 5px solid white;
+        }
+        @keyframes scale {
+            0% {
+                transform: scale(0);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        @keyframes checkmark {
+            0% {
+                opacity: 0;
+                transform: scaleX(-1) rotate(135deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scaleX(-1) rotate(135deg);
+            }
+        }
     </style>
 @endsection
 
@@ -482,7 +535,7 @@
             </div>
 
             <!-- FORMULARIO INDIVIDUAL -->
-            <div id="individualForm" class="form-container" style="display: {{ session('form_error') == 'individual' || session('form_success') == 'individual' ? 'block' : 'none' }};">
+            <div id="individualForm" class="form-container" style="display: {{ session('form_error') == 'individual' ? 'block' : 'none' }};">
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div class="card shadow-sm border-0">
@@ -966,10 +1019,183 @@
             </div>
         </div>
     </section>
+    <!-- Modal de Éxito - Inscripción Exitosa -->
+    <div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #00ecfe 0%, #00c4d4 100%);">
+                    <div class="modal-title text-center w-100">
+                        <i class="fas fa-check-circle fa-4x text-white mb-2"></i>
+                        <h4 class="text-white mb-0" id="successModalTitle">¡Inscripción Registrada!</h4>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <div class="success-animation">
+                        <div class="checkmark-circle">
+                            <div class="checkmark draw"></div>
+                        </div>
+                    </div>
+                    <h5 class="mt-4" id="successMessage">¡Inscripción exitosa!</h5>
+                    <div class="alert alert-success mt-3" id="successDetails">
+                        <table class="table table-borderless mb-0">
+                            <tbody id="successDetailsTable"></tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-muted">Se ha enviado un correo con los detalles de tu inscripción.</p>
+                        <small class="text-muted">Guarda tu número de dorsal para el día del evento.</small>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn-custom" data-bs-dismiss="modal">
+                        <i class="fas fa-check me-2"></i> Aceptar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Estado de Inscripción -->
+    <div class="modal fade" id="statusModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="modal-title text-center w-100">
+                        <i class="fas fa-clipboard-list fa-4x text-white mb-2"></i>
+                        <h4 class="text-white mb-0">Estado de Inscripción</h4>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="statusContent"></div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn-custom" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Mostrar modal de éxito si existe la variable de sesión
+        @if(session('success_modal'))
+        document.addEventListener('DOMContentLoaded', function() {
+            // Llenar los datos del modal
+            document.getElementById('successMessage').innerHTML = '{{ session('success_message') }}';
+
+            const details = @json(session('success_details'));
+            const detailsTable = document.getElementById('successDetailsTable');
+            if (detailsTable && details) {
+                detailsTable.innerHTML = `
+                    <tr>
+                        <td class="fw-bold">👤 Ciclista:</td>
+                        <td>${details.nombre || ''}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">🔢 Dorsal:</td>
+                        <td><span class="badge bg-primary fs-6">${details.dorsal || ''}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">🏆 Categoría:</td>
+                        <td>${details.categoria || ''}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">📧 Email:</td>
+                        <td>${details.email || ''}</td>
+                    </tr>
+                `;
+            }
+
+            // Mostrar el modal
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+
+            // Ocultar los formularios
+            document.getElementById('individualForm').style.display = 'none';
+            document.getElementById('teamForm').style.display = 'none';
+            document.getElementById('btnIndividual').classList.remove('active');
+            document.getElementById('btnTeam').classList.remove('active');
+
+            // Scroll al inicio
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        @endif
+
+        // Mostrar modal de estado de inscripción
+        @if(session('show_status_modal'))
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusData = @json(session('status_data'));
+            const statusContent = document.getElementById('statusContent');
+
+            if (statusContent && statusData) {
+                let statusBadge = '';
+                switch(statusData.status) {
+                    case 'pending':
+                        statusBadge = '<span class="badge bg-warning text-dark">⏳ Pendiente de revisión</span>';
+                        break;
+                    case 'approved':
+                        statusBadge = '<span class="badge bg-success">✅ Aprobada</span>';
+                        break;
+                    case 'rejected':
+                        statusBadge = '<span class="badge bg-danger">❌ Rechazada</span>';
+                        break;
+                    case 'paid':
+                        statusBadge = '<span class="badge bg-info">💰 Pagada</span>';
+                        break;
+                    default:
+                        statusBadge = '<span class="badge bg-secondary">📝 Registrada</span>';
+                }
+
+                statusContent.innerHTML = `
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-circle fa-4x text-primary"></i>
+                        <h5 class="mt-2">${statusData.registration_type === 'individual' ? 'Ciclista Individual' : 'Equipo'}</h5>
+                    </div>
+                    <div class="alert alert-info">
+                        <strong>📅 Evento:</strong> ${statusData.event?.name || 'Vuelta a la Fría 2026'}<br>
+                        <strong>📧 Email registrado:</strong> ${statusData.email}<br>
+                        <strong>📞 Teléfono:</strong> ${statusData.phone}<br>
+                        <strong>📌 Estado:</strong> ${statusBadge}<br>
+                        <strong>📅 Fecha de registro:</strong> ${new Date(statusData.registered_at).toLocaleDateString('es-VE')}
+                    </div>
+                `;
+
+                if (statusData.athlete) {
+                    statusContent.innerHTML += `
+                        <div class="alert alert-success">
+                            <strong>👤 Ciclista:</strong> ${statusData.athlete.first_name} ${statusData.athlete.last_name}<br>
+                            <strong>🔢 Dorsal:</strong> <span class="badge bg-primary">${statusData.athlete.dorsal_number}</span><br>
+                            <strong>🏆 Categoría:</strong> ${statusData.athlete.category}
+                        </div>
+                    `;
+                }
+            }
+
+            const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+            statusModal.show();
+        });
+        @endif
+
+        // Mostrar mensaje de error general si existe
+        @if(session('error'))
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '{{ session('error') }}',
+                confirmButtonColor: '#00ecfe'
+            });
+        });
+        @endif
+    </script>
+
     <script>
         // Inicializar Swiper para testimonials
         const testimonialSwiper = new Swiper('.testimonial-swiper', {
@@ -1231,6 +1457,9 @@
             document.getElementById('teamForm').style.display = 'none';
             document.getElementById('btnIndividual').classList.remove('active');
             document.getElementById('btnTeam').classList.remove('active');
+
+            // Scroll suave al inicio de la sección de inscripción
+            document.getElementById('preinscripcion').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         // Mostrar formulario si hay errores
