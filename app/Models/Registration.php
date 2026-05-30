@@ -10,7 +10,7 @@ class Registration extends Model
     protected $table = 'registrations';
 
     protected $fillable = [
-        'registration_type', 'team_id', 'athlete_id', 'email', 'phone',
+        'registration_type', 'team_id', 'athlete_id', 'email', 'phone','event_id',
         'status', 'payment_proof', 'amount', 'notes', 'registered_at'
     ];
 
