@@ -21,7 +21,7 @@ class RegistrationController extends Controller
     // Procesar inscripción individual
     public function individualSubmit(Request $request)
     {
-        // Validación con mensajes personalizados en español
+        // Validación con mensajes personalizados
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -33,7 +33,6 @@ class RegistrationController extends Controller
             'emergency_contact' => 'required|string',
             'accept_terms' => 'required|accepted'
         ], [
-            // Mensajes personalizados en español
             'first_name.required' => 'El campo Nombres es obligatorio.',
             'last_name.required' => 'El campo Apellidos es obligatorio.',
             'email.required' => 'El campo Email es obligatorio.',
@@ -52,41 +51,102 @@ class RegistrationController extends Controller
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput()
-                ->with('form_error', 'individual'); // Indicar qué formulario mostró error
+                ->with('form_error', 'individual');
+        }
+
+        // Mapear la categoría según género y categoría seleccionada
+        $mappedCategory = $this->mapCategory($request->category, $request->gender);
+
+        if (!$mappedCategory) {
+            return redirect()->back()
+                ->withErrors(['category' => 'La categoría seleccionada no es válida para el género especificado.'])
+                ->withInput()
+                ->with('form_error', 'individual');
         }
 
         // Generar número de dorsal automático
         $dorsalNumber = $this->generateDorsalNumber();
 
         // Crear el atleta
-        $athlete = Athlete::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'dorsal_number' => $dorsalNumber,
-            'team_id' => null, // Individual no tiene equipo
-            'gender' => $request->gender,
-            'category' => $request->category,
-            'birth_date' => $request->birth_date,
-            'nationality' => 'Venezolana',
-            'is_active' => true
-        ]);
+        try {
+            $athlete = Athlete::create([
+                'first_name' => strtoupper($request->first_name),
+                'last_name' => strtoupper($request->last_name),
+                'dorsal_number' => $dorsalNumber,
+                'team_id' => null,
+                'gender' => $request->gender,
+                'category' => $mappedCategory,
+                'birth_date' => $request->birth_date,
+                'nationality' => 'Venezolana',
+                'is_active' => true
+            ]);
 
-        // Registrar la inscripción
-        $registration = Registration::create([
-            'registration_type' => 'individual',
-            'athlete_id' => $athlete->id,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'status' => 'pending',
-            'notes' => json_encode([
-                'emergency_contact' => $request->emergency_contact
-            ]),
-            'registered_at' => now()
-        ]);
+            // Registrar la inscripción
+            $registration = Registration::create([
+                'registration_type' => 'individual',
+                'athlete_id' => $athlete->id,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'status' => 'pending',
+                'notes' => json_encode([
+                    'emergency_contact' => $request->emergency_contact
+                ]),
+                'registered_at' => now()
+            ]);
 
-        return redirect()->route('home')
-            ->with('individual_success', '¡Inscripción registrada exitosamente! Tu dorsal es: ' . $dorsalNumber)
-            ->with('form_success', 'individual');
+            return redirect()->route('home')
+                ->with('individual_success', '¡Inscripción registrada exitosamente! Tu dorsal es: ' . $dorsalNumber)
+                ->with('form_success', 'individual');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al crear atleta: ' . $e->getMessage());
+            return redirect()->back()
+                ->withErrors(['error' => 'Ocurrió un error al procesar la inscripción: ' . $e->getMessage()])
+                ->withInput()
+                ->with('form_error', 'individual');
+        }
+    }
+
+    private function mapCategory($category, $gender)
+    {
+        // Para categorías de 3 etapas
+        $threeStageCategories = [
+            'Pre-Infantil' => [
+                'Masculino' => 'Pre-Infantil Masculino',
+                'Femenino' => 'Pre-Infantil Femenino'
+            ],
+            'Infantil' => [
+                'Masculino' => 'Infantil Masculino',
+                'Femenino' => 'Infantil Femenino'
+            ],
+            'Pre-Juvenil' => [
+                'Masculino' => 'Pre-Juvenil Masculino',
+                'Femenino' => 'Pre-Juvenil Femenino'
+            ],
+            'Juvenil' => [
+                'Masculino' => 'Juvenil Masculino',
+                'Femenino' => 'Juvenil Femenino'
+            ]
+        ];
+
+        // Para categorías de 1 día (no dependen del género)
+        $oneDayCategories = [
+            'Iniciación A' => 'Iniciación A',
+            'Iniciación B' => 'Iniciación B',
+            'Exhibición' => 'Exhibición',
+            'Compota Strider' => 'Compota Strider',
+            'Compota Pedales' => 'Compota Pedales'
+        ];
+
+        if (isset($threeStageCategories[$category])) {
+            return $threeStageCategories[$category][$gender] ?? null;
+        }
+
+        if (isset($oneDayCategories[$category])) {
+            return $oneDayCategories[$category];
+        }
+
+        return null;
     }
 
     // Verificar estado de inscripción

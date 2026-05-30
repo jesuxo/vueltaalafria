@@ -580,12 +580,20 @@
                                                 <select name="category" class="form-select @error('category') is-invalid @enderror" required>
                                                     <option value="">Seleccionar categoría</option>
                                                     <optgroup label="3 Etapas (Viernes a Domingo)">
-                                                        <option value="Pre-Infantil" {{ old('category') == 'Pre-Infantil' ? 'selected' : '' }}>Pre-Infantil (11-12 años)</option>
-                                                        <option value="Infantil" {{ old('category') == 'Infantil' ? 'selected' : '' }}>Infantil (13-14 años)</option>
-                                                        <option value="Pre-Juvenil" {{ old('category') == 'Pre-Juvenil' ? 'selected' : '' }}>Pre-Juvenil (15-16 años)</option>
-                                                        <option value="Juvenil" {{ old('category') == 'Juvenil' ? 'selected' : '' }}>Juvenil (17-18 años)</option>
+                                                        @if(old('gender') == 'Masculino' || !old('gender'))
+                                                            <option value="Pre-Infantil" {{ old('category') == 'Pre-Infantil' ? 'selected' : '' }}>Pre-Infantil Masculino (11-12 años)</option>
+                                                            <option value="Infantil" {{ old('category') == 'Infantil' ? 'selected' : '' }}>Infantil Masculino (13-14 años)</option>
+                                                            <option value="Pre-Juvenil" {{ old('category') == 'Pre-Juvenil' ? 'selected' : '' }}>Pre-Juvenil Masculino (15-16 años)</option>
+                                                            <option value="Juvenil" {{ old('category') == 'Juvenil' ? 'selected' : '' }}>Juvenil Masculino (17-18 años)</option>
+                                                        @endif
+                                                        @if(old('gender') == 'Femenino' || !old('gender'))
+                                                            <option value="Pre-Infantil" {{ old('category') == 'Pre-Infantil' ? 'selected' : '' }}>Pre-Infantil Femenino (11-12 años)</option>
+                                                            <option value="Infantil" {{ old('category') == 'Infantil' ? 'selected' : '' }}>Infantil Femenino (13-14 años)</option>
+                                                            <option value="Pre-Juvenil" {{ old('category') == 'Pre-Juvenil' ? 'selected' : '' }}>Pre-Juvenil Femenino (15-16 años)</option>
+                                                            <option value="Juvenil" {{ old('category') == 'Juvenil' ? 'selected' : '' }}>Juvenil Femenino (17-18 años)</option>
+                                                        @endif
                                                     </optgroup>
-                                                    <optgroup label="1 Día (Domingo)">
+                                                    <optgroup label="1 Día (Domingo) - Exhibición">
                                                         <option value="Iniciación A" {{ old('category') == 'Iniciación A' ? 'selected' : '' }}>Iniciación A (5-6 años)</option>
                                                         <option value="Iniciación B" {{ old('category') == 'Iniciación B' ? 'selected' : '' }}>Iniciación B (7-8 años)</option>
                                                         <option value="Exhibición" {{ old('category') == 'Exhibición' ? 'selected' : '' }}>Exhibición (9-10 años)</option>
