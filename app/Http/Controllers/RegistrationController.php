@@ -18,17 +18,17 @@ class RegistrationController extends Controller
     {
         $event = Event::where('is_active', true)->first();
 
-        if (!$event) {
+        if (!isset($event)) {
             // Si no hay evento activo, crear uno por defecto para 2026
             $event = Event::create([
-                'year' => 2026,
-                'name' => 'Vuelta a la Fría 2026',
-                'description' => 'Edición 2026 de la Vuelta Menor a La Fría',
-                'start_date' => '2026-06-11',
-                'end_date' => '2026-06-14',
+                'year'               => 2026,
+                'name'               => 'Vuelta a la Fría 2026',
+                'description'        => 'Edición 2026 de la Vuelta Menor a La Fría',
+                'start_date'         => '2026-06-11',
+                'end_date'           => '2026-06-14',
                 'registration_start' => '2025-05-25',
-                'registration_end' => '2026-06-08',
-                'is_active' => true
+                'registration_end'   => '2026-06-08',
+                'is_active'          => true
             ]);
         }
         return $event;
@@ -44,16 +44,6 @@ class RegistrationController extends Controller
 
     public function individualSubmit(Request $request)
     {
-        // Obtener el evento activo
-        $event = $this->getActiveEvent();
-
-        // Validar fechas de inscripción
-        if (!$event->isRegistrationOpen()) {
-            return redirect()->back()
-                ->withErrors(['error' => 'El período de inscripción para este evento ha cerrado.'])
-                ->withInput();
-        }
-
         // Validación
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
@@ -87,6 +77,15 @@ class RegistrationController extends Controller
                 ->with('form_error', 'individual');
         }
 
+        $event = $this->getActiveEvent();
+
+        // Validar fechas de inscripción
+        if (!$event->isRegistrationOpen()) {
+            return redirect()->back()
+                ->withErrors(['error' => 'El período de inscripción para este evento ha cerrado.'])
+                ->withInput();
+        }
+
         // Verificar si el ciclista ya existe por documento o por nombre+fecha
         $existingAthlete = null;
 
@@ -118,47 +117,47 @@ class RegistrationController extends Controller
         } else {
             // Crear nuevo atleta
             $athlete = Athlete::create([
-                'first_name' => strtoupper($request->first_name),
-                'last_name' => strtoupper($request->last_name),
-                'dorsal_number' => null,
-                'team_id' => null,
-                'gender' => $request->gender,
-                'category' => $this->mapCategory($request->category, $request->gender),
-                'birth_date' => $request->birth_date,
-                'nationality' => $request->nationality ?? 'Venezolana',
-                'document_type' => $request->document_type ?? 'V',
+                'first_name'      => strtoupper($request->first_name),
+                'last_name'       => strtoupper($request->last_name),
+                'dorsal_number'   => null,
+                'team_id'         => null,
+                'gender'          => $request->gender,
+                'category'        => $this->mapCategory($request->category, $request->gender),
+                'birth_date'      => $request->birth_date,
+                'nationality'     => $request->nationality ?? 'Venezolana',
+                'document_type'   => $request->document_type ?? 'V',
                 'document_number' => $request->identification_document,
                 'is_active' => true
             ]);
         }
 
         // Generar dorsal para este evento
-        $dorsalNumber = $this->generateDorsalNumberForEvent($event->id);
+        //$dorsalNumber = $this->generateDorsalNumberForEvent($event->id);
 
         // Actualizar dorsal del atleta
-        $athlete->dorsal_number = $dorsalNumber;
+        //$athlete->dorsal_number = (isset($dorsalNumber))? $dorsalNumber : '';
         $athlete->save();
 
         // Crear participación en el evento
         AthleteEventParticipation::create([
-            'athlete_id' => $athlete->id,
-            'event_id' => $event->id,
-            'dorsal_number' => $dorsalNumber,
-            'status' => 'registered'
+            'athlete_id'    => $athlete->id,
+            'event_id'      => $event->id,
+           // 'dorsal_number' => (isset($dorsalNumber))? $dorsalNumber : '',
+            'status'        => 'registered'
         ]);
 
         // Registrar la inscripción - AHORA CON event_id
         $registration = Registration::create([
-            'event_id' => $event->id,  // <--- ESTO ES LO IMPORTANTE
+            'event_id'          => $event->id,
             'registration_type' => 'individual',
-            'athlete_id' => $athlete->id,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'status' => 'pending',
-            'notes' => json_encode([
-                'emergency_contact' => $request->emergency_contact
-            ]),
-            'registered_at' => now()
+            'athlete_id'        => $athlete->id,
+            'email'             => $request->email,
+            'phone'             => $request->phone,
+            'status'            => 'pending',
+            'notes'             => json_encode([
+                                       'emergency_contact' => $request->emergency_contact
+                                   ]),
+            'registered_at'     => now()
         ]);
 
         return redirect()->route('home')
