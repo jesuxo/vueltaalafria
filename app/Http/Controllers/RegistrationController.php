@@ -94,7 +94,7 @@ class RegistrationController extends Controller
                 'registered_at' => now()
             ]);
 
-            return redirect()->route('home')
+            return redirect()->route('/')
                 ->with('individual_success', '¡Inscripción registrada exitosamente! Tu dorsal es: ' . $dorsalNumber)
                 ->with('form_success', 'individual');
 
