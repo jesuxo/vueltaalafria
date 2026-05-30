@@ -192,3 +192,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 // Estas rutas son de tu sistema existente, las mantengo
 Route::resource('permissions', PermissionController::class);
 Route::resource('user-sucursal', UserSucursalController::class);
+
+Route::prefix('inscripcion')->name('registration.team.')->group(function () {
+    Route::get('/equipo', [App\Http\Controllers\PublicRegistrationController::class, 'showForm'])->name('form');
+    Route::get('/equipo/plantilla', [App\Http\Controllers\PublicRegistrationController::class, 'downloadTemplate'])->name('download-template');
+    Route::post('/equipo', [App\Http\Controllers\PublicRegistrationController::class, 'submitRegistration'])->name('submit');
+    Route::get('/exito', [App\Http\Controllers\PublicRegistrationController::class, 'success'])->name('success');
+});

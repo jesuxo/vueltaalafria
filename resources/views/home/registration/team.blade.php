@@ -21,8 +21,6 @@
     <!-- AOS Animation -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-    <script src="https://www.google.com/recaptcha/api.js"></script>
-
     <style>
         .text-danger {
             --bs-text-opacity: 1;
@@ -687,98 +685,6 @@
             }
         }
 
-        /* Estilos para los tabs de inscripción */
-        .nav-pills .nav-link {
-            background: rgba(255,255,255,0.2) !important;
-            border-radius: 50px !important;
-            padding: 10px 25px !important;
-            color: white !important;
-        }
-
-        .nav-pills .nav-link.active {
-            background: #00ecfe !important;
-            color: #000 !important;
-        }
-
-        @media (max-width: 768px) {
-            .nav-pills .nav-link {
-                font-size: 0.8rem;
-                padding: 8px 15px !important;
-            }
-        }
-
-        .btn-inscription-type {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 20px;
-            padding: 30px 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .btn-inscription-type:hover {
-            border-color: #00ecfe;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .btn-inscription-type i {
-            color: #00ecfe;
-        }
-
-        .btn-inscription-type h4 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .btn-inscription-type p {
-            color: #666;
-        }
-
-        /* Botón activo */
-        .btn-inscription-type.active {
-            background: linear-gradient(135deg, #00ecfe 0%, #00c4d4 100%);
-            border-color: #00ecfe;
-        }
-
-        .btn-inscription-type.active i,
-        .btn-inscription-type.active h4,
-        .btn-inscription-type.active p {
-            color: white;
-        }
-
-        /* Contenedor de formularios con animación */
-        .form-container {
-            transition: all 0.5s ease;
-        }
-
-        .form-container.show {
-            display: block;
-            animation: fadeInUp 0.5s ease;
-        }
-
-        /* Botón outline custom */
-        .btn-outline-custom {
-            background: transparent;
-            border: 2px solid #00ecfe;
-            color: #00ecfe;
-            padding: 12px 30px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 700;
-            transition: 0.3s;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-
-        .btn-outline-custom:hover {
-            background: #00ecfe;
-            color: #000;
-            transform: translateY(-3px);
-        }
     </style>
 
     @yield('css')
