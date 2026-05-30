@@ -26,6 +26,15 @@ class PublicRegistrationController extends Controller
         return view('home.registration.team', compact('categories', 'transportTypes', 'documentTypes'));
     }
 
+    private function getActiveEvent()
+    {
+        $event = Event::where('is_active', true)->first();
+        if (!$event) {
+            throw new \Exception('No hay un evento activo para inscripciones');
+        }
+        return $event;
+    }
+
     // Descargar plantilla Excel
     public function downloadTemplate()
     {
@@ -84,6 +93,15 @@ class PublicRegistrationController extends Controller
     // Procesar inscripción
     public function submitRegistration(Request $request)
     {
+        $event = $this->getActiveEvent();
+
+        // Validar fechas de inscripción
+        if (!$event->isRegistrationOpen()) {
+            return redirect()->back()
+                ->withErrors(['error' => 'El período de inscripción para este evento ha cerrado.'])
+                ->withInput();
+        }
+
         // Validación con Google reCAPTCHA (para evitar robots)
         $request->validate([
             'team_name' => 'required|string|max:255',
@@ -152,7 +170,9 @@ class PublicRegistrationController extends Controller
             }
 
             // Registrar la inscripción
+
             Registration::create([
+                'event_id' => $event->id,
                 'registration_type' => 'team',
                 'team_id' => $team->id,
                 'email' => $request->delegate_email,
@@ -166,6 +186,7 @@ class PublicRegistrationController extends Controller
                 ]),
                 'registered_at' => now()
             ]);
+
 
             // Enviar email con código de acceso (opcional)
             // Mail::to($request->delegate_email)->send(new TeamRegistrationConfirmation($team, $importedCount));

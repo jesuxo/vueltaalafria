@@ -29,8 +29,6 @@ Route::get('/login', function () {
     return view('auth.login');
 });
 
-Route::get('/index/{locale}', [App\Http\Controllers\HomeController::class, 'lang']);
-
 Auth::routes();
 Auth::routes(['verify' => true]);
 
@@ -44,8 +42,8 @@ Route::group(['prefix' => 'error'], function(){
 // ============================================
 
 // Home
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::get('/inicio', [App\Http\Controllers\HomeController::class, 'index'])->name('inicio');
+Route::get('/home', [App\Http\Controllers\SiteController::class, 'index'])->name('home');
+Route::get('/inicio', [App\Http\Controllers\SiteController::class, 'index'])->name('inicio');
 
 // Información pública
 Route::get('/informacion', [App\Http\Controllers\HomeController::class, 'info'])->name('info');

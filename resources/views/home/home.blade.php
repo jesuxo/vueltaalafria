@@ -161,7 +161,7 @@
         <section class="hero" id="inicio" style="text-align: left !important;">
             <div class="container text-center text-white">
                 <div data-aos="fade-up" style="text-align: left !important;">
-                    <p class="fecha" style="font-size: 30px; padding: 20px 0px">11 - 14 JUNIO 2026</p>
+                    <p class="fecha" style="font-size: 30px; padding: 20px 0px">12 - 14 JUNIO 2026</p>
                     <h1 style="margin:0px;">VUELTA A LA <br><span>FRÍA</span></h1>
                     <p class="subtitulo" style="font-size: 20px;">LA VUELTA MENOR MÁS IMPORTANTE DE VENEZUELA</p>
                     <div>
@@ -201,24 +201,24 @@
                     <p>La primera edición fué en 1992 </p>
                 </div>
                 <div class="row align-items-center g-5">
-                    <div class="col-lg-6" data-aos="fade-right">
-                        <img src="https://images.unsplash.com/photo-1541625602330-2277a4c46182?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Ciclismo Montaña" class="about-img">
+                    <div class="col-lg-6" data-aos="fade-right" style="margin-top: 10px">
+                        <img src="/images/home1.jpg" style="border-radius: 6px;" alt="Ciclismo  Menor" class="about-img">
                     </div>
                     <div class="col-lg-6" data-aos="fade-left">
                         <p class="lead">La Vuelta Menor a La Fría es un evento de ruta por etapas que se realizará del 11 al 14 de junio de 2026 en el municipio García de Hevia, estado Táchira, Venezuela.</p>
                         <p>El evento está regido por el reglamento de la Unión Ciclista Internacional (UCI) y la Federación Venezolana de Ciclismo (FVC). La participación es abierta para ciclistas independientes y equipos organizados como clubes y escuelas, mediante invitación para las categorías menores desde Stryder hasta Juvenil.</p>
                         <p class="mt-3">La carrera cuenta con el aval de la Asociación Tachirense de Ciclismo, la Comisión Nacional de Ciclismo Menor y Juvenil, la Federación Venezolana de Ciclismo (FVC), el Instituto Municipal de Deporte (IMDERE) y el Instituto del Deporte Tachirense (IDT).</p>
                         <div class="mt-4">
-                            <div class="d-flex gap-4">
-                                <div>
+                            <div class="row  ">
+                                <div class="col-sm-4 text-center">
                                     <i class="fas fa-trophy text-danger fs-1"></i>
                                     <p class="fw-bold mt-2">Clase Mundial</p>
                                 </div>
-                                <div>
+                                <div class="col-sm-4 text-center">
                                     <i class="fas fa-mountain text-danger fs-1"></i>
                                     <p class="fw-bold mt-2">Paisajes Épicos</p>
                                 </div>
-                                <div>
+                                <div class="col-sm-4 text-center">
                                     <i class="fas fa-users text-danger fs-1"></i>
                                     <p class="fw-bold mt-2">Múltiples Categorías</p>
                                 </div>
@@ -235,7 +235,7 @@
                 <div class="row g-4">
                     <div class="col-md-3 col-6" data-aos="fade-up">
                         <div class="stat-card">
-                            <div class="stat-number">4</div>
+                            <div class="stat-number">3</div>
                             <div class="stat-label">DÍAS</div>
                         </div>
                     </div>

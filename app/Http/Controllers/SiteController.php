@@ -231,9 +231,8 @@ class SiteController extends Controller
 
     public function index(Request $request, $id = null)
     {
-
+        //dd(bcrypt('Tucani$214'));
         return view("home.home");
-
     }
 
     public function buscar_producto($busqueda, $destacado, $precios, $marcaprod, $categoria, $producto_id, $ordenprecio, $vertodos)
