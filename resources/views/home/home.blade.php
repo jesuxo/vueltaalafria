@@ -1057,6 +1057,8 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        let existingStructureId = null;
+        let existingStructureName = null;
         // Inicializar Swiper
         const testimonialSwiper = new Swiper('.testimonial-swiper', {
             slidesPerView: 1,
@@ -1148,34 +1150,62 @@
         // ============================================
 
         function showIndividualForm() {
-            document.getElementById('individualForm').style.display = 'block';
-            document.getElementById('teamForm').style.display = 'none';
-            document.getElementById('btnIndividual').classList.add('active');
-            document.getElementById('btnTeam').classList.remove('active');
-            setTimeout(() => document.getElementById('individualForm').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+            const individualForm = document.getElementById('individualForm');
+            const teamForm = document.getElementById('teamForm');
+            const btnIndividual = document.getElementById('btnIndividual');
+            const btnTeam = document.getElementById('btnTeam');
+
+            if (individualForm) individualForm.style.display = 'block';
+            if (teamForm) teamForm.style.display = 'none';
+            if (btnIndividual) btnIndividual.classList.add('active');
+            if (btnTeam) btnTeam.classList.remove('active');
+
+            // Scroll al formulario
+            setTimeout(() => {
+                if (individualForm) {
+                    individualForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
         }
 
         function showTeamForm() {
-            document.getElementById('individualForm').style.display = 'none';
-            document.getElementById('teamForm').style.display = 'block';
-            document.getElementById('btnIndividual').classList.remove('active');
-            document.getElementById('btnTeam').classList.add('active');
-            setTimeout(() => document.getElementById('teamForm').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+            const individualForm = document.getElementById('individualForm');
+            const teamForm = document.getElementById('teamForm');
+            const btnIndividual = document.getElementById('btnIndividual');
+            const btnTeam = document.getElementById('btnTeam');
+
+            if (individualForm) individualForm.style.display = 'none';
+            if (teamForm) teamForm.style.display = 'block';
+            if (btnIndividual) btnIndividual.classList.remove('active');
+            if (btnTeam) btnTeam.classList.add('active');
+
+            // Scroll al formulario
+            setTimeout(() => {
+                if (teamForm) {
+                    teamForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
         }
 
         function hideForms() {
-            document.getElementById('individualForm').style.display = 'none';
-            document.getElementById('teamForm').style.display = 'none';
-            document.getElementById('btnIndividual').classList.remove('active');
-            document.getElementById('btnTeam').classList.remove('active');
+            const individualForm = document.getElementById('individualForm');
+            const teamForm = document.getElementById('teamForm');
+            const btnIndividual = document.getElementById('btnIndividual');
+            const btnTeam = document.getElementById('btnTeam');
+
+            if (individualForm) individualForm.style.display = 'none';
+            if (teamForm) teamForm.style.display = 'none';
+            if (btnIndividual) btnIndividual.classList.remove('active');
+            if (btnTeam) btnTeam.classList.remove('active');
         }
 
         // Estructura
         function toggleStructureField() {
-            const hasStructureYes = document.getElementById('structure_yes')?.checked;
+            const structureYes = document.getElementById('structure_yes');
             const structureField = document.getElementById('structureField');
+
             if (structureField) {
-                structureField.style.display = hasStructureYes ? 'block' : 'none';
+                structureField.style.display = (structureYes && structureYes.checked) ? 'block' : 'none';
             }
         }
 
@@ -1428,16 +1458,85 @@
             });
         }
 
+
+        function showStructureError(message) {
+            const errorDiv = document.getElementById('structureError');
+            const errorMsg = document.getElementById('structureErrorMessage');
+            if (errorDiv && errorMsg) {
+                errorMsg.innerHTML = message;
+                errorDiv.style.display = 'block';
+                document.getElementById('structure_search').classList.add('is-invalid');
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                    document.getElementById('structure_search').classList.remove('is-invalid');
+                }, 5000);
+            }
+        }
+
+        // Reemplaza la función addVehicleRow por esta:
         let vehicleIndex = 1;
+
         function addVehicleRow() {
             const tbody = document.getElementById('vehiclesBody');
             if (tbody) {
-                tbody.insertAdjacentHTML('beforeend', `<tr><td><input type="text" name="vehicles[${vehicleIndex}][brand]" class="form-control form-control-sm" placeholder="Marca"></td><td><input type="text" name="vehicles[${vehicleIndex}][model]" class="form-control form-control-sm" placeholder="Modelo"></td><td><input type="text" name="vehicles[${vehicleIndex}][plate]" class="form-control form-control-sm" placeholder="Placa"></td><td><input type="number" name="vehicles[${vehicleIndex}][year]" class="form-control form-control-sm" placeholder="Año"></td><td><input type="text" name="vehicles[${vehicleIndex}][color]" class="form-control form-control-sm" placeholder="Color"></td><td><button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button></td></tr>`);
+                const newRow = `
+            <tr>
+                <td><input type="text" name="vehicles[${vehicleIndex}][brand]" class="form-control form-control-sm" placeholder="Marca"></td>
+                <td><input type="text" name="vehicles[${vehicleIndex}][model]" class="form-control form-control-sm" placeholder="Modelo"></td>
+                <td><input type="text" name="vehicles[${vehicleIndex}][plate]" class="form-control form-control-sm" placeholder="Placa"></td>
+                <td><input type="number" name="vehicles[${vehicleIndex}][year]" class="form-control form-control-sm" placeholder="Año"></td>
+                <td><input type="text" name="vehicles[${vehicleIndex}][color]" class="form-control form-control-sm" placeholder="Color"></td>
+                <td><button type="button" class="btn btn-sm btn-danger" onclick="removeVehicleRow(this)"><i class="fas fa-trash"></i></button></td>
+            </tr>
+        `;
+                tbody.insertAdjacentHTML('beforeend', newRow);
                 vehicleIndex++;
             }
         }
 
-        function removeVehicleRow(btn) { btn.closest('tr')?.remove(); }
+        function removeVehicleRow(button) {
+            const row = button.closest('tr');
+            const tbody = document.getElementById('vehiclesBody');
+            if (row && tbody && tbody.children.length > 1) {
+                row.remove();
+            } else if (row) {
+                // Limpiar campos en lugar de eliminar la última fila
+                row.querySelectorAll('input').forEach(input => input.value = '');
+            }
+        }
+
+        function updateFileName(name) {
+            const fileName = document.getElementById('fileName');
+            if (fileName) {
+                fileName.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo seleccionado: ' + name;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Eventos para los radios de estructura
+            const structureNo = document.getElementById('structure_no');
+            const structureYes = document.getElementById('structure_yes');
+
+            if (structureNo) structureNo.addEventListener('change', toggleStructureField);
+            if (structureYes) structureYes.addEventListener('change', toggleStructureField);
+
+            // Mostrar formulario si hay errores
+            @if($errors->any() && !session('import_errors'))
+            showIndividualForm();
+            @endif
+
+            @if(session('import_errors') || ($errors->any() && session('import_errors')))
+            showTeamForm();
+            @endif
+
+            @if(session('form_error') == 'individual')
+            showIndividualForm();
+            @endif
+
+            @if(session('form_error') == 'team')
+            showTeamForm();
+            @endif
+        });
 
         // Modales
         @if(session('success_modal'))
@@ -1465,18 +1564,6 @@
         @elseif(session('import_errors') || ($errors->any() && session('import_errors'))) showTeamForm();
         @endif
 
-        function showStructureError(message) {
-            const errorDiv = document.getElementById('structureError');
-            const errorMsg = document.getElementById('structureErrorMessage');
-            if (errorDiv && errorMsg) {
-                errorMsg.innerHTML = message;
-                errorDiv.style.display = 'block';
-                document.getElementById('structure_search').classList.add('is-invalid');
-                setTimeout(() => {
-                    errorDiv.style.display = 'none';
-                    document.getElementById('structure_search').classList.remove('is-invalid');
-                }, 5000);
-            }
-        }
+
     </script>
 @endsection

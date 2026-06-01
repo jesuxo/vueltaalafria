@@ -4,21 +4,47 @@
 namespace App\Http\Controllers;
 
 use App\Exports\TeamTemplateExport;
-use App\Models\Event;
 use App\Models\Team;
 use App\Models\Athlete;
+use App\Models\TeamStaff;
 use App\Models\TeamMigrationData;
 use App\Models\TeamMigrationVehicle;
 use App\Models\Registration;
+use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\TeamAthletesImport;
 
 class PublicRegistrationController extends Controller
 {
-    // Mostrar formulario de inscripción
+    public function downloadTemplateExcel()
+    {
+        return Excel::download(new TeamTemplateExport(), 'plantilla_inscripcion_equipos.xlsx');
+    }
+
+    private function getActiveEvent()
+    {
+        $event = Event::where('is_active', true)->first();
+
+        if (!$event) {
+            $event = Event::create([
+                'year'               => 2026,
+                'name'               => 'Vuelta a la Fría 2026',
+                'description'        => 'Edición 2026 de la Vuelta Menor a La Fría',
+                'start_date'         => '2026-06-11',
+                'end_date'           => '2026-06-14',
+                'registration_start' => '2025-05-25',
+                'registration_end'   => '2026-06-08',
+                'is_active'          => true
+            ]);
+        }
+        return $event;
+    }
+
     public function showForm()
     {
         $categories = $this->getCategories();
@@ -28,35 +54,17 @@ class PublicRegistrationController extends Controller
         return view('home.registration.team', compact('categories', 'transportTypes', 'documentTypes'));
     }
 
-    private function getActiveEvent()
-    {
-        $event = Event::where('is_active', true)->first();
-        if (!$event) {
-            throw new \Exception('No hay un evento activo para inscripciones');
-        }
-        return $event;
-    }
-
-
     public function downloadTemplate()
     {
         return Excel::download(new TeamTemplateExport(), 'plantilla_inscripcion_equipos.xlsx');
     }
 
-    // Procesar inscripción
     public function submitRegistration(Request $request)
     {
-        $event = $this->getActiveEvent();
+        \Log::info('Datos recibidos:', $request->all());
 
-        // Validar fechas de inscripción
-        if (!$event->isRegistrationOpen()) {
-            return redirect()->back()
-                ->withErrors(['error' => 'El período de inscripción para este evento ha cerrado.'])
-                ->withInput();
-        }
-
-        // Validación con Google reCAPTCHA (para evitar robots)
-        $request->validate([
+        // Validación inicial
+        $validator = Validator::make($request->all(), [
             'team_name' => 'required|string|max:255',
             'team_country' => 'required|string|max:255',
             'team_city' => 'nullable|string|max:255',
@@ -71,60 +79,100 @@ class PublicRegistrationController extends Controller
             'transport_type' => 'nullable|string|max:100',
             'return_date' => 'nullable|date',
             'return_flight_time' => 'nullable',
-            'g-recaptcha-response' => 'required' // reCAPTCHA
+            'vehicles' => 'nullable|array',
+            'accept_terms' => 'required|accepted'
         ]);
 
-        // Verificar reCAPTCHA
-        $this->verifyRecaptcha($request->input('g-recaptcha-response'));
-
-        // Verificar si ya existe un equipo con ese nombre
-        $existingTeam = Team::where('name', $request->team_name)->first();
-
-        if ($existingTeam) {
-            return back()->with('error', 'Ya existe un equipo con ese nombre. Por favor contacta a la organización.');
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('form_error', 'team');
         }
 
-        // Crear el equipo
-        $team = Team::create([
-            'name' => $request->team_name,
-            'city' => $request->team_city,
-            'country' => $request->team_country,
-            'contact_email' => $request->delegate_email,
-            'contact_phone' => $request->delegate_phone,
-            'access_code' => Str::upper(Str::random(8)),
-            'is_active' => true
-        ]);
+        // INICIAR TRANSACCIÓN - Todo o nada
+        DB::beginTransaction();
 
-        // Guardar datos migratorios
-        if ($request->arrival_date || $request->return_date) {
-            TeamMigrationData::create([
-                'team_id' => $team->id,
-                'arrival_date' => $request->arrival_date,
-                'arrival_border' => $request->arrival_border,
-                'transport_type' => $request->transport_type,
-                'return_date' => $request->return_date,
-                'return_flight_time' => $request->return_flight_time,
-                'notes' => $request->migration_notes
-            ]);
-        }
+        $team = null;
+        $import = null;
 
-        // Procesar el archivo Excel
         try {
+            $event = $this->getActiveEvent();
+
+            // 1. Verificar si ya existe un equipo con ese nombre
+            $existingTeam = Team::where('name', $request->team_name)->first();
+            if ($existingTeam) {
+                throw new \Exception('Ya existe un equipo con el nombre "' . $request->team_name . '". Por favor contacta a la organización.');
+            }
+
+            // 2. Crear el equipo
+            $team = Team::create([
+                'name' => $request->team_name,
+                'city' => $request->team_city,
+                'country' => $request->team_country,
+                'contact_email' => $request->delegate_email,
+                'contact_phone' => $request->delegate_phone,
+                'access_code' => Str::upper(Str::random(8)),
+                'is_active' => true
+            ]);
+
+            if (!$team) {
+                throw new \Exception('No se pudo crear el equipo. Intente nuevamente.');
+            }
+
+            // 3. Guardar datos migratorios
+            if ($request->arrival_date || $request->return_date) {
+                $migrationData = TeamMigrationData::create([
+                    'team_id' => $team->id,
+                    'arrival_date' => $request->arrival_date,
+                    'arrival_border' => $request->arrival_border,
+                    'transport_type' => $request->transport_type,
+                    'return_date' => $request->return_date,
+                    'return_flight_time' => $request->return_flight_time,
+                    'notes' => $request->migration_notes
+                ]);
+                // Si falla, lanzará excepción automáticamente
+            }
+
+            // 4. Guardar vehículos
+            if ($request->has('vehicles') && is_array($request->vehicles)) {
+                foreach ($request->vehicles as $vehicle) {
+                    if (!empty($vehicle['brand']) || !empty($vehicle['plate'])) {
+                        TeamMigrationVehicle::create([
+                            'team_id' => $team->id,
+                            'brand' => $vehicle['brand'] ?? null,
+                            'model' => $vehicle['model'] ?? null,
+                            'plate' => $vehicle['plate'] ?? null,
+                            'year' => $vehicle['year'] ?? null,
+                            'color' => $vehicle['color'] ?? null,
+                            'additional_info' => $vehicle['additional_info'] ?? null
+                        ]);
+                    }
+                }
+            }
+
+            // 5. Procesar el archivo Excel
             $import = new TeamAthletesImport($team->id);
             Excel::import($import, $request->file('excel_file'));
 
             $errors = $import->getErrors();
-            $importedCount = $import->getImportedCount();
+            $athleteCount = $import->getAthleteCount();
+            $staffCount = $import->getStaffCount();
+            $totalImported = $import->getImportedCount();
 
+            // Si hay errores en el Excel, hacer ROLLBACK
             if (count($errors) > 0) {
-                // Si hay errores, eliminamos el equipo y mostramos los errores
-                $team->delete();
-                return back()->with('import_errors', $errors)->withInput();
+                $errorMessage = "Errores en el archivo Excel:\n" . implode("\n", $errors);
+                throw new \Exception($errorMessage);
             }
 
-            // Registrar la inscripción
+            // Verificar que haya al menos un atleta
+            if ($athleteCount === 0) {
+                throw new \Exception('El archivo Excel no contiene ningún atleta válido. Debe haber al menos un atleta en el equipo.');
+            }
 
-            Registration::create([
+            // 6. Registrar la inscripción del equipo
+            $registration = Registration::create([
                 'event_id' => $event->id,
                 'registration_type' => 'team',
                 'team_id' => $team->id,
@@ -135,61 +183,74 @@ class PublicRegistrationController extends Controller
                     'delegate_name' => $request->delegate_name,
                     'delegate_whatsapp' => $request->delegate_whatsapp,
                     'region' => $request->region,
-                    'athletes_count' => $importedCount
+                    'athletes_count' => $athleteCount,
+                    'staff_count' => $staffCount,
+                    'total_imported' => $totalImported
                 ]),
                 'registered_at' => now()
             ]);
 
+            // SI LLEGAMOS HASTA AQUÍ, TODO ESTÁ BIEN
+            // Confirmar la transacción
+            DB::commit();
 
-            // Enviar email con código de acceso (opcional)
-            // Mail::to($request->delegate_email)->send(new TeamRegistrationConfirmation($team, $importedCount));
-
-            return redirect()->route('registration.team.success')
-                ->with('success', '¡Inscripción exitosa!')
+            // Redirigir con éxito
+            return redirect()->route('home')
+                ->with('team_success', '¡Inscripción exitosa!')
                 ->with('team_name', $team->name)
                 ->with('access_code', $team->access_code)
-                ->with('athletes_count', $import->getAthleteCount())
-                ->with('staff_count', $import->getStaffCount());
+                ->with('athletes_count', $athleteCount)
+                ->with('staff_count', $staffCount)
+                ->with('form_error', 'none');
 
         } catch (\Exception $e) {
-            $team->delete();
-            return back()->with('error', 'Error al procesar el archivo: ' . $e->getMessage())->withInput();
+            // HACER ROLLBACK DE TODO - Nada se guarda en la base de datos
+            DB::rollBack();
+
+            // Registrar el error en el log del servidor
+            \Log::error('ERROR EN INSCRIPCIÓN DE EQUIPO', [
+                'error' => $e->getMessage(),
+                'team_name' => $request->team_name ?? null,
+                'delegate_email' => $request->delegate_email ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Mensaje amigable para el usuario
+            $userMessage = 'Ocurrió un error al procesar la inscripción. No se ha guardado ningún dato.';
+
+            if ($e->getMessage()) {
+                $userMessage .= ' Motivo: ' . $e->getMessage();
+            }
+
+            // Retornar error al usuario con el formulario visible nuevamente
+            return redirect()->back()
+                ->with('error', $userMessage)
+                ->with('import_errors', $import ? $import->getErrors() : [])
+                ->withInput()
+                ->with('form_error', 'team');
         }
     }
 
-    // Página de éxito
     public function success()
     {
-        if (!session('success')) {
-            return redirect()->route('registration.team.form');
+        if (!session('team_success')) {
+            return redirect()->route('home');
         }
 
         return view('home.registration.success');
     }
 
-    // Verificar reCAPTCHA
-    private function verifyRecaptcha($token)
-    {
-        $secret = env('RECAPTCHA_SECRET_KEY');
-        $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$token}");
-        $data = json_decode($response);
-
-        if (!$data->success) {
-            throw new \Exception('Verificación anti-robots fallida. Por favor intenta nuevamente.');
-        }
-    }
-
     private function getCategories()
     {
         return [
-            'COMPOTAS' => '3-4 años (2022-2023)',
-            'INICIACIÓN A' => '5-6 años (2020-2021)',
-            'INICIACIÓN B' => '7-8 años (2018-2019)',
-            'INICIACIÓN C' => '9-10 años (2018-2019)',
-            'PRE-INFANTIL D' => '11-12 años (2014-2015)',
-            'INFANTIL' => '13-14 años (2012-2013)',
-            'PRE-JUVENIL' => '15-16 años (2010-2011)',
-            'JUVENIL' => '17-18 años (2008-2009)'
+            'COMPOTAS' => '3-4 años',
+            'INICIACIÓN A' => '5-6 años',
+            'INICIACIÓN B' => '7-8 años',
+            'INICIACIÓN C' => '9-10 años',
+            'PRE-INFANTIL' => '11-12 años',
+            'INFANTIL' => '13-14 años',
+            'PRE-JUVENIL' => '15-16 años',
+            'JUVENIL' => '17-18 años'
         ];
     }
 }

@@ -62,7 +62,7 @@ Route::post('/inscripcion/verificar', [RegistrationController::class, 'checkStat
 Route::get('/buscar-estructuras', [TeamController::class, 'searchStructures'])->name('search.structures');
 Route::get('/verificar-estructura', [TeamController::class, 'checkStructureExists'])->name('check.structure');
 // Ruta para descargar plantilla Excel
-Route::get('/inscripcion/equipo/plantilla', [App\Http\Controllers\PublicRegistrationController::class, 'downloadTemplateExcel'])
+Route::get('/inscripcion/equipo/plantilla', [App\Http\Controllers\PublicRegistrationController::class, 'downloadTemplate'])
     ->name('registration.team.download-template');
 
 // ============================================

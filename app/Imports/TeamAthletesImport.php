@@ -9,52 +9,96 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
-use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\Importable;
 use Carbon\Carbon;
+use Throwable;
 
 class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnError
 {
-    use SkipsErrors;
+    use Importable;
 
     private $teamId;
     private $errors = [];
     private $importedCount = 0;
     private $staffCount = 0;
     private $athleteCount = 0;
-
-    private $validCategories = [
-        'COMPOTAS', 'INICIACIÓN A', 'INICIACIÓN B', 'INICIACIÓN C',
-        'PRE-INFANTIL', 'INFANTIL', 'PRE-JUVENIL', 'JUVENIL', 'STAFF'
-    ];
+    private $currentRow = 0;
 
     public function __construct($teamId)
     {
         $this->teamId = $teamId;
     }
 
+    /**
+     * Manejar errores individuales (requerido por SkipsOnError)
+     */
+    public function onError(Throwable $e)
+    {
+        $this->errors[] = 'Error en fila ' . $this->currentRow . ': ' . $e->getMessage();
+    }
+
+    /**
+     * Calcular categoría SOLO por edad y género
+     */
+    private function calculateCategoryByAge($birthDate, $gender)
+    {
+        $age = Carbon::parse($birthDate)->age;
+
+        // Mapeo de edad a categoría
+        if ($age >= 3 && $age <= 4) {
+            return 'Compota';
+        } elseif ($age >= 5 && $age <= 6) {
+            return 'Iniciación A';
+        } elseif ($age >= 7 && $age <= 8) {
+            return 'Iniciación B';
+        } elseif ($age >= 9 && $age <= 10) {
+            return 'Iniciación C';
+        } elseif ($age >= 11 && $age <= 12) {
+            return $gender === 'Masculino' ? 'Pre-Infantil Masculino' : 'Pre-Infantil Femenino';
+        } elseif ($age >= 13 && $age <= 14) {
+            return $gender === 'Masculino' ? 'Infantil Masculino' : 'Infantil Femenino';
+        } elseif ($age >= 15 && $age <= 16) {
+            return $gender === 'Masculino' ? 'Pre-Juvenil Masculino' : 'Pre-Juvenil Femenino';
+        } elseif ($age >= 17 && $age <= 18) {
+            return $gender === 'Masculino' ? 'Juvenil Masculino' : 'Juvenil Femenino';
+        }
+
+        return null;
+    }
+
     public function model(array $row)
     {
+        $this->currentRow++;
+
         // Limpiar datos
+        $id = trim($row['id'] ?? '');
         $nombres = trim($row['nombres'] ?? '');
         $apellidos = trim($row['apellidos'] ?? '');
-        $categoria = trim($row['categoria'] ?? '');
         $rol = trim($row['rol'] ?? 'Atleta');
         $tipoDocumento = trim($row['tipo_documento'] ?? '');
         $numeroDocumento = trim($row['numero_documento'] ?? '');
         $uciId = trim($row['uci_id'] ?? '');
         $genero = trim($row['genero'] ?? '');
 
-        // Validar datos mínimos
+        // Ignorar filas completamente vacías
         if (empty($nombres) && empty($apellidos)) {
-            $this->errors[] = "Fila con ID {$row['id']}: Nombres y Apellidos vacíos";
             return null;
         }
 
-        // Si es STAFF
-        if ($categoria === 'STAFF' || $rol === 'STAFF') {
+        // Validar datos mínimos
+        if (empty($nombres)) {
+            $this->errors[] = "Fila {$this->currentRow}: El campo NOMBRES es obligatorio";
+            return null;
+        }
+        if (empty($apellidos)) {
+            $this->errors[] = "Fila {$this->currentRow}: El campo APELLIDOS es obligatorio";
+            return null;
+        }
+
+        // Procesar STAFF
+        if (strtoupper($rol) === 'STAFF') {
             $this->staffCount++;
 
-            // Crear registro en team_staff
             TeamStaff::create([
                 'team_id' => $this->teamId,
                 'full_name' => strtoupper($nombres . ' ' . $apellidos),
@@ -62,71 +106,66 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
                 'role' => 'STAFF',
                 'phone' => null,
                 'email' => null,
-                'position' => $row['cargo'] ?? 'Personal de apoyo',
+                'position' => 'Personal de apoyo',
                 'is_active' => true
             ]);
 
-            return null; // No crear atleta para STAFF
-        }
-
-        // Validar categoría para atletas
-        if (!in_array($categoria, $this->validCategories)) {
-            $this->errors[] = "Fila {$row['id']}: Categoría '{$categoria}' no válida";
             return null;
         }
 
         // Validar género
-        if (!in_array($genero, ['Masculino', 'Femenino'])) {
-            $this->errors[] = "Fila {$row['id']}: Género '{$genero}' no válido. Use Masculino o Femenino";
+        $generoNormalizado = ucfirst(strtolower($genero));
+        if (!in_array($generoNormalizado, ['Masculino', 'Femenino'])) {
+            $this->errors[] = "Fila {$this->currentRow}: Género '{$genero}' no válido. Use Masculino o Femenino";
             return null;
         }
 
-        // Convertir fecha
-        try {
-            $birthDate = $this->parseDate($row['fecha_de_nacimiento']);
-            if (!$birthDate) {
-                $this->errors[] = "Fila {$row['id']}: Formato de fecha inválido. Use dd/mm/aaaa";
-                return null;
-            }
+        // Validar fecha de nacimiento
+        $fechaNacimiento = $row['fecha_de_nacimiento'] ?? null;
+        if (empty($fechaNacimiento)) {
+            $this->errors[] = "Fila {$this->currentRow}: La fecha de nacimiento es obligatoria";
+            return null;
+        }
 
-            // Validar edad según categoría
-            $age = Carbon::parse($birthDate)->age;
-            if (!$this->validateAgeByCategory($categoria, $age)) {
-                $this->errors[] = "Fila {$row['id']}: Edad {$age} años no corresponde a la categoría {$categoria}";
-                return null;
-            }
+        $birthDate = $this->parseDate($fechaNacimiento);
+        if (!$birthDate) {
+            $this->errors[] = "Fila {$this->currentRow}: Formato de fecha inválido. Use dd/mm/aaaa";
+            return null;
+        }
 
-        } catch (\Exception $e) {
-            $this->errors[] = "Fila {$row['id']}: Error en fecha de nacimiento";
+        $age = Carbon::parse($birthDate)->age;
+
+        if ($age < 3) {
+            $this->errors[] = "Fila {$this->currentRow}: Edad {$age} años. Edad mínima permitida: 3 años";
+            return null;
+        }
+        if ($age > 18) {
+            $this->errors[] = "Fila {$this->currentRow}: Edad {$age} años. Edad máxima permitida: 18 años";
+            return null;
+        }
+
+        // Calcular categoría automáticamente
+        $categoriaCalculada = $this->calculateCategoryByAge($birthDate, $generoNormalizado);
+        if (!$categoriaCalculada) {
+            $this->errors[] = "Fila {$this->currentRow}: No se pudo determinar categoría para edad {$age} años";
             return null;
         }
 
         // Generar dorsal único
         $dorsalNumber = $this->generateDorsalNumber();
-
         $this->athleteCount++;
         $this->importedCount++;
-
-        // Determinar el tipo de documento para menores
-        $documentType = $tipoDocumento;
-        $documentNumber = $numeroDocumento;
-
-        // Si es menor de 9 años y el tipo de documento es especial
-        if ($age < 9 && $tipoDocumento === 'CEDULA_REPRESENTANTE') {
-            $documentType = 'CEDULA_REPRESENTANTE';
-            // Nota: el número de documento sería la cédula del representante
-        }
 
         return new Athlete([
             'first_name' => strtoupper($nombres),
             'last_name' => strtoupper($apellidos),
             'dorsal_number' => $dorsalNumber,
             'team_id' => $this->teamId,
-            'document_type' => $documentType,
-            'document_number' => $documentNumber,
+            'document_type' => $tipoDocumento ?: 'NO ESPECIFICADO',
+            'document_number' => $numeroDocumento,
             'uci_id' => $uciId,
-            'gender' => $genero,
-            'category' => $categoria,
+            'gender' => $generoNormalizado,
+            'category' => $categoriaCalculada,
             'birth_date' => $birthDate,
             'nationality' => $row['nacionalidad'] ?? 'Venezolana',
             'is_active' => true
@@ -136,11 +175,17 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
     public function rules(): array
     {
         return [
-            '*.id' => 'required',
-            '*.nombres' => 'required_without:*.apellidos',
-            '*.apellidos' => 'required_without:*.nombres',
-            '*.categoria' => 'required|string',
-            '*.fecha_de_nacimiento' => 'required_if:*.categoria,!=,STAFF'
+            '*.fecha_de_nacimiento' => 'required_if:*.rol,!=,STAFF'
+        ];
+    }
+
+    /**
+     * Mensajes de validación personalizados
+     */
+    public function customValidationMessages()
+    {
+        return [
+            'fecha_de_nacimiento.required_if' => 'La fecha de nacimiento es obligatoria para los atletas',
         ];
     }
 
@@ -160,28 +205,6 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
         }
 
         return null;
-    }
-
-    private function validateAgeByCategory($category, $age)
-    {
-        $ageRanges = [
-            'COMPOTAS' => [3, 4],
-            'INICIACIÓN A' => [5, 6],
-            'INICIACIÓN B' => [7, 8],
-            'INICIACIÓN C' => [9, 10],
-            'PRE-INFANTIL' => [11, 12],
-            'INFANTIL' => [13, 14],
-            'PRE-JUVENIL' => [15, 16],
-            'JUVENIL' => [17, 18],
-            'STAFF' => [2, 99]
-        ];
-
-        if (!isset($ageRanges[$category])) {
-            return false;
-        }
-
-        $range = $ageRanges[$category];
-        return $age >= $range[0] && $age <= $range[1];
     }
 
     private function generateDorsalNumber()
