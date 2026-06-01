@@ -1228,13 +1228,12 @@
             suggestionsDiv.innerHTML = '<div class="list-group-item text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</div>';
             suggestionsDiv.style.display = 'block';
 
-            fetch(`/buscar-estructuras?q=${encodeURIComponent(query)}`)
+            fetch('/buscar-estructuras?q=' + encodeURIComponent(query))
                 .then(response => response.json())
                 .then(data => {
                     existingStructureId = null;
                     existingStructureName = null;
 
-                    // Verificar si el nombre exacto ya existe
                     const exactMatch = data.find(team => team.name.toLowerCase() === query.toLowerCase());
                     if (exactMatch) {
                         existingStructureId = exactMatch.id;
@@ -1243,51 +1242,56 @@
 
                     if (data.length === 0) {
                         suggestionsDiv.style.display = 'none';
-                        // Solo mostrar opción de crear nueva si no hay coincidencias exactas
                         document.getElementById('newStructureName').innerText = query;
                         document.getElementById('newStructureOption').style.display = 'block';
                         document.getElementById('createNewStructure').checked = false;
                     } else {
-                        let html = '';
-                        data.forEach(team => {
-                            const isExactMatch = team.name.toLowerCase() === query.toLowerCase();
-                            html += `<div class="list-group-item list-group-item-action" onclick="selectStructure(${team.id}, '${escapeHtml(team.name)}')">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>${highlightText(team.name, query)}</strong>
-                                ${team.city ? `<br><small class="text-muted"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(team.city)}</small>` : ''}
-                            </div>
-                            <span class="badge ${isExactMatch ? 'bg-warning' : 'bg-success'}">${isExactMatch ? 'Coincidencia exacta' : 'Existente'}</span>
-                        </div>
-                    </div>`;
-                        });
+                        var html = '';
+                        for (var i = 0; i < data.length; i++) {
+                            var team = data[i];
+                            var isExactMatch = team.name.toLowerCase() === query.toLowerCase();
+                            var badgeClass = isExactMatch ? 'bg-warning' : 'bg-success';
+                            var badgeText = isExactMatch ? 'Coincidencia exacta' : 'Existente';
 
-                        // Si no hay coincidencia exacta, mostrar opción de crear nueva
+                            html += '<div class="list-group-item list-group-item-action" onclick="selectStructure(' + team.id + ', \'' + escapeHtml(team.name) + '\')">' +
+                                '<div class="d-flex justify-content-between align-items-center">' +
+                                '<div>' +
+                                '<strong>' + highlightText(team.name, query) + '</strong>';
+
+                            if (team.city) {
+                                html += '<br><small class="text-muted"><i class="fas fa-map-marker-alt"></i> ' + escapeHtml(team.city) + '</small>';
+                            }
+
+                            html += '</div>' +
+                                '<span class="badge ' + badgeClass + '">' + badgeText + '</span>' +
+                                '</div>' +
+                                '</div>';
+                        }
+
                         if (!exactMatch) {
-                            html += `<div class="list-group-item list-group-item-action text-primary" onclick="showNewStructureOption()">
-                        <i class="fas fa-plus-circle me-2"></i> Crear nueva estructura "${escapeHtml(query)}"
-                    </div>`;
+                            html += '<div class="list-group-item list-group-item-action text-primary" onclick="showNewStructureOption()">' +
+                                '<i class="fas fa-plus-circle me-2"></i> Crear nueva estructura "' + escapeHtml(query) + '"' +
+                                '</div>';
                             document.getElementById('newStructureOption').style.display = 'none';
                         } else {
-                            // Si ya existe una coincidencia exacta, mostrar advertencia
-                            html += `<div class="list-group-item list-group-item-action text-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>"${escapeHtml(query)}"</strong> ya existe. Selecciona la opción de arriba.
-                    </div>`;
+                            html += '<div class="list-group-item list-group-item-action text-warning">' +
+                                '<i class="fas fa-exclamation-triangle me-2"></i>' +
+                                '<strong>"' + escapeHtml(query) + '"</strong> ya existe. Selecciona la opción de arriba.' +
+                                '</div>';
                             document.getElementById('newStructureOption').style.display = 'none';
                         }
 
                         suggestionsDiv.innerHTML = html;
                         suggestionsDiv.style.display = 'block';
                     }
-                }).catch(() => {
+                }).catch(function() {
                 suggestionsDiv.innerHTML = '<div class="list-group-item text-danger">Error al buscar. Intenta nuevamente.</div>';
             });
         }
 
         function highlightText(text, query) {
             if (!query) return escapeHtml(text);
-            const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+            var regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
             return escapeHtml(text).replace(regex, '<span class="suggestion-highlight">$1</span>');
         }
 
@@ -1302,6 +1306,8 @@
             return div.innerHTML;
         }
 
+        // Reemplaza TODAS las funciones que usan innerHTML con esta versión corregida
+
         function selectStructure(id, name) {
             existingStructureId = id;
             existingStructureName = name;
@@ -1310,33 +1316,31 @@
             document.getElementById('structure_name_hidden').value = name;
             document.getElementById('structureSuggestions').style.display = 'none';
             document.getElementById('newStructureOption').style.display = 'none';
-            document.getElementById('selectedStructureInfo').innerHTML = `
-        <div class="alert alert-success" style="font-size: 0.9rem;">
-            <i class="fas fa-check-circle me-2"></i>
-            <strong>${escapeHtml(name)}</strong> (Estructura existente)
-            <br><small>Se asignará automáticamente a este equipo.</small>
-        </div>
-    `;
+
+            var infoHtml = '<div class="alert alert-success" style="font-size: 0.9rem;">' +
+                '<i class="fas fa-check-circle me-2"></i>' +
+                '<strong>' + escapeHtml(name) + '</strong> (Estructura existente)' +
+                '<br><small>Se asignará automáticamente a este equipo.</small>' +
+                '</div>';
+
+            document.getElementById('selectedStructureInfo').innerHTML = infoHtml;
             document.getElementById('structure_search').classList.remove('is-invalid');
         }
 
         function showNewStructureOption() {
             const searchValue = document.getElementById('structure_search').value;
             if (searchValue.length >= 2) {
-                // Verificar que no exista ya una coincidencia exacta
                 if (existingStructureId && existingStructureName && existingStructureName.toLowerCase() === searchValue.toLowerCase()) {
-                    document.getElementById('selectedStructureInfo').innerHTML = `
-                <div class="alert alert-danger" style="font-size: 0.9rem;">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>"${escapeHtml(searchValue)}"</strong> ya existe como estructura.
-                    <br><small>Por favor selecciona la estructura existente de la lista.</small>
-                </div>
-            `;
+                    var errorHtml = '<div class="alert alert-danger" style="font-size: 0.9rem;">' +
+                        '<i class="fas fa-exclamation-triangle me-2"></i>' +
+                        '<strong>"' + escapeHtml(searchValue) + '"</strong> ya existe como estructura.' +
+                        '<br><small>Por favor selecciona la estructura existente de la lista.</small>' +
+                        '</div>';
+                    document.getElementById('selectedStructureInfo').innerHTML = errorHtml;
                     document.getElementById('newStructureOption').style.display = 'none';
                     document.getElementById('structure_search').classList.add('is-invalid');
                     return;
                 }
-
                 document.getElementById('newStructureName').innerText = searchValue;
                 document.getElementById('newStructureOption').style.display = 'block';
                 document.getElementById('structureSuggestions').style.display = 'none';
@@ -1359,68 +1363,62 @@
             const checkbox = e.target;
 
             if (checkbox.checked) {
-                // Verificar que no exista ya una estructura con ese nombre
                 if (existingStructureId && existingStructureName && existingStructureName.toLowerCase() === searchValue.toLowerCase()) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Nombre duplicado',
-                        text: `La estructura "${searchValue}" ya existe. No puedes crear una nueva con el mismo nombre. Por favor selecciona la existente.`,
+                        text: 'La estructura "' + searchValue + '" ya existe. No puedes crear una nueva con el mismo nombre. Por favor selecciona la existente.',
                         confirmButtonColor: '#00ecfe'
                     });
                     checkbox.checked = false;
                     return;
                 }
 
-                // Verificar en el servidor si el nombre ya existe (por si acaso)
-                fetch(`/verificar-estructura?nombre=${encodeURIComponent(searchValue)}`)
+                fetch('/verificar-estructura?nombre=' + encodeURIComponent(searchValue))
                     .then(response => response.json())
                     .then(data => {
                         if (data.exists) {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Nombre duplicado',
-                                text: `La estructura "${searchValue}" ya existe en el sistema. No puedes crear una nueva con el mismo nombre.`,
+                                text: 'La estructura "' + searchValue + '" ya existe en el sistema. No puedes crear una nueva con el mismo nombre.',
                                 confirmButtonColor: '#00ecfe'
                             });
                             checkbox.checked = false;
                             document.getElementById('structure_id').value = data.id;
                             document.getElementById('structure_name_hidden').value = searchValue;
                             document.getElementById('structure_search').value = searchValue;
-                            document.getElementById('selectedStructureInfo').innerHTML = `
-                        <div class="alert alert-warning" style="font-size: 0.9rem;">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>${escapeHtml(searchValue)}</strong> ya existe. Se usará la estructura existente.
-                        </div>
-                    `;
+
+                            var warningHtml = '<div class="alert alert-warning" style="font-size: 0.9rem;">' +
+                                '<i class="fas fa-exclamation-triangle me-2"></i>' +
+                                '<strong>' + escapeHtml(searchValue) + '</strong> ya existe. Se usará la estructura existente.' +
+                                '</div>';
+                            document.getElementById('selectedStructureInfo').innerHTML = warningHtml;
                         } else {
-                            // Crear nueva estructura
                             document.getElementById('structure_id').value = '';
                             document.getElementById('structure_name_hidden').value = searchValue;
-                            document.getElementById('selectedStructureInfo').innerHTML = `
-                        <div class="alert alert-info" style="font-size: 0.9rem;">
-                            <i class="fas fa-plus-circle me-2"></i>
-                            Se creará una nueva estructura: <strong>${escapeHtml(searchValue)}</strong>
-                            <br><small>La estructura se registrará al completar la inscripción.</small>
-                        </div>
-                    `;
+
+                            var infoHtml = '<div class="alert alert-info" style="font-size: 0.9rem;">' +
+                                '<i class="fas fa-plus-circle me-2"></i>' +
+                                'Se creará una nueva estructura: <strong>' + escapeHtml(searchValue) + '</strong>' +
+                                '<br><small>La estructura se registrará al completar la inscripción.</small>' +
+                                '</div>';
+                            document.getElementById('selectedStructureInfo').innerHTML = infoHtml;
                             document.getElementById('structure_search').classList.remove('is-invalid');
                         }
                         document.getElementById('newStructureOption').style.display = 'none';
                         document.getElementById('structureSuggestions').style.display = 'none';
                     })
                     .catch(() => {
-                        // Si hay error, permitir la creación
                         document.getElementById('structure_id').value = '';
                         document.getElementById('structure_name_hidden').value = searchValue;
-                        document.getElementById('selectedStructureInfo').innerHTML = `
-                    <div class="alert alert-info" style="font-size: 0.9rem;">
-                        <i class="fas fa-plus-circle me-2"></i>
-                        Se creará: <strong>${escapeHtml(searchValue)}</strong>
-                    </div>
-                `;
+                        var infoHtml = '<div class="alert alert-info" style="font-size: 0.9rem;">' +
+                            '<i class="fas fa-plus-circle me-2"></i>' +
+                            'Se creará: <strong>' + escapeHtml(searchValue) + '</strong>' +
+                            '</div>';
+                        document.getElementById('selectedStructureInfo').innerHTML = infoHtml;
                     });
             } else {
-                // Si se desmarca, limpiar
                 document.getElementById('structure_id').value = '';
                 document.getElementById('structure_name_hidden').value = '';
                 document.getElementById('selectedStructureInfo').innerHTML = '';
