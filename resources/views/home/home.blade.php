@@ -632,7 +632,7 @@
             </div>
 
             <!-- CUENTAS BANCARIAS -->
-            <div class="row mt-4" data-aos="fade-up">
+            <div class="row mt-4 d-none" data-aos="fade-up">
                 <div class="col-12">
                     <div class="card shadow-sm">
                         <div class="card-header bg-white text-center py-3">
@@ -674,7 +674,7 @@
                                             <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
                                             <h5 class="mb-0">Pagos En USDT</h5>
                                         </div>
-                                        <p class="mb-1"><strong>Correo:</strong> Rubenaosrioe@gmail.com</p>
+                                        <p class="mb-1"><strong>Correo:</strong>  Rubenaosorioe@gmail.com</p>
 
                                     </div>
                                 </div>
@@ -1131,24 +1131,44 @@
                                                 <div class="card bg-white">
                                                     <div class="card-body">
                                                         <h6 class="card-title"><i class="fas fa-university me-2"></i> Cuentas Bancarias Disponibles</h6>
-                                                        <div class="row">
-                                                            <div class="col-md-6">
-                                                                <div class="border rounded p-2 mb-2">
-                                                                    <strong>🏦 Banco Provincial</strong><br>
-                                                                    <small>Cuenta Corriente: 0108-0001-23-0012345678<br>Titular: Vuelta a la Fría 2026<br>RIF: J-12345678-9</small>
+                                                        <div class="row g-3">
+                                                            <div class="col-md-4">
+                                                                <div class="bank-card p-3 rounded">
+                                                                    <div class="d-flex align-items-center mb-2">
+                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
+                                                                        <h5 class="mb-0">Banco Provincial</h5>
+                                                                    </div>
+                                                                    <p class="mb-1"><strong>Tipo de Cuenta:</strong> Corriente</p>
+                                                                    <p class="mb-1"><strong>Número de Cuenta:</strong>0108-0133-8001-0004-2510</p>
+                                                                    <p class="mb-1"><strong>Cédula/RIF:</strong> V-15184480</p>
+                                                                    <p class="mb-0"><strong>Beneficiario:</strong> Ruben Osorio</p>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-md-6">
-                                                                <div class="border rounded p-2 mb-2">
-                                                                    <strong>🏦 Banco Banesco</strong><br>
-                                                                    <small>Cuenta Corriente: 0134-0001-23-0123456789<br>Titular: Vuelta a la Fría 2026<br>RIF: J-12345678-9</small>
+
+                                                            <div class="col-md-4">
+                                                                <div class="bank-card p-3 rounded">
+                                                                    <div class="d-flex align-items-center mb-2">
+                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
+                                                                        <h5 class="mb-0">Transferencia Pesos COP</h5>
+                                                                    </div>
+                                                                    <p class="mb-1"><strong>Banco:</strong> Bancolombia</p>
+                                                                    <p class="mb-1"><strong>Cuenta:</strong> Ahorro</p>
+                                                                    <p class="mb-1"><strong>Nro:</strong>901275648</p>
+                                                                    <p class="mb-0"><strong>Beneficiario:</strong> INVERSIONES OSORIO MOTOS S.A.S</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <div class="bank-card p-3 rounded">
+                                                                    <div class="d-flex align-items-center mb-2">
+                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
+                                                                        <h5 class="mb-0">Pagos En USDT</h5>
+                                                                    </div>
+                                                                    <p class="mb-1"><strong>Correo:</strong> Rubenaosorioe@gmail.com</p>
+
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="alert alert-warning mt-2">
-                                                            <i class="fas fa-info-circle me-2"></i>
-                                                            <strong>Para pagos internacionales (PayPal/Zelle):</strong> vueltalafria@gmail.com
-                                                        </div>
+
                                                     </div>
                                                 </div>
                                             </div>
@@ -1159,6 +1179,7 @@
                                                        placeholder="Ingresa el número de referencia de tu transferencia/pago">
                                             </div>
 
+                                            <!-- CAMPO PARA SUBIR COMPROBANTE -->
                                             <div class="col-md-12 mb-3" id="paymentProofField" style="display: none;">
                                                 <label class="form-label">Comprobante de Pago</label>
                                                 <div class="upload-area" id="paymentUploadArea" style="padding: 15px;">
@@ -1166,9 +1187,12 @@
                                                     <p>Arrastra tu comprobante aquí o haz clic para seleccionar</p>
                                                     <small class="text-muted">Formatos: JPG, PNG, PDF (Máx 2MB)</small>
                                                     <input type="file" name="payment_proof" id="paymentProof" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
-                                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('paymentProof').click()">Seleccionar comprobante</button>
+                                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('paymentProof').click()">
+                                                        Seleccionar comprobante
+                                                    </button>
                                                     <div id="paymentFileName" class="mt-2 small text-muted"></div>
                                                 </div>
+                                                <small class="text-muted">El comprobante se comprimirá automáticamente. Formatos permitidos: JPG, PNG, PDF (Máx 2MB)</small>
                                             </div>
                                         </div>
                                     </div>
