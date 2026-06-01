@@ -4,6 +4,7 @@
 namespace App\Imports;
 
 use App\Models\Athlete;
+use App\Models\TeamStaff;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
@@ -18,18 +19,12 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
     private $teamId;
     private $errors = [];
     private $importedCount = 0;
+    private $staffCount = 0;
+    private $athleteCount = 0;
 
-    // Mapeo de categorías
-    private $categoryMapping = [
-        'COMPOTAS' => 'COMPOTAS',
-        'INICIACIÓN A' => 'INICIACIÓN A',
-        'INICIACIÓN B' => 'INICIACIÓN B',
-        'INICIACIÓN C' => 'INICIACIÓN C',
-        'EXHIBICIÓN' => 'EXHIBICIÓN',
-        'PRE-INFANTIL D' => 'PRE-INFANTIL D',
-        'INFANTIL' => 'INFANTIL',
-        'PRE-JUVENIL' => 'PRE-JUVENIL',
-        'JUVENIL' => 'JUVENIL'
+    private $validCategories = [
+        'COMPOTAS', 'INICIACIÓN A', 'INICIACIÓN B', 'INICIACIÓN C',
+        'PRE-INFANTIL', 'INFANTIL', 'PRE-JUVENIL', 'JUVENIL', 'STAFF'
     ];
 
     public function __construct($teamId)
@@ -39,17 +34,50 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
 
     public function model(array $row)
     {
-        // Validar categoría
-        $category = $row['categoria'] ?? null;
-        if (!array_key_exists($category, $this->categoryMapping)) {
-            $this->errors[] = "Fila {$row['id']}: Categoría '{$category}' no válida";
+        // Limpiar datos
+        $nombres = trim($row['nombres'] ?? '');
+        $apellidos = trim($row['apellidos'] ?? '');
+        $categoria = trim($row['categoria'] ?? '');
+        $rol = trim($row['rol'] ?? 'Atleta');
+        $tipoDocumento = trim($row['tipo_documento'] ?? '');
+        $numeroDocumento = trim($row['numero_documento'] ?? '');
+        $uciId = trim($row['uci_id'] ?? '');
+        $genero = trim($row['genero'] ?? '');
+
+        // Validar datos mínimos
+        if (empty($nombres) && empty($apellidos)) {
+            $this->errors[] = "Fila con ID {$row['id']}: Nombres y Apellidos vacíos";
+            return null;
+        }
+
+        // Si es STAFF
+        if ($categoria === 'STAFF' || $rol === 'STAFF') {
+            $this->staffCount++;
+
+            // Crear registro en team_staff
+            TeamStaff::create([
+                'team_id' => $this->teamId,
+                'full_name' => strtoupper($nombres . ' ' . $apellidos),
+                'identification_number' => $numeroDocumento,
+                'role' => 'STAFF',
+                'phone' => null,
+                'email' => null,
+                'position' => $row['cargo'] ?? 'Personal de apoyo',
+                'is_active' => true
+            ]);
+
+            return null; // No crear atleta para STAFF
+        }
+
+        // Validar categoría para atletas
+        if (!in_array($categoria, $this->validCategories)) {
+            $this->errors[] = "Fila {$row['id']}: Categoría '{$categoria}' no válida";
             return null;
         }
 
         // Validar género
-        $gender = $row['genero'] ?? null;
-        if (!in_array($gender, ['Masculino', 'Femenino'])) {
-            $this->errors[] = "Fila {$row['id']}: Género '{$gender}' no válido. Use Masculino o Femenino";
+        if (!in_array($genero, ['Masculino', 'Femenino'])) {
+            $this->errors[] = "Fila {$row['id']}: Género '{$genero}' no válido. Use Masculino o Femenino";
             return null;
         }
 
@@ -63,8 +91,8 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
 
             // Validar edad según categoría
             $age = Carbon::parse($birthDate)->age;
-            if (!$this->validateAgeByCategory($category, $age)) {
-                $this->errors[] = "Fila {$row['id']}: Edad {$age} años no corresponde a la categoría {$category}";
+            if (!$this->validateAgeByCategory($categoria, $age)) {
+                $this->errors[] = "Fila {$row['id']}: Edad {$age} años no corresponde a la categoría {$categoria}";
                 return null;
             }
 
@@ -76,18 +104,29 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
         // Generar dorsal único
         $dorsalNumber = $this->generateDorsalNumber();
 
+        $this->athleteCount++;
         $this->importedCount++;
 
+        // Determinar el tipo de documento para menores
+        $documentType = $tipoDocumento;
+        $documentNumber = $numeroDocumento;
+
+        // Si es menor de 9 años y el tipo de documento es especial
+        if ($age < 9 && $tipoDocumento === 'CEDULA_REPRESENTANTE') {
+            $documentType = 'CEDULA_REPRESENTANTE';
+            // Nota: el número de documento sería la cédula del representante
+        }
+
         return new Athlete([
-            'first_name' => strtoupper($row['nombres']),
-            'last_name' => strtoupper($row['apellidos']),
+            'first_name' => strtoupper($nombres),
+            'last_name' => strtoupper($apellidos),
             'dorsal_number' => $dorsalNumber,
             'team_id' => $this->teamId,
-            'document_type' => $row['tipo_documento'] ?? null,
-            'document_number' => $row['numero_documento'] ?? null,
-            'uci_id' => $row['uci_id'] ?? null,
-            'gender' => $gender,
-            'category' => $category,
+            'document_type' => $documentType,
+            'document_number' => $documentNumber,
+            'uci_id' => $uciId,
+            'gender' => $genero,
+            'category' => $categoria,
             'birth_date' => $birthDate,
             'nationality' => $row['nacionalidad'] ?? 'Venezolana',
             'is_active' => true
@@ -97,24 +136,22 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
     public function rules(): array
     {
         return [
-            '*.id' => 'required|integer',
-            '*.apellidos' => 'required|string|max:255',
-            '*.nombres' => 'required|string|max:255',
-            '*.fecha_de_nacimiento' => 'required',
+            '*.id' => 'required',
+            '*.nombres' => 'required_without:*.apellidos',
+            '*.apellidos' => 'required_without:*.nombres',
             '*.categoria' => 'required|string',
-            '*.genero' => 'required|string'
+            '*.fecha_de_nacimiento' => 'required_if:*.categoria,!=,STAFF'
         ];
     }
 
     private function parseDate($dateString)
     {
-        // Intentar varios formatos
-        $formats = ['d/m/Y', 'd-m-Y', 'Y-m-d', 'd.m.Y'];
+        $formats = ['d/m/Y', 'd-m-Y', 'Y-m-d', 'd.m.Y', 'd/m/y', 'd-m-y'];
 
         foreach ($formats as $format) {
             try {
                 $date = Carbon::createFromFormat($format, $dateString);
-                if ($date) {
+                if ($date && $date->year > 1900 && $date->year <= date('Y')) {
                     return $date->format('Y-m-d');
                 }
             } catch (\Exception $e) {
@@ -128,15 +165,15 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
     private function validateAgeByCategory($category, $age)
     {
         $ageRanges = [
-            'COMPOTAS'       => [3, 4],
-            'Strider'        => [3, 4],
-            'INICIACIÓN A'   => [5, 6],
-            'INICIACIÓN B'   => [7, 8],
-            'INICIACIÓN C'   => [9, 10],
-            'PRE-INFANTIL D' => [11, 12],
-            'INFANTIL'       => [13, 14],
-            'PRE-JUVENIL'    => [15, 16],
-            'JUVENIL'        => [17, 18]
+            'COMPOTAS' => [3, 4],
+            'INICIACIÓN A' => [5, 6],
+            'INICIACIÓN B' => [7, 8],
+            'INICIACIÓN C' => [9, 10],
+            'PRE-INFANTIL' => [11, 12],
+            'INFANTIL' => [13, 14],
+            'PRE-JUVENIL' => [15, 16],
+            'JUVENIL' => [17, 18],
+            'STAFF' => [2, 99]
         ];
 
         if (!isset($ageRanges[$category])) {
@@ -162,5 +199,15 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
     public function getImportedCount()
     {
         return $this->importedCount;
+    }
+
+    public function getStaffCount()
+    {
+        return $this->staffCount;
+    }
+
+    public function getAthleteCount()
+    {
+        return $this->athleteCount;
     }
 }

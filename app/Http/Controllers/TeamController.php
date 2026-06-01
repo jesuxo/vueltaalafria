@@ -31,7 +31,39 @@ class TeamController extends Controller
         return view('admin.teams.index', compact('teams'));
     }
 
-    // Ver detalles de un equipo (Admin)
+    public function searchStructures(Request $request)
+    {
+        $search = $request->get('q', '');
+
+        if (strlen($search) < 2) {
+            return response()->json([]);
+        }
+
+        $teams = Team::where('name', 'LIKE', "%{$search}%")
+            ->orderBy('name')
+            ->limit(10)
+            ->get(['id', 'name', 'city', 'country']);
+
+        return response()->json($teams);
+    }
+
+    public function checkStructureExists(Request $request)
+    {
+        $nombre = $request->get('nombre', '');
+
+        if (strlen($nombre) < 2) {
+            return response()->json(['exists' => false]);
+        }
+
+        $team = Team::where('name', 'LIKE', $nombre)->first();
+
+        if ($team) {
+            return response()->json(['exists' => true, 'id' => $team->id, 'name' => $team->name]);
+        }
+
+        return response()->json(['exists' => false]);
+    }
+
     public function show($id)
     {
         $team = Team::with(['athletes', 'staff', 'vehicles', 'photos', 'registrations'])->findOrFail($id);

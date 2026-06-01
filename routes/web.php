@@ -8,8 +8,11 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\AthleteController;
 use App\Http\Controllers\StageController;
 use App\Http\Controllers\ResultController;
+use App\Http\Controllers\PublicRegistrationController;
 use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TeamPanelController;
+use App\Http\Controllers\SiteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,7 +27,7 @@ use App\Http\Controllers\TeamPanelController;
 
 /* Auth Route::get('signup', 'App\Http\Controllers\Auth\RegisterController@signup')->name('signup');*/
 
-Route::match(['get','post'],'/',  [App\Http\Controllers\SiteController::class, 'index'])->name('site');
+Route::match(['get','post'],'/',  [SiteController::class, 'index'])->name('site');
 Route::get('/login', function () {
     return view('auth.login');
 });
@@ -42,20 +45,25 @@ Route::group(['prefix' => 'error'], function(){
 // ============================================
 
 // Home
-Route::get('/home', [App\Http\Controllers\SiteController::class, 'index'])->name('home');
-Route::get('/inicio', [App\Http\Controllers\SiteController::class, 'index'])->name('inicio');
+Route::get('/home', [SiteController::class, 'index'])->name('home');
+Route::get('/inicio', [SiteController::class, 'index'])->name('inicio');
 
 // Información pública
-Route::get('/informacion', [App\Http\Controllers\HomeController::class, 'info'])->name('info');
-Route::get('/etapas', [App\Http\Controllers\HomeController::class, 'stages'])->name('public.stages');
-Route::get('/resultados', [App\Http\Controllers\HomeController::class, 'results'])->name('public.results');
-Route::get('/galeria', [App\Http\Controllers\HomeController::class, 'gallery'])->name('public.gallery');
+Route::get('/informacion', [HomeController::class, 'info'])->name('info');
+Route::get('/etapas', [HomeController::class, 'stages'])->name('public.stages');
+Route::get('/resultados', [HomeController::class, 'results'])->name('public.results');
+Route::get('/galeria', [HomeController::class, 'gallery'])->name('public.gallery');
 
 // Inscripciones públicas
 Route::get('/inscripcion/individual', [RegistrationController::class, 'individualForm'])->name('registration.individual.form');
 Route::post('/inscripcion/individual', [RegistrationController::class, 'individualSubmit'])->name('registration.individual.submit');
 Route::get('/inscripcion/verificar', [RegistrationController::class, 'checkStatus'])->name('registration.check');
 Route::post('/inscripcion/verificar', [RegistrationController::class, 'checkStatus'])->name('registration.check.submit');
+Route::get('/buscar-estructuras', [TeamController::class, 'searchStructures'])->name('search.structures');
+Route::get('/verificar-estructura', [TeamController::class, 'checkStructureExists'])->name('check.structure');
+// Ruta para descargar plantilla Excel
+Route::get('/inscripcion/equipo/plantilla', [App\Http\Controllers\PublicRegistrationController::class, 'downloadTemplateExcel'])
+    ->name('registration.team.download-template');
 
 // ============================================
 // PANEL DE EQUIPOS (Acceso con código)
@@ -192,8 +200,8 @@ Route::resource('permissions', PermissionController::class);
 Route::resource('user-sucursal', UserSucursalController::class);
 
 Route::prefix('inscripcion')->name('registration.team.')->group(function () {
-    Route::get('/equipo', [App\Http\Controllers\PublicRegistrationController::class, 'showForm'])->name('form');
-    Route::get('/equipo/plantilla', [App\Http\Controllers\PublicRegistrationController::class, 'downloadTemplate'])->name('download-template');
-    Route::post('/equipo', [App\Http\Controllers\PublicRegistrationController::class, 'submitRegistration'])->name('submit');
-    Route::get('/exito', [App\Http\Controllers\PublicRegistrationController::class, 'success'])->name('success');
+    Route::get('/equipo', [PublicRegistrationController::class, 'showForm'])->name('form');
+    Route::get('/equipo/plantilla', [PublicRegistrationController::class, 'downloadTemplate'])->name('download-template');
+    Route::post('/equipo', [PublicRegistrationController::class, 'submitRegistration'])->name('submit');
+    Route::get('/exito', [PublicRegistrationController::class, 'success'])->name('success');
 });

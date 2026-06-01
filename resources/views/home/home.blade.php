@@ -150,40 +150,6 @@
             }
         }
 
-        /* Animación del checkmark */
-        .success-animation {
-            margin: 0 auto;
-        }
-        .checkmark-circle {
-            width: 80px;
-            height: 80px;
-            position: relative;
-            display: inline-block;
-            vertical-align: top;
-            border-radius: 50%;
-            background: #00ecfe;
-            animation: scale 0.3s ease-in-out;
-        }
-        .checkmark {
-            border-radius: 5px;
-        }
-        .checkmark.draw:after {
-            animation-duration: 0.3s;
-            animation-delay: 0.1s;
-            animation-timing-function: ease;
-            animation-name: checkmark;
-            transform: scaleX(-1) rotate(135deg);
-            animation-fill-mode: forwards;
-            opacity: 0;
-            content: "";
-            position: absolute;
-            top: 35px;
-            left: 25px;
-            height: 25px;
-            width: 12.5px;
-            border-right: 5px solid white;
-            border-bottom: 5px solid white;
-        }
         @keyframes scale {
             0% {
                 transform: scale(0);
@@ -192,15 +158,33 @@
                 transform: scale(1);
             }
         }
-        @keyframes checkmark {
-            0% {
-                opacity: 0;
-                transform: scaleX(-1) rotate(135deg);
-            }
-            100% {
-                opacity: 1;
-                transform: scaleX(-1) rotate(135deg);
-            }
+
+        /* Estilos para el autocompletado */
+        #structureSuggestions .list-group-item {
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: none;
+            border-right: none;
+        }
+
+        #structureSuggestions .list-group-item:first-child {
+            border-top: none;
+        }
+
+        #structureSuggestions .list-group-item:hover {
+            background-color: #e8f0fe;
+            color: #00ecfe;
+        }
+
+        #structureSuggestions .list-group-item.active {
+            background-color: #00ecfe;
+            border-color: #00ecfe;
+            color: white;
+        }
+
+        .suggestion-highlight {
+            font-weight: bold;
+            color: #00ecfe;
         }
     </style>
 @endsection
@@ -615,6 +599,47 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
+
+                                        <!-- Estructura -->
+                                        <div class="col-md-12 mb-3">
+                                            <label class="form-label">¿Representas a alguna Estructura?</label>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="radio" name="has_structure" id="structure_no" value="0" checked onchange="toggleStructureField()">
+                                                <label class="form-check-label" for="structure_no">
+                                                    No, soy ciclista independiente
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="has_structure" id="structure_yes" value="1" onchange="toggleStructureField()">
+                                                <label class="form-check-label" for="structure_yes">
+                                                    Sí, represento a una Escuela/Club/Fundación/Sponsor
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div id="structureError" class="alert alert-danger mt-2" style="display: none; font-size: 0.9rem;">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <span id="structureErrorMessage"></span>
+                                        </div>
+
+                                        <div class="col-md-12 mb-3" id="structureField" style="display: none;">
+                                            <label class="form-label">Nombre de la Escuela/Club/Fundación/Sponsor</label>
+                                            <div class="position-relative">
+                                                <input type="text" id="structure_search" class="form-control" placeholder="Escribe el nombre de la estructura..." autocomplete="off">
+                                                <input type="hidden" name="structure_id" id="structure_id" value="{{ old('structure_id') }}">
+                                                <input type="hidden" name="structure_name" id="structure_name_hidden" value="{{ old('structure_name') }}">
+                                                <div id="structureSuggestions" class="list-group position-absolute w-100" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                                            </div>
+                                            <div class="form-check mt-2" id="newStructureOption" style="display: none;">
+                                                <input class="form-check-input" type="checkbox" id="createNewStructure">
+                                                <label class="form-check-label" for="createNewStructure">
+                                                    <i class="fas fa-plus-circle text-success"></i> Crear Escuela/Club/Fundación/Sponsor "<span id="newStructureName"></span>"
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Ingresa el nombre de la escuela, club, fundación o sponsor que representas</small>
+                                            <div id="selectedStructureInfo" class="mt-2"></div>
+                                        </div>
+
                                         <div class="col-md-12 mb-3">
                                             <label class="form-label required-field">Categoría</label>
                                             <select name="category" id="categorySelect" class="form-select @error('category') is-invalid @enderror" required>
@@ -638,6 +663,7 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
+
                                         <div class="col-md-12 mb-3">
                                             <label class="form-label required-field">Contacto de Emergencia</label>
                                             <input type="text" name="emergency_contact" class="form-control @error('emergency_contact') is-invalid @enderror" required placeholder="Nombre completo y teléfono de contacto" value="{{ old('emergency_contact') }}">
@@ -646,6 +672,7 @@
                                             @enderror
                                             <small class="text-muted">Ej: Juan Pérez - 0414XXXXXX</small>
                                         </div>
+
                                         <div class="col-12 mb-3">
                                             <div class="form-check">
                                                 <input type="checkbox" class="form-check-input @error('accept_terms') is-invalid @enderror" id="acceptTermsIndividual" name="accept_terms" required>
@@ -657,6 +684,7 @@
                                                 @enderror
                                             </div>
                                         </div>
+
                                         <div class="col-12 text-center">
                                             <div class="g-recaptcha mb-3" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
                                             <button type="submit" class="btn-custom">
@@ -690,6 +718,10 @@
                                     <div class="alert alert-success">
                                         <i class="fas fa-check-circle me-2"></i> {{ session('team_success') }}
                                         <br>
+                                        <strong>📊 Resumen:</strong>
+                                        {{ session('athletes_count') }} atletas,
+                                        {{ session('staff_count') }} personal de apoyo
+                                        <br>
                                         <strong>Código de acceso:</strong> <code>{{ session('access_code') }}</code>
                                         <br>
                                         <a href="{{ route('team.login') }}" class="btn btn-sm btn-primary mt-2">Acceder al Panel</a>
@@ -720,7 +752,6 @@
                                 <form action="{{ route('registration.team.submit') }}" method="POST" enctype="multipart/form-data" id="teamRegistrationForm">
                                     @csrf
 
-                                    <!-- Información del Equipo -->
                                     <div class="bg-light p-3 rounded mb-4">
                                         <h5 class="mb-3" style="color: var(--primary);"><i class="fas fa-building me-2"></i> Datos del Equipo</h5>
                                         <div class="row">
@@ -756,7 +787,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Datos del Delegado -->
                                     <div class="bg-light p-3 rounded mb-4">
                                         <h5 class="mb-3" style="color: var(--primary);"><i class="fas fa-user-tie me-2"></i> Datos del Delegado/Entrenador</h5>
                                         <div class="row">
@@ -779,7 +809,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Datos Migratorios -->
                                     <div class="bg-light p-3 rounded mb-4">
                                         <h5 class="mb-3" style="color: var(--primary);">
                                             <i class="fas fa-passport me-2"></i> Datos Migratorios
@@ -815,7 +844,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Vehículos de la delegación -->
                                     <div class="bg-light p-3 rounded mb-4">
                                         <h5 class="mb-3" style="color: var(--primary);">
                                             <i class="fas fa-truck me-2"></i> Vehículos de la Delegación
@@ -849,10 +877,8 @@
                                         </div>
                                     </div>
 
-                                    <!-- Subida de Excel -->
                                     <div class="bg-light p-3 rounded mb-4">
                                         <h5 class="mb-3" style="color: var(--primary);"><i class="fas fa-file-excel me-2"></i> Lista de Atletas</h5>
-
                                         <div class="alert alert-info">
                                             <i class="fas fa-download me-2"></i>
                                             <strong>Descarga la plantilla:</strong>
@@ -862,20 +888,16 @@
                                             <hr class="my-2">
                                             <small class="d-block">La plantilla debe contener: ID, APELLIDOS, NOMBRES, FECHA DE NACIMIENTO, TIPO DOCUMENTO, NÚMERO DOCUMENTO, UCI ID, CATEGORÍA, GÉNERO</small>
                                         </div>
-
                                         <div class="upload-area" id="uploadArea">
                                             <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
                                             <p>Arrastra tu archivo aquí o haz clic para seleccionar</p>
                                             <input type="file" name="excel_file" id="excelFile" accept=".xlsx,.xls,.csv" style="display: none;" required>
-                                            <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('excelFile').click()">
-                                                Seleccionar archivo
-                                            </button>
+                                            <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('excelFile').click()">Seleccionar archivo</button>
                                             <div id="fileName" class="mt-2 small text-muted"></div>
                                         </div>
                                         <small class="text-muted">Formatos aceptados: .xlsx, .xls, .csv (máx 5MB)</small>
                                     </div>
 
-                                    <!-- Términos -->
                                     <div class="text-center mb-4">
                                         <div class="g-recaptcha mb-3" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
                                         <div class="form-check">
@@ -909,7 +931,7 @@
         </div>
     </section>
 
-    <!-- Modal de Términos y Condiciones -->
+    <!-- Modales -->
     <div class="modal fade" id="termsModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -938,106 +960,20 @@
         </div>
     </div>
 
-    <!-- Contacto Section -->
-    <section id="contacto" class="section section-dark">
-        <div class="container">
-            <div class="section-title" data-aos="fade-up">
-                <h2>CONTACTO</h2>
-                <p>Comité Organizador</p>
-            </div>
-            <div class="row g-5">
-                <div class="col-lg-6" data-aos="fade-right">
-                    <div class="contact-info">
-                        <i class="fas fa-user-tie"></i>
-                        <div>
-                            <strong>Rubén Osorio Espinoza</strong><br>
-                            Dirección General de la Carrera
-                        </div>
-                    </div>
-                    <div class="contact-info">
-                        <i class="fas fa-wrench"></i>
-                        <div>
-                            <strong>Valentín Durán</strong><br>
-                            Dirección Técnica - <a href="https://api.whatsapp.com/send/?phone=584126851119&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0" target="_blank" style="color:#999 !important; text-decoration: none !important;">+58 412-6851119</a>
-                        </div>
-                    </div>
-                    <div class="contact-info">
-                        <i class="fas fa-file-alt"></i>
-                        <div>
-                            <strong>Gustavo Uzcátegui Rosales</strong><br>
-                            Secretario General - <a href="https://api.whatsapp.com/send/?phone=584247038594&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0" target="_blank" style="color:#999 !important; text-decoration: none !important;">+58 424-7038594</a>
-                        </div>
-                    </div>
-                    <div class="contact-info">
-                        <i class="fas fa-user-check"></i>
-                        <div>
-                            <strong>Jhoana Noriega</strong><br>
-                            Coordinadora de Preinscripción - <a href="https://api.whatsapp.com/send/?phone=584247371101&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0" target="_blank" style="color:#999 !important; text-decoration: none !important;">+58 424-7371101</a>
-                        </div>
-                    </div>
-                    <div class="contact-info">
-                        <i class="fas fa-envelope"></i>
-                        <div>
-                            <strong>Email</strong><br>
-                            vueltalafria@gmail.com
-                        </div>
-                    </div>
-                    <div class="contact-info">
-                        <i class="fas fa-flag-checkered"></i>
-                        <div>
-                            <strong>Sede Principal</strong><br>
-                            Osorio Group - Av. Aeropuerto, vía autopista La Fría - San Cristóbal
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6" data-aos="fade-left">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3951.0!2d-72.25!3d8.2167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e5f5e5e5e5e5e5e%3A0x5e5e5e5e5e5e5e5e!2sLa%20Fria%2C%20Tachira!5e0!3m2!1sen!2sve!4v1700000000000!5m2!1sen!2sve" width="100%" height="350" style="border:0; border-radius:15px;" allowfullscreen="" loading="lazy"></iframe>
-                </div>
-            </div>
-            <div class="row mt-5" data-aos="fade-up">
-                <div class="col-lg-8 mx-auto">
-                    <div class="contact-form">
-                        <h3 class="text-center mb-4">Contáctanos</h3>
-                        <form>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" placeholder="Tu nombre">
-                                </div>
-                                <div class="col-md-6">
-                                    <input type="email" class="form-control" placeholder="Tu email">
-                                </div>
-                                <div class="col-12">
-                                    <textarea class="form-control" rows="5" placeholder="Tu mensaje"></textarea>
-                                </div>
-                                <div class="col-12 text-center">
-                                    <button type="submit" class="btn-custom">Enviar mensaje</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Modal de Éxito - Inscripción Exitosa -->
+    <!-- Modal de Éxito -->
     <div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header" style="background: linear-gradient(135deg, #00ecfe 0%, #00c4d4 100%);">
                     <div class="modal-title text-center w-100">
                         <i class="fas fa-check-circle fa-4x text-white mb-2"></i>
-                        <h4 class="text-white mb-0" id="successModalTitle">¡Inscripción Registrada!</h4>
+                        <h4 class="text-white mb-0">¡Inscripción Registrada!</h4>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center p-4">
-                    <div class="success-animation">
-                        <div class="checkmark-circle">
-                            <div class="checkmark draw"></div>
-                        </div>
-                    </div>
-                    <h5 class="mt-4" id="successMessage">¡Inscripción exitosa!</h5>
-                    <div class="alert alert-success mt-3" id="successDetails">
+                    <h5 class="mt-4" id="successMessage"></h5>
+                    <div class="alert alert-success mt-3">
                         <table class="table table-borderless mb-0">
                             <tbody id="successDetailsTable"></tbody>
                         </table>
@@ -1048,15 +984,13 @@
                     </div>
                 </div>
                 <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn-custom" data-bs-dismiss="modal">
-                        <i class="fas fa-check me-2"></i> Aceptar
-                    </button>
+                    <button type="button" class="btn-custom" data-bs-dismiss="modal">Aceptar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Estado de Inscripción -->
+    <!-- Modal de Estado -->
     <div class="modal fade" id="statusModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -1065,7 +999,7 @@
                         <i class="fas fa-clipboard-list fa-4x text-white mb-2"></i>
                         <h4 class="text-white mb-0">Estado de Inscripción</h4>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div id="statusContent"></div>
@@ -1077,220 +1011,81 @@
         </div>
     </div>
 
+    <!-- Contacto Section -->
+    <section id="contacto" class="section section-dark">
+        <div class="container">
+            <div class="section-title" data-aos="fade-up">
+                <h2>CONTACTO</h2>
+                <p>Comité Organizador</p>
+            </div>
+            <div class="row g-5">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <div class="contact-info">
+                        <i class="fas fa-user-tie"></i>
+                        <div><strong>Rubén Osorio Espinoza</strong><br>Dirección General de la Carrera</div>
+                    </div>
+                    <div class="contact-info">
+                        <i class="fas fa-wrench"></i>
+                        <div><strong>Valentín Durán</strong><br>Dirección Técnica - +58 412-6851119</div>
+                    </div>
+                    <div class="contact-info">
+                        <i class="fas fa-file-alt"></i>
+                        <div><strong>Gustavo Uzcátegui Rosales</strong><br>Secretario General - +58 424-7038594</div>
+                    </div>
+                    <div class="contact-info">
+                        <i class="fas fa-user-check"></i>
+                        <div><strong>Jhoana Noriega</strong><br>Coordinadora de Preinscripción - +58 424-7371101</div>
+                    </div>
+                    <div class="contact-info">
+                        <i class="fas fa-envelope"></i>
+                        <div><strong>Email</strong><br>vueltalafria@gmail.com</div>
+                    </div>
+                    <div class="contact-info">
+                        <i class="fas fa-flag-checkered"></i>
+                        <div><strong>Sede Principal</strong><br>Osorio Group - Av. Aeropuerto, vía autopista La Fría - San Cristóbal</div>
+                    </div>
+                </div>
+                <div class="col-lg-6" data-aos="fade-left">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3951.0!2d-72.25!3d8.2167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e5f5e5e5e5e5e5e%3A0x5e5e5e5e5e5e5e5e!2sLa%20Fria%2C%20Tachira!5e0!3m2!1sen!2sve!4v1700000000000!5m2!1sen!2sve" width="100%" height="350" style="border:0; border-radius:15px;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
 @endsection
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
-        // Mostrar modal de éxito si existe la variable de sesión
-        @if(session('success_modal'))
-        document.addEventListener('DOMContentLoaded', function() {
-            // Llenar los datos del modal
-            document.getElementById('successMessage').innerHTML = '{{ session('success_message') }}';
-
-            const details = @json(session('success_details'));
-            const detailsTable = document.getElementById('successDetailsTable');
-            if (detailsTable && details) {
-                detailsTable.innerHTML = `
-                    <tr>
-                        <td class="fw-bold">👤 Ciclista:</td>
-                        <td>${details.nombre || ''}</td>
-                    </tr>
-                    <tr>
-                        <td class="fw-bold">🔢 Dorsal:</td>
-                        <td><span class="badge bg-primary fs-6">${details.dorsal || ''}</span></td>
-                    </tr>
-                    <tr>
-                        <td class="fw-bold">🏆 Categoría:</td>
-                        <td>${details.categoria || ''}</td>
-                    </tr>
-                    <tr>
-                        <td class="fw-bold">📧 Email:</td>
-                        <td>${details.email || ''}</td>
-                    </tr>
-                `;
-            }
-
-            // Mostrar el modal
-            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-            successModal.show();
-
-            // Ocultar los formularios
-            document.getElementById('individualForm').style.display = 'none';
-            document.getElementById('teamForm').style.display = 'none';
-            document.getElementById('btnIndividual').classList.remove('active');
-            document.getElementById('btnTeam').classList.remove('active');
-
-            // Scroll al inicio
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-        @endif
-
-        // Mostrar modal de estado de inscripción
-        @if(session('show_status_modal'))
-        document.addEventListener('DOMContentLoaded', function() {
-            const statusData = @json(session('status_data'));
-            const statusContent = document.getElementById('statusContent');
-
-            if (statusContent && statusData) {
-                let statusBadge = '';
-                switch(statusData.status) {
-                    case 'pending':
-                        statusBadge = '<span class="badge bg-warning text-dark">⏳ Pendiente de revisión</span>';
-                        break;
-                    case 'approved':
-                        statusBadge = '<span class="badge bg-success">✅ Aprobada</span>';
-                        break;
-                    case 'rejected':
-                        statusBadge = '<span class="badge bg-danger">❌ Rechazada</span>';
-                        break;
-                    case 'paid':
-                        statusBadge = '<span class="badge bg-info">💰 Pagada</span>';
-                        break;
-                    default:
-                        statusBadge = '<span class="badge bg-secondary">📝 Registrada</span>';
-                }
-
-                statusContent.innerHTML = `
-                    <div class="text-center mb-4">
-                        <i class="fas fa-user-circle fa-4x text-primary"></i>
-                        <h5 class="mt-2">${statusData.registration_type === 'individual' ? 'Ciclista Individual' : 'Equipo'}</h5>
-                    </div>
-                    <div class="alert alert-info">
-                        <strong>📅 Evento:</strong> ${statusData.event?.name || 'Vuelta a la Fría 2026'}<br>
-                        <strong>📧 Email registrado:</strong> ${statusData.email}<br>
-                        <strong>📞 Teléfono:</strong> ${statusData.phone}<br>
-                        <strong>📌 Estado:</strong> ${statusBadge}<br>
-                        <strong>📅 Fecha de registro:</strong> ${new Date(statusData.registered_at).toLocaleDateString('es-VE')}
-                    </div>
-                `;
-
-                if (statusData.athlete) {
-                    statusContent.innerHTML += `
-                        <div class="alert alert-success">
-                            <strong>👤 Ciclista:</strong> ${statusData.athlete.first_name} ${statusData.athlete.last_name}<br>
-                            <strong>🔢 Dorsal:</strong> <span class="badge bg-primary">${statusData.athlete.dorsal_number}</span><br>
-                            <strong>🏆 Categoría:</strong> ${statusData.athlete.category}
-                        </div>
-                    `;
-                }
-            }
-
-            const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
-            statusModal.show();
-        });
-        @endif
-
-        // Mostrar mensaje de error general si existe
-        @if(session('error'))
-        document.addEventListener('DOMContentLoaded', function() {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#00ecfe'
-            });
-        });
-        @endif
-    </script>
-
-    <script>
-        // Inicializar Swiper para testimonials
+        // Inicializar Swiper
         const testimonialSwiper = new Swiper('.testimonial-swiper', {
             slidesPerView: 1,
             spaceBetween: 20,
             loop: true,
-            autoplay: {
-                delay: 5000,
-                disableOnInteraction: false,
-            },
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
+            autoplay: { delay: 5000, disableOnInteraction: false },
+            pagination: { el: '.swiper-pagination', clickable: true },
             breakpoints: {
-                0: { slidesPerView: 1, spaceBetween: 15 },
-                640: { slidesPerView: 1, spaceBetween: 20 },
-                768: { slidesPerView: 2, spaceBetween: 25 },
-                992: { slidesPerView: 3, spaceBetween: 30 },
-            },
-            autoHeight: false,
-            setWrapperSize: true,
-        });
-
-        window.addEventListener('load', function() {
-            testimonialSwiper.update();
+                0: { slidesPerView: 1 },
+                640: { slidesPerView: 1 },
+                768: { slidesPerView: 2 },
+                992: { slidesPerView: 3 }
+            }
         });
 
         // ============================================
-        // FUNCIONES DE VALIDACIÓN DE EDAD POR CATEGORÍA
+        // FUNCIONES DE EDAD Y CATEGORÍA
         // ============================================
 
-        // Calcular edad desde fecha de nacimiento
         function getAgeFromBirthDate(birthDate) {
             if (!birthDate) return null;
             const today = new Date();
             const birth = new Date(birthDate);
             let age = today.getFullYear() - birth.getFullYear();
             const monthDiff = today.getMonth() - birth.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-                age--;
-            }
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
             return age;
         }
 
-        // Validar edad por categoría
-        function validateAgeByCategory(birthDate, category, gender) {
-            if (!birthDate || !category) return false;
-
-            const age = getAgeFromBirthDate(birthDate);
-            if (age === null) return false;
-
-            const ageRanges = {
-                'Pre-Infantil': { min: 11, max: 12 },
-                'Infantil': { min: 13, max: 14 },
-                'Pre-Juvenil': { min: 15, max: 16 },
-                'Juvenil': { min: 17, max: 18 },
-                'Iniciación A': { min: 5, max: 6 },
-                'Iniciación B': { min: 7, max: 8 },
-                'Iniciación C': { min: 9, max: 10 },
-                'Compota Strider': { min: 3, max: 4 },
-                'Compota Pedales': { min: 3, max: 4 }
-            };
-
-            const range = ageRanges[category];
-            if (!range) return false;
-
-            return age >= range.min && age <= range.max;
-        }
-
-        // Mostrar error de edad
-        function showAgeError(category, minAge, maxAge) {
-            const errorDiv = document.getElementById('ageError');
-            if (errorDiv) {
-                errorDiv.innerHTML = `
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Error de categoría:</strong> La categoría "${category}" requiere edades entre ${minAge} y ${maxAge} años.
-                    <br><small>Por favor selecciona la categoría correcta según tu edad.</small>
-                `;
-                errorDiv.style.display = 'block';
-
-                setTimeout(() => {
-                    errorDiv.style.display = 'none';
-                }, 5000);
-            }
-        }
-
-        function hideAgeError() {
-            const errorDiv = document.getElementById('ageError');
-            if (errorDiv) {
-                errorDiv.style.display = 'none';
-            }
-        }
-
-        // Mostrar edad automáticamente
         function displayAge() {
             const birthDate = document.getElementById('birth_date')?.value;
             const ageDisplay = document.getElementById('ageDisplay');
@@ -1311,115 +1106,41 @@
             }
         }
 
-        // Filtrar categorías por edad
         function filterCategoriesByAge() {
             const birthDate = document.getElementById('birth_date')?.value;
             const categorySelect = document.getElementById('categorySelect');
             if (!birthDate || !categorySelect) return;
-
             const age = getAgeFromBirthDate(birthDate);
             if (age === null) return;
-
-            const options = categorySelect.querySelectorAll('option');
             const ageRanges = {
-                'Compota Strider': [3, 4],
-                'Compota Pedales': [3, 4],
-                'Iniciación A': [5, 6],
-                'Iniciación B': [7, 8],
-                'Iniciación C': [9, 10],
-                'Pre-Infantil': [11, 12],
-                'Infantil': [13, 14],
-                'Pre-Juvenil': [15, 16],
-                'Juvenil': [17, 18]
+                'Compota Strider': [3,4], 'Compota Pedales': [3,4],
+                'Iniciación A': [5,6], 'Iniciación B': [7,8], 'Iniciación C': [9,10],
+                'Pre-Infantil': [11,12], 'Infantil': [13,14],
+                'Pre-Juvenil': [15,16], 'Juvenil': [17,18]
             };
-
-            let hasValidOption = false;
+            const options = categorySelect.querySelectorAll('option');
             options.forEach(opt => {
                 const value = opt.value;
                 if (!value) return;
-
                 const range = ageRanges[value];
                 if (range) {
                     if (age >= range[0] && age <= range[1]) {
                         opt.style.display = '';
                         opt.disabled = false;
-                        hasValidOption = true;
                     } else {
                         opt.style.display = 'none';
                         opt.disabled = true;
                     }
                 }
             });
-
-            // Resetear selección si es inválida
             const currentValue = categorySelect.value;
             const currentOption = Array.from(options).find(opt => opt.value === currentValue);
-            if (currentOption && currentOption.disabled) {
-                categorySelect.value = '';
-            }
+            if (currentOption && currentOption.disabled) categorySelect.value = '';
         }
 
-        // Validar al cambiar fecha de nacimiento
         document.getElementById('birth_date')?.addEventListener('change', function() {
             displayAge();
             filterCategoriesByAge();
-
-            const birthDate = this.value;
-            const category = document.getElementById('categorySelect')?.value;
-            const gender = document.getElementById('genderSelect')?.value;
-
-            if (birthDate && category) {
-                const isValid = validateAgeByCategory(birthDate, category, gender);
-                const ageRanges = {
-                    'Pre-Infantil': { min: 11, max: 12 },
-                    'Infantil': { min: 13, max: 14 },
-                    'Pre-Juvenil': { min: 15, max: 16 },
-                    'Juvenil': { min: 17, max: 18 },
-                    'Iniciación A': { min: 5, max: 6 },
-                    'Iniciación B': { min: 7, max: 8 },
-                    'Iniciación C': { min: 9, max: 10 },
-                    'Compota Strider': { min: 3, max: 4 },
-                    'Compota Pedales': { min: 3, max: 4 }
-                };
-                const range = ageRanges[category];
-                if (!isValid && range) {
-                    showAgeError(category, range.min, range.max);
-                    document.getElementById('categorySelect')?.classList.add('is-invalid');
-                } else {
-                    hideAgeError();
-                    document.getElementById('categorySelect')?.classList.remove('is-invalid');
-                }
-            }
-        });
-
-        // Validar al cambiar categoría
-        document.getElementById('categorySelect')?.addEventListener('change', function() {
-            const birthDate = document.getElementById('birth_date')?.value;
-            const category = this.value;
-            const gender = document.getElementById('genderSelect')?.value;
-
-            if (birthDate && category) {
-                const isValid = validateAgeByCategory(birthDate, category, gender);
-                const ageRanges = {
-                    'Pre-Infantil': { min: 11, max: 12 },
-                    'Infantil': { min: 13, max: 14 },
-                    'Pre-Juvenil': { min: 15, max: 16 },
-                    'Juvenil': { min: 17, max: 18 },
-                    'Iniciación A': { min: 5, max: 6 },
-                    'Iniciación B': { min: 7, max: 8 },
-                    'Iniciación C': { min: 9, max: 10 },
-                    'Compota Strider': { min: 3, max: 4 },
-                    'Compota Pedales': { min: 3, max: 4 }
-                };
-                const range = ageRanges[category];
-                if (!isValid && range) {
-                    showAgeError(category, range.min, range.max);
-                    this.classList.add('is-invalid');
-                } else {
-                    hideAgeError();
-                    this.classList.remove('is-invalid');
-                }
-            }
         });
 
         // ============================================
@@ -1427,29 +1148,19 @@
         // ============================================
 
         function showIndividualForm() {
-            document.getElementById('individualForm').style.display = 'none';
-            document.getElementById('teamForm').style.display = 'none';
-            document.getElementById('btnIndividual').classList.remove('active');
-            document.getElementById('btnTeam').classList.remove('active');
             document.getElementById('individualForm').style.display = 'block';
-            document.getElementById('individualForm').classList.add('show');
+            document.getElementById('teamForm').style.display = 'none';
             document.getElementById('btnIndividual').classList.add('active');
-            setTimeout(() => {
-                document.getElementById('individualForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+            document.getElementById('btnTeam').classList.remove('active');
+            setTimeout(() => document.getElementById('individualForm').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
         }
 
         function showTeamForm() {
             document.getElementById('individualForm').style.display = 'none';
-            document.getElementById('teamForm').style.display = 'none';
-            document.getElementById('btnIndividual').classList.remove('active');
-            document.getElementById('btnTeam').classList.remove('active');
             document.getElementById('teamForm').style.display = 'block';
-            document.getElementById('teamForm').classList.add('show');
+            document.getElementById('btnIndividual').classList.remove('active');
             document.getElementById('btnTeam').classList.add('active');
-            setTimeout(() => {
-                document.getElementById('teamForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+            setTimeout(() => document.getElementById('teamForm').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
         }
 
         function hideForms() {
@@ -1457,92 +1168,314 @@
             document.getElementById('teamForm').style.display = 'none';
             document.getElementById('btnIndividual').classList.remove('active');
             document.getElementById('btnTeam').classList.remove('active');
-
-            // Scroll suave al inicio de la sección de inscripción
-            document.getElementById('preinscripcion').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // Mostrar formulario si hay errores
-        @if($errors->any() && !session('import_errors'))
-        showIndividualForm();
-        @endif
-
-        @if(session('import_errors') || ($errors->any() && session('import_errors')))
-        showTeamForm();
-        @endif
-
-        // Drag and drop para archivo
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('excelFile');
-        const fileName = document.getElementById('fileName');
-
-        if (uploadArea) {
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('dragover');
-            });
-
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('dragover');
-            });
-
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('dragover');
-                const files = e.dataTransfer.files;
-                if (files.length) {
-                    fileInput.files = files;
-                    updateFileName(files[0].name);
-                }
-            });
-
-            uploadArea.addEventListener('click', () => {
-                if (window.innerWidth > 768) {
-                    fileInput.click();
-                }
-            });
-        }
-
-        if (fileInput) {
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length) {
-                    updateFileName(e.target.files[0].name);
-                }
-            });
-        }
-
-        function updateFileName(name) {
-            if (fileName) {
-                fileName.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo seleccionado: ' + name;
+        // Estructura
+        function toggleStructureField() {
+            const hasStructureYes = document.getElementById('structure_yes')?.checked;
+            const structureField = document.getElementById('structureField');
+            if (structureField) {
+                structureField.style.display = hasStructureYes ? 'block' : 'none';
             }
         }
 
-        let vehicleIndex = 1;
+        document.getElementById('structure_no')?.addEventListener('change', toggleStructureField);
+        document.getElementById('structure_yes')?.addEventListener('change', toggleStructureField);
 
+        // ============================================
+        // BUSCADOR PREDICTIVO
+        // ============================================
+
+        let searchTimeout;
+
+        function searchStructures(query) {
+            if (query.length < 2) {
+                document.getElementById('structureSuggestions').style.display = 'none';
+                document.getElementById('newStructureOption').style.display = 'none';
+                return;
+            }
+            const suggestionsDiv = document.getElementById('structureSuggestions');
+            suggestionsDiv.innerHTML = '<div class="list-group-item text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</div>';
+            suggestionsDiv.style.display = 'block';
+
+            fetch(`/buscar-estructuras?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    existingStructureId = null;
+                    existingStructureName = null;
+
+                    // Verificar si el nombre exacto ya existe
+                    const exactMatch = data.find(team => team.name.toLowerCase() === query.toLowerCase());
+                    if (exactMatch) {
+                        existingStructureId = exactMatch.id;
+                        existingStructureName = exactMatch.name;
+                    }
+
+                    if (data.length === 0) {
+                        suggestionsDiv.style.display = 'none';
+                        // Solo mostrar opción de crear nueva si no hay coincidencias exactas
+                        document.getElementById('newStructureName').innerText = query;
+                        document.getElementById('newStructureOption').style.display = 'block';
+                        document.getElementById('createNewStructure').checked = false;
+                    } else {
+                        let html = '';
+                        data.forEach(team => {
+                            const isExactMatch = team.name.toLowerCase() === query.toLowerCase();
+                            html += `<div class="list-group-item list-group-item-action" onclick="selectStructure(${team.id}, '${escapeHtml(team.name)}')">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${highlightText(team.name, query)}</strong>
+                                ${team.city ? `<br><small class="text-muted"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(team.city)}</small>` : ''}
+                            </div>
+                            <span class="badge ${isExactMatch ? 'bg-warning' : 'bg-success'}">${isExactMatch ? 'Coincidencia exacta' : 'Existente'}</span>
+                        </div>
+                    </div>`;
+                        });
+
+                        // Si no hay coincidencia exacta, mostrar opción de crear nueva
+                        if (!exactMatch) {
+                            html += `<div class="list-group-item list-group-item-action text-primary" onclick="showNewStructureOption()">
+                        <i class="fas fa-plus-circle me-2"></i> Crear nueva estructura "${escapeHtml(query)}"
+                    </div>`;
+                            document.getElementById('newStructureOption').style.display = 'none';
+                        } else {
+                            // Si ya existe una coincidencia exacta, mostrar advertencia
+                            html += `<div class="list-group-item list-group-item-action text-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>"${escapeHtml(query)}"</strong> ya existe. Selecciona la opción de arriba.
+                    </div>`;
+                            document.getElementById('newStructureOption').style.display = 'none';
+                        }
+
+                        suggestionsDiv.innerHTML = html;
+                        suggestionsDiv.style.display = 'block';
+                    }
+                }).catch(() => {
+                suggestionsDiv.innerHTML = '<div class="list-group-item text-danger">Error al buscar. Intenta nuevamente.</div>';
+            });
+        }
+
+        function highlightText(text, query) {
+            if (!query) return escapeHtml(text);
+            const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+            return escapeHtml(text).replace(regex, '<span class="suggestion-highlight">$1</span>');
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function selectStructure(id, name) {
+            existingStructureId = id;
+            existingStructureName = name;
+            document.getElementById('structure_search').value = name;
+            document.getElementById('structure_id').value = id;
+            document.getElementById('structure_name_hidden').value = name;
+            document.getElementById('structureSuggestions').style.display = 'none';
+            document.getElementById('newStructureOption').style.display = 'none';
+            document.getElementById('selectedStructureInfo').innerHTML = `
+        <div class="alert alert-success" style="font-size: 0.9rem;">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>${escapeHtml(name)}</strong> (Estructura existente)
+            <br><small>Se asignará automáticamente a este equipo.</small>
+        </div>
+    `;
+            document.getElementById('structure_search').classList.remove('is-invalid');
+        }
+
+        function showNewStructureOption() {
+            const searchValue = document.getElementById('structure_search').value;
+            if (searchValue.length >= 2) {
+                // Verificar que no exista ya una coincidencia exacta
+                if (existingStructureId && existingStructureName && existingStructureName.toLowerCase() === searchValue.toLowerCase()) {
+                    document.getElementById('selectedStructureInfo').innerHTML = `
+                <div class="alert alert-danger" style="font-size: 0.9rem;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>"${escapeHtml(searchValue)}"</strong> ya existe como estructura.
+                    <br><small>Por favor selecciona la estructura existente de la lista.</small>
+                </div>
+            `;
+                    document.getElementById('newStructureOption').style.display = 'none';
+                    document.getElementById('structure_search').classList.add('is-invalid');
+                    return;
+                }
+
+                document.getElementById('newStructureName').innerText = searchValue;
+                document.getElementById('newStructureOption').style.display = 'block';
+                document.getElementById('structureSuggestions').style.display = 'none';
+            }
+        }
+
+        document.getElementById('structure_search')?.addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            const query = e.target.value;
+            if (query.length >= 2) {
+                searchTimeout = setTimeout(() => searchStructures(query), 300);
+            } else {
+                document.getElementById('structureSuggestions').style.display = 'none';
+                document.getElementById('newStructureOption').style.display = 'none';
+            }
+        });
+
+        document.getElementById('createNewStructure')?.addEventListener('change', function(e) {
+            const searchValue = document.getElementById('structure_search').value;
+            const checkbox = e.target;
+
+            if (checkbox.checked) {
+                // Verificar que no exista ya una estructura con ese nombre
+                if (existingStructureId && existingStructureName && existingStructureName.toLowerCase() === searchValue.toLowerCase()) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Nombre duplicado',
+                        text: `La estructura "${searchValue}" ya existe. No puedes crear una nueva con el mismo nombre. Por favor selecciona la existente.`,
+                        confirmButtonColor: '#00ecfe'
+                    });
+                    checkbox.checked = false;
+                    return;
+                }
+
+                // Verificar en el servidor si el nombre ya existe (por si acaso)
+                fetch(`/verificar-estructura?nombre=${encodeURIComponent(searchValue)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Nombre duplicado',
+                                text: `La estructura "${searchValue}" ya existe en el sistema. No puedes crear una nueva con el mismo nombre.`,
+                                confirmButtonColor: '#00ecfe'
+                            });
+                            checkbox.checked = false;
+                            document.getElementById('structure_id').value = data.id;
+                            document.getElementById('structure_name_hidden').value = searchValue;
+                            document.getElementById('structure_search').value = searchValue;
+                            document.getElementById('selectedStructureInfo').innerHTML = `
+                        <div class="alert alert-warning" style="font-size: 0.9rem;">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>${escapeHtml(searchValue)}</strong> ya existe. Se usará la estructura existente.
+                        </div>
+                    `;
+                        } else {
+                            // Crear nueva estructura
+                            document.getElementById('structure_id').value = '';
+                            document.getElementById('structure_name_hidden').value = searchValue;
+                            document.getElementById('selectedStructureInfo').innerHTML = `
+                        <div class="alert alert-info" style="font-size: 0.9rem;">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Se creará una nueva estructura: <strong>${escapeHtml(searchValue)}</strong>
+                            <br><small>La estructura se registrará al completar la inscripción.</small>
+                        </div>
+                    `;
+                            document.getElementById('structure_search').classList.remove('is-invalid');
+                        }
+                        document.getElementById('newStructureOption').style.display = 'none';
+                        document.getElementById('structureSuggestions').style.display = 'none';
+                    })
+                    .catch(() => {
+                        // Si hay error, permitir la creación
+                        document.getElementById('structure_id').value = '';
+                        document.getElementById('structure_name_hidden').value = searchValue;
+                        document.getElementById('selectedStructureInfo').innerHTML = `
+                    <div class="alert alert-info" style="font-size: 0.9rem;">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Se creará: <strong>${escapeHtml(searchValue)}</strong>
+                    </div>
+                `;
+                    });
+            } else {
+                // Si se desmarca, limpiar
+                document.getElementById('structure_id').value = '';
+                document.getElementById('structure_name_hidden').value = '';
+                document.getElementById('selectedStructureInfo').innerHTML = '';
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            const suggestions = document.getElementById('structureSuggestions');
+            const search = document.getElementById('structure_search');
+            if (suggestions && search && !search.contains(e.target) && !suggestions.contains(e.target)) {
+                suggestions.style.display = 'none';
+            }
+        });
+
+        // Drag and drop
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('excelFile');
+        const fileName = document.getElementById('fileName');
+        if (uploadArea) {
+            uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+            uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+            uploadArea.addEventListener('drop', e => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    fileName.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo: ' + e.dataTransfer.files[0].name;
+                }
+            });
+            uploadArea.addEventListener('click', () => fileInput.click());
+        }
+        if (fileInput) {
+            fileInput.addEventListener('change', e => {
+                if (e.target.files.length) fileName.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo: ' + e.target.files[0].name;
+            });
+        }
+
+        let vehicleIndex = 1;
         function addVehicleRow() {
             const tbody = document.getElementById('vehiclesBody');
             if (tbody) {
-                const newRow = `
-                    <tr>
-                        <td><input type="text" name="vehicles[${vehicleIndex}][brand]" class="form-control form-control-sm" placeholder="Marca"></td>
-                        <td><input type="text" name="vehicles[${vehicleIndex}][model]" class="form-control form-control-sm" placeholder="Modelo"></td>
-                        <td><input type="text" name="vehicles[${vehicleIndex}][plate]" class="form-control form-control-sm" placeholder="Placa"></td>
-                        <td><input type="number" name="vehicles[${vehicleIndex}][year]" class="form-control form-control-sm" placeholder="Año"></td>
-                        <td><input type="text" name="vehicles[${vehicleIndex}][color]" class="form-control form-control-sm" placeholder="Color"></td>
-                        <td><button type="button" class="btn btn-sm btn-danger" onclick="removeVehicleRow(this)"><i class="fas fa-trash"></i></button></td>
-                    </tr>
-                `;
-                tbody.insertAdjacentHTML('beforeend', newRow);
+                tbody.insertAdjacentHTML('beforeend', `<tr><td><input type="text" name="vehicles[${vehicleIndex}][brand]" class="form-control form-control-sm" placeholder="Marca"></td><td><input type="text" name="vehicles[${vehicleIndex}][model]" class="form-control form-control-sm" placeholder="Modelo"></td><td><input type="text" name="vehicles[${vehicleIndex}][plate]" class="form-control form-control-sm" placeholder="Placa"></td><td><input type="number" name="vehicles[${vehicleIndex}][year]" class="form-control form-control-sm" placeholder="Año"></td><td><input type="text" name="vehicles[${vehicleIndex}][color]" class="form-control form-control-sm" placeholder="Color"></td><td><button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button></td></tr>`);
                 vehicleIndex++;
             }
         }
 
-        function removeVehicleRow(button) {
-            const row = button.closest('tr');
-            if (row && document.getElementById('vehiclesBody').children.length > 1) {
-                row.remove();
-            } else if (row) {
-                row.querySelectorAll('input').forEach(input => input.value = '');
+        function removeVehicleRow(btn) { btn.closest('tr')?.remove(); }
+
+        // Modales
+        @if(session('success_modal'))
+        document.addEventListener('DOMContentLoaded', function() {
+            const details = @json(session('success_details'));
+            const table = document.getElementById('successDetailsTable');
+            if (table && details) {
+                table.innerHTML = `<tr><td class="fw-bold">👤 Ciclista:</td><td>${details.nombre || ''}</td></tr>
+                    <tr><td class="fw-bold">🔢 Dorsal:</td><td><span class="badge bg-primary">${details.dorsal || ''}</span></td></tr>
+                    <tr><td class="fw-bold">🏆 Categoría:</td><td>${details.categoria || ''}</td></tr>
+                    <tr><td class="fw-bold">🏢 Estructura:</td><td>${details.estructura || 'Independiente'}</td></tr>
+                    <tr><td class="fw-bold">📧 Email:</td><td>${details.email || ''}</td></tr>`;
+            }
+            document.getElementById('successMessage').innerHTML = '{{ session('success_message') }}';
+            new bootstrap.Modal(document.getElementById('successModal')).show();
+            hideForms();
+        });
+        @endif
+
+        @if(session('error'))
+        Swal.fire({ icon: 'error', title: 'Error', text: '{{ session('error') }}', confirmButtonColor: '#00ecfe' });
+        @endif
+
+        @if($errors->any() && !session('import_errors')) showIndividualForm();
+        @elseif(session('import_errors') || ($errors->any() && session('import_errors'))) showTeamForm();
+        @endif
+
+        function showStructureError(message) {
+            const errorDiv = document.getElementById('structureError');
+            const errorMsg = document.getElementById('structureErrorMessage');
+            if (errorDiv && errorMsg) {
+                errorMsg.innerHTML = message;
+                errorDiv.style.display = 'block';
+                document.getElementById('structure_search').classList.add('is-invalid');
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                    document.getElementById('structure_search').classList.remove('is-invalid');
+                }, 5000);
             }
         }
     </script>

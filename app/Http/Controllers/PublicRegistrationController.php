@@ -3,6 +3,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\TeamTemplateExport;
+use App\Models\Event;
 use App\Models\Team;
 use App\Models\Athlete;
 use App\Models\TeamMigrationData;
@@ -35,59 +37,10 @@ class PublicRegistrationController extends Controller
         return $event;
     }
 
-    // Descargar plantilla Excel
+
     public function downloadTemplate()
     {
-        $headers = [
-            'ID',
-            'APELLIDOS',
-            'NOMBRES',
-            'FECHA_DE_NACIMIENTO (dd/mm/aaaa)',
-            'TIPO_DOCUMENTO (V/E/P/Pasaporte/Cedula)',
-            'NUMERO_DOCUMENTO',
-            'UCI_ID',
-            'CATEGORIA',
-            'GENERO (Masculino/Femenino)'
-        ];
-
-        $callback = function() use ($headers) {
-            $file = fopen('php://output', 'w');
-            // Agregar BOM para UTF-8 en Excel
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($file, $headers);
-
-            // Agregar fila de ejemplo
-            fputcsv($file, [
-                '1',
-                'GARCIA',
-                'JUAN',
-                '15/05/2010',
-                'V',
-                '12345678',
-                'UCI123456',
-                'JUVENIL',
-                'Masculino'
-            ]);
-
-            fputcsv($file, [
-                '2',
-                'RODRIGUEZ',
-                'MARIA',
-                '20/08/2011',
-                'Pasaporte',
-                'ABC123456',
-                'UCI789012',
-                'JUVENIL',
-                'Femenino'
-            ]);
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, [
-            'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="plantilla_inscripcion_equipos.csv"',
-        ]);
+        return Excel::download(new TeamTemplateExport(), 'plantilla_inscripcion_equipos.xlsx');
     }
 
     // Procesar inscripción
@@ -195,7 +148,8 @@ class PublicRegistrationController extends Controller
                 ->with('success', '¡Inscripción exitosa!')
                 ->with('team_name', $team->name)
                 ->with('access_code', $team->access_code)
-                ->with('athletes_count', $importedCount);
+                ->with('athletes_count', $import->getAthleteCount())
+                ->with('staff_count', $import->getStaffCount());
 
         } catch (\Exception $e) {
             $team->delete();

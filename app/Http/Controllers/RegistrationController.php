@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Registration;
 use App\Models\Athlete;
+use App\Models\Team;
 use App\Models\AthleteEventParticipation;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class RegistrationController extends Controller
@@ -19,7 +21,6 @@ class RegistrationController extends Controller
         $event = Event::where('is_active', true)->first();
 
         if (!$event) {
-            // Si no hay evento activo, crear uno por defecto para 2026
             $event = Event::create([
                 'year'               => 2026,
                 'name'               => 'Vuelta a la Fría 2026',
@@ -69,6 +70,38 @@ class RegistrationController extends Controller
 
         $number = $lastParticipation ? intval(substr($lastParticipation->dorsal_number, 1)) + 1 : 1;
         return 'D' . str_pad($number, 4, '0', STR_PAD_LEFT);
+    }
+
+    // Buscar o crear equipo/estructura
+    private function findOrCreateTeam($structureName)
+    {
+        if (empty($structureName)) {
+            return null;
+        }
+
+        // Buscar equipo existente por nombre exacto
+        $team = Team::where('name', $structureName)->first();
+
+        if ($team) {
+            return $team;
+        }
+
+        // Verificar nuevamente por si hay diferencia en mayúsculas/minúsculas
+        $team = Team::whereRaw('LOWER(name) = ?', [strtolower($structureName)])->first();
+
+        if ($team) {
+            return $team;
+        }
+
+        // Crear nuevo equipo/estructura
+        $team = Team::create([
+            'name'        => $structureName,
+            'country'     => 'Venezuela',
+            'is_active'   => true,
+            'access_code' => Str::upper(Str::random(8))
+        ]);
+
+        return $team;
     }
 
     // Mapear categoría
@@ -133,7 +166,9 @@ class RegistrationController extends Controller
             'birth_date' => 'required|date|before:today',
             'emergency_contact' => 'required|string',
             'accept_terms' => 'required|accepted',
-            'identification_document' => 'nullable|string|max:50'
+            'identification_document' => 'nullable|string|max:50',
+            'has_structure' => 'nullable|in:0,1',
+            'structure_name' => 'required_if:has_structure,1|nullable|string|max:255'
         ], [
             'first_name.required' => 'El campo Nombres es obligatorio.',
             'last_name.required' => 'El campo Apellidos es obligatorio.',
@@ -145,7 +180,8 @@ class RegistrationController extends Controller
             'birth_date.required' => 'La fecha de nacimiento es obligatoria.',
             'birth_date.before' => 'La fecha de nacimiento debe ser anterior a hoy.',
             'emergency_contact.required' => 'El contacto de emergencia es obligatorio.',
-            'accept_terms.accepted' => 'Debes aceptar los términos y condiciones.'
+            'accept_terms.accepted' => 'Debes aceptar los términos y condiciones.',
+            'structure_name.required_if' => 'Debes ingresar el nombre de la Escuela/Club/Fundación/Sponsor que representas.'
         ]);
 
         if ($validator->fails()) {
@@ -165,13 +201,46 @@ class RegistrationController extends Controller
                 ->with('form_error', 'individual');
         }
 
+        if ($request->has_structure == '1' && !$request->structure_id && $request->structure_name) {
+            $existingTeam = Team::where('name', $request->structure_name)->first();
+            if ($existingTeam) {
+                return redirect()->route('home')
+                    ->withErrors(['structure_name' => 'Ya existe una estructura con el nombre "' . $request->structure_name . '". Por favor selecciónala de la lista.'])
+                    ->withInput()
+                    ->with('form_error', 'individual');
+            }
+        }
+
         // Validar edad vs categoría
         $age = Carbon::parse($request->birth_date)->age;
         if (!$this->validateAgeByCategory($request->birth_date, $request->category, $request->gender)) {
             return redirect()->route('home')
-                ->withErrors(['category' => "La categoría seleccionada no corresponde con tu edad ({$age} años)." . $this->getCategoryAgeRange($request->category)])
+                ->withErrors(['category' => "La categoría seleccionada no corresponde con tu edad ({$age} años)."])
                 ->withInput()
                 ->with('form_error', 'individual');
+        }
+
+        // Procesar estructura (equipo)
+        // Procesar estructura (equipo)
+        $teamId = null;
+        $structureName = null;
+
+        if ($request->has_structure == '1') {
+            if ($request->structure_id) {
+                // Usar estructura existente
+                $team = Team::find($request->structure_id);
+                if ($team) {
+                    $teamId = $team->id;
+                    $structureName = $team->name;
+                }
+            } elseif ($request->structure_name) {
+                // Crear nueva estructura
+                $structureName = $request->structure_name;
+                $team = $this->findOrCreateTeam($structureName);
+                if ($team) {
+                    $teamId = $team->id;
+                }
+            }
         }
 
         // Verificar si el ciclista ya existe
@@ -202,13 +271,19 @@ class RegistrationController extends Controller
             }
 
             $athlete = $existingAthlete;
+
+            // Si el atleta no tenía equipo y ahora tiene, actualizar
+            if ($teamId && !$athlete->team_id) {
+                $athlete->team_id = $teamId;
+                $athlete->save();
+            }
         } else {
             // Crear nuevo atleta
             $athlete = Athlete::create([
                 'first_name'      => strtoupper($request->first_name),
                 'last_name'       => strtoupper($request->last_name),
                 'dorsal_number'   => null,
-                'team_id'         => null,
+                'team_id'         => $teamId,
                 'gender'          => $request->gender,
                 'category'        => $this->mapCategory($request->category, $request->gender),
                 'birth_date'      => $request->birth_date,
@@ -231,6 +306,7 @@ class RegistrationController extends Controller
             'athlete_id'    => $athlete->id,
             'event_id'      => $event->id,
             'dorsal_number' => $dorsalNumber,
+            'team_id'       => $teamId,
             'status'        => 'registered'
         ]);
 
@@ -239,26 +315,36 @@ class RegistrationController extends Controller
             'event_id'          => $event->id,
             'registration_type' => 'individual',
             'athlete_id'        => $athlete->id,
+            'team_id'           => $teamId,
             'email'             => $request->email,
             'phone'             => $request->phone,
             'status'            => 'pending',
             'notes'             => json_encode([
-                'emergency_contact' => $request->emergency_contact
+                'emergency_contact' => $request->emergency_contact,
+                'structure_name'    => $structureName,
+                'has_structure'     => $request->has_structure
             ]),
             'registered_at'     => now()
         ]);
+
+        // Preparar mensaje de éxito con información de la estructura
+        $structureMessage = '';
+        if ($structureName) {
+            $structureMessage = " Representas a: {$structureName}.";
+        }
 
         // Redirigir con modal de éxito
         return redirect()->route('home')
             ->with('success_modal', true)
             ->with('success_title', '¡Inscripción Registrada!')
-            ->with('success_message', "¡Inscripción registrada exitosamente para la {$event->name}!")
+            ->with('success_message', "¡Inscripción registrada exitosamente para la {$event->name}!{$structureMessage}")
             ->with('success_details', [
-                'nombre'    => $athlete->first_name . ' ' . $athlete->last_name,
-                'dorsal'    => $dorsalNumber,
-                'categoria' => $athlete->category,
-                'email'     => $request->email,
-                'telefono'  => $request->phone
+                'nombre'     => $athlete->first_name . ' ' . $athlete->last_name,
+                'dorsal'     => $dorsalNumber,
+                'categoria'  => $athlete->category,
+                'email'      => $request->email,
+                'telefono'   => $request->phone,
+                'estructura' => $structureName ?: 'Independiente'
             ])
             ->with('form_error', 'none');
     }
@@ -289,7 +375,7 @@ class RegistrationController extends Controller
             ->with('form_error', 'none');
     }
 
-    // Obtener rango de edad de la categoría (para mensajes de error)
+    // Obtener rango de edad de la categoría
     private function getCategoryAgeRange($category)
     {
         $ageRanges = [
