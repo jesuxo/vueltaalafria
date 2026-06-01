@@ -61,33 +61,63 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
 
     private function isRowEmpty($row)
     {
-        // Normalizar keys para buscar datos
-        $normalizedRow = [];
-        foreach ($row as $key => $value) {
-            $normalizedRow[strtoupper(trim($key))] = trim($value ?? '');
-        }
+        // Buscar las columnas clave sin importar cómo se llamen
+        $nombres = '';
+        $apellidos = '';
 
-        // Verificar si la fila tiene datos útiles
-        $nombres = $normalizedRow['NOMBRES'] ?? $normalizedRow['FIRST_NAME'] ?? '';
-        $apellidos = $normalizedRow['APELLIDOS'] ?? $normalizedRow['LAST_NAME'] ?? '';
+        foreach ($row as $key => $value) {
+            $keyLower = strtolower(trim($key));
+            $value = trim($value ?? '');
+
+            if (strpos($keyLower, 'nombre') !== false || $keyLower === 'nombres') {
+                $nombres = $value;
+            }
+            if (strpos($keyLower, 'apellido') !== false || $keyLower === 'apellidos') {
+                $apellidos = $value;
+            }
+        }
 
         // Si no hay nombres ni apellidos, la fila está vacía
         if (empty($nombres) && empty($apellidos)) {
             return true;
         }
 
-        // Verificar si es una fila de notas (contiene texto como "NOTAS")
-        $primerCampo = reset($row);
-        if (is_string($primerCampo) && (
-                strpos(strtoupper($primerCampo), 'NOTA') !== false ||
-                strpos(strtoupper($primerCampo), 'IMPORTANTE') !== false ||
-                strpos(strtoupper($primerCampo), 'CATEGORIA') !== false ||
-                strpos(strtoupper($primerCampo), 'STAFF') !== false
+        // Verificar si es una fila de notas
+        $primerValor = is_array($row) ? reset($row) : '';
+        if (is_string($primerValor) && (
+                strpos(strtoupper($primerValor), 'NOTA') !== false ||
+                strpos(strtoupper($primerValor), 'IMPORTANTE') !== false
             )) {
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Busca un valor en el row por múltiples posibles nombres de columna
+     */
+    private function getValueFromRow($row, $possibleKeys)
+    {
+        foreach ($possibleKeys as $key) {
+            // Buscar coincidencia exacta
+            if (isset($row[$key]) && !empty(trim($row[$key]))) {
+                return trim($row[$key]);
+            }
+            // Buscar coincidencia insensible a mayúsculas
+            foreach ($row as $rowKey => $rowValue) {
+                if (strtolower(trim($rowKey)) === strtolower($key)) {
+                    return trim($rowValue);
+                }
+            }
+            // Buscar si la clave contiene la palabra clave
+            foreach ($row as $rowKey => $rowValue) {
+                if (strpos(strtolower($rowKey), strtolower($key)) !== false) {
+                    return trim($rowValue);
+                }
+            }
+        }
+        return '';
     }
 
     public function model(array $row)
@@ -99,38 +129,28 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
             return null;
         }
 
-        // Normalizar las keys del row (mayúsculas/minúsculas)
-        $normalizedRow = [];
-        foreach ($row as $key => $value) {
-            $normalizedRow[strtoupper(trim($key))] = trim($value ?? '');
+        // Obtener valores usando múltiples posibles nombres de columna
+        $id = $this->getValueFromRow($row, ['ID', 'id', 'Id']);
+        $nombres = $this->getValueFromRow($row, ['NOMBRES', 'Nombres', 'FIRST_NAME', 'Nombre', 'nombre']);
+        $apellidos = $this->getValueFromRow($row, ['APELLIDOS', 'Apellidos', 'LAST_NAME', 'Apellido', 'apellido']);
+        $rol = $this->getValueFromRow($row, ['ROL', 'Rol', 'ROLE', 'Role']);
+        $tipoDocumento = $this->getValueFromRow($row, ['TIPO_DOCUMENTO', 'Tipo Documento', 'DOCUMENT_TYPE']);
+        $numeroDocumento = $this->getValueFromRow($row, ['NUMERO_DOCUMENTO', 'Numero Documento', 'DOCUMENT_NUMBER']);
+        $uciId = $this->getValueFromRow($row, ['UCI_ID', 'Uci Id', 'UCI']);
+        $genero = $this->getValueFromRow($row, ['GENERO', 'Genero', 'GENDER', 'Gender', 'SEXO', 'Sexo']);
+        $fechaNacimiento = $this->getValueFromRow($row, ['FECHA_DE_NACIMIENTO', 'Fecha Nacimiento', 'BIRTH_DATE', 'Nacimiento']);
+        $categoriaExcel = $this->getValueFromRow($row, ['CATEGORIA', 'Categoria', 'CATEGORY', 'Category']);
+
+        // Si el rol está vacío, asumir "Atleta"
+        if (empty($rol)) {
+            $rol = 'Atleta';
         }
-        $row = $normalizedRow;
 
-        // Obtener valores con diferentes posibles nombres de columna
-        $id = $row['ID'] ?? '';
-        $nombres = $row['NOMBRES'] ?? $row['FIRST_NAME'] ?? '';
-        $apellidos = $row['APELLIDOS'] ?? $row['LAST_NAME'] ?? '';
-        $rol = $row['ROL'] ?? $row['ROLE'] ?? 'Atleta';
-        $tipoDocumento = $row['TIPO_DOCUMENTO'] ?? $row['DOCUMENT_TYPE'] ?? '';
-        $numeroDocumento = $row['NUMERO_DOCUMENTO'] ?? $row['DOCUMENT_NUMBER'] ?? '';
-        $uciId = $row['UCI_ID'] ?? '';
-        $genero = $row['GENERO'] ?? $row['GENDER'] ?? '';
-        $fechaNacimiento = $row['FECHA_DE_NACIMIENTO'] ?? $row['BIRTH_DATE'] ?? '';
-        $categoriaExcel = $row['CATEGORIA'] ?? '';
-
-        // Limpiar datos
-        $nombres = trim($nombres);
-        $apellidos = trim($apellidos);
-        $genero = trim($genero);
-        $fechaNacimiento = trim($fechaNacimiento);
-        $categoriaExcel = trim($categoriaExcel);
-
-        // Validar datos mínimos nuevamente
+        // Validar datos mínimos
         if (empty($nombres) && empty($apellidos)) {
             return null;
         }
 
-        // Validar datos mínimos
         if (empty($nombres)) {
             $this->errors[] = "Fila {$this->currentRow} (ID: {$id}): El campo NOMBRES es obligatorio";
             return null;
@@ -140,7 +160,7 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
             return null;
         }
 
-        // Procesar STAFF
+        // Procesar STAFF (si el rol es STAFF o la categoría es STAFF)
         if (strtoupper($rol) === 'STAFF' || strtoupper($categoriaExcel) === 'STAFF') {
             $this->staffCount++;
 
@@ -164,7 +184,7 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
             return null;
         }
 
-        $generoNormalizado = ucfirst(strtolower($genero));
+        $generoNormalizado = ucfirst(strtolower(trim($genero)));
         if (!in_array($generoNormalizado, ['Masculino', 'Femenino'])) {
             $this->errors[] = "Fila {$this->currentRow} (ID: {$id}): Género '{$genero}' no válido. Use Masculino o Femenino";
             return null;
@@ -178,7 +198,7 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
 
         $birthDate = $this->parseDate($fechaNacimiento);
         if (!$birthDate) {
-            $this->errors[] = "Fila {$this->currentRow} (ID: {$id}): Formato de fecha inválido. Use dd/mm/aaaa";
+            $this->errors[] = "Fila {$this->currentRow} (ID: {$id}): Formato de fecha inválido. Use dd/mm/aaaa. Valor recibido: {$fechaNacimiento}";
             return null;
         }
 
@@ -216,16 +236,14 @@ class TeamAthletesImport implements ToModel, WithHeadingRow, WithValidation, Ski
             'gender' => $generoNormalizado,
             'category' => $categoriaCalculada,
             'birth_date' => $birthDate,
-            'nationality' => $row['NACIONALIDAD'] ?? 'Venezolana',
+            'nationality' => 'Venezolana',
             'is_active' => true
         ]);
     }
 
     public function rules(): array
     {
-        return [
-            // No hay reglas obligatorias porque manejamos los errores manualmente
-        ];
+        return [];
     }
 
     public function customValidationMessages()
