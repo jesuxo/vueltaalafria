@@ -295,17 +295,17 @@ class RegistrationController extends Controller
         }
 
         // Generar dorsal para este evento
-        $dorsalNumber = $this->generateDorsalNumberForEvent($event->id);
+       // $dorsalNumber = $this->generateDorsalNumberForEvent($event->id);
 
         // Actualizar dorsal del atleta
-        $athlete->dorsal_number = $dorsalNumber;
+        //$athlete->dorsal_number = $dorsalNumber;
         $athlete->save();
 
         // Crear participación en el evento
         AthleteEventParticipation::create([
             'athlete_id'    => $athlete->id,
             'event_id'      => $event->id,
-            'dorsal_number' => $dorsalNumber,
+            'dorsal_number' => '',
             'team_id'       => $teamId,
             'status'        => 'registered'
         ]);
@@ -340,7 +340,7 @@ class RegistrationController extends Controller
             ->with('success_message', "¡Inscripción registrada exitosamente para la {$event->name}!{$structureMessage}")
             ->with('success_details', [
                 'nombre'     => $athlete->first_name . ' ' . $athlete->last_name,
-                'dorsal'     => $dorsalNumber,
+                'dorsal'     => '',
                 'categoria'  => $athlete->category,
                 'email'      => $request->email,
                 'telefono'   => $request->phone,
