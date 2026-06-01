@@ -1477,16 +1477,14 @@
         function addVehicleRow() {
             const tbody = document.getElementById('vehiclesBody');
             if (tbody) {
-                const newRow = `
-            <tr>
-                <td><input type="text" name="vehicles[${vehicleIndex}][brand]" class="form-control form-control-sm" placeholder="Marca"></td>
-                <td><input type="text" name="vehicles[${vehicleIndex}][model]" class="form-control form-control-sm" placeholder="Modelo"></td>
-                <td><input type="text" name="vehicles[${vehicleIndex}][plate]" class="form-control form-control-sm" placeholder="Placa"></td>
-                <td><input type="number" name="vehicles[${vehicleIndex}][year]" class="form-control form-control-sm" placeholder="Año"></td>
-                <td><input type="text" name="vehicles[${vehicleIndex}][color]" class="form-control form-control-sm" placeholder="Color"></td>
-                <td><button type="button" class="btn btn-sm btn-danger" onclick="removeVehicleRow(this)"><i class="fas fa-trash"></i></button></td>
-            </tr>
-        `;
+                var newRow = '<tr>' +
+                    '<td><input type="text" name="vehicles[' + vehicleIndex + '][brand]" class="form-control form-control-sm" placeholder="Marca"></td>' +
+                    '<td><input type="text" name="vehicles[' + vehicleIndex + '][model]" class="form-control form-control-sm" placeholder="Modelo"></td>' +
+                    '<td><input type="text" name="vehicles[' + vehicleIndex + '][plate]" class="form-control form-control-sm" placeholder="Placa"></td>' +
+                    '<td><input type="number" name="vehicles[' + vehicleIndex + '][year]" class="form-control form-control-sm" placeholder="Año"></td>' +
+                    '<td><input type="text" name="vehicles[' + vehicleIndex + '][color]" class="form-control form-control-sm" placeholder="Color"></td>' +
+                    '<td><button type="button" class="btn btn-sm btn-danger" onclick="removeVehicleRow(this)"><i class="fas fa-trash"></i></button></td>' +
+                    '</tr>';
                 tbody.insertAdjacentHTML('beforeend', newRow);
                 vehicleIndex++;
             }
@@ -1537,7 +1535,6 @@
         });
 
         // Modales
-        // Modales
         @if(session('success_modal'))
         document.addEventListener('DOMContentLoaded', function() {
             var details = @json(session('success_details'));
@@ -1549,11 +1546,27 @@
                 var estructura = details.estructura || 'Independiente';
                 var email = details.email || '';
 
-                var html = '<tr><td class="fw-bold">👤 Ciclista:</td><td>' + nombre + '</td></tr>' +
-                    '<tr><td class="fw-bold">🔢 Dorsal:</td><td><span class="badge bg-primary">' + dorsal + '</span></td></tr>' +
-                    '<tr><td class="fw-bold">🏆 Categoría:</td><td>' + categoria + '</td></tr>' +
-                    '<tr><td class="fw-bold">🏢 Estructura:</td><td>' + estructura + '</td></tr>' +
-                    '<tr><td class="fw-bold">📧 Email:</td><td>' + email + '</td></tr>';
+                // Usar etiquetas HTML normales sin caracteres especiales
+                var html = '<tr>' +
+                    '<td class="fw-bold">👤 Ciclista:</td>' +
+                    '<td>' + nombre + '</td>' +
+                    '</tr>' +
+                    '<tr>' +
+                    '<td class="fw-bold">🔢 Dorsal:</td>' +
+                    '<td><span class="badge bg-primary">' + dorsal + '</span></td>' +
+                    '</tr>' +
+                    '<tr>' +
+                    '<td class="fw-bold">🏆 Categoría:</td>' +
+                    '<td>' + categoria + '</td>' +
+                    '</tr>' +
+                    '<tr>' +
+                    '<td class="fw-bold">🏢 Estructura:</td>' +
+                    '<td>' + estructura + '</td>' +
+                    '</tr>' +
+                    '<tr>' +
+                    '<td class="fw-bold">📧 Email:</td>' +
+                    '<td>' + email + '</td>' +
+                    '</tr>';
 
                 table.innerHTML = html;
             }
