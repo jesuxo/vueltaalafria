@@ -1056,9 +1056,13 @@
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         let existingStructureId = null;
         let existingStructureName = null;
+        let vehicleIndex = 1;
+        let searchTimeout = null;
+
         // Inicializar Swiper
         const testimonialSwiper = new Swiper('.testimonial-swiper', {
             slidesPerView: 1,
@@ -1094,7 +1098,7 @@
             if (birthDate && ageDisplay) {
                 const age = getAgeFromBirthDate(birthDate);
                 if (age !== null) {
-                    ageDisplay.innerHTML = '📅 Edad: '+age+' años';
+                    ageDisplay.innerHTML = '📅 Edad: ' + age + ' años';
                     if (age < 3) {
                         ageDisplay.style.color = 'red';
                         ageDisplay.innerHTML += ' - No cumple con la edad mínima (3 años)';
@@ -1114,12 +1118,14 @@
             if (!birthDate || !categorySelect) return;
             const age = getAgeFromBirthDate(birthDate);
             if (age === null) return;
+
             const ageRanges = {
                 'Compota Strider': [3,4], 'Compota Pedales': [3,4],
                 'Iniciación A': [5,6], 'Iniciación B': [7,8], 'Iniciación C': [9,10],
                 'Pre-Infantil': [11,12], 'Infantil': [13,14],
                 'Pre-Juvenil': [15,16], 'Juvenil': [17,18]
             };
+
             const options = categorySelect.querySelectorAll('option');
             options.forEach(opt => {
                 const value = opt.value;
@@ -1135,15 +1141,13 @@
                     }
                 }
             });
+
             const currentValue = categorySelect.value;
             const currentOption = Array.from(options).find(opt => opt.value === currentValue);
-            if (currentOption && currentOption.disabled) categorySelect.value = '';
+            if (currentOption && currentOption.disabled) {
+                categorySelect.value = '';
+            }
         }
-
-        document.getElementById('birth_date')?.addEventListener('change', function() {
-            displayAge();
-            filterCategoriesByAge();
-        });
 
         // ============================================
         // FUNCIONES DE FORMULARIO
@@ -1160,7 +1164,6 @@
             if (btnIndividual) btnIndividual.classList.add('active');
             if (btnTeam) btnTeam.classList.remove('active');
 
-            // Scroll al formulario
             setTimeout(() => {
                 if (individualForm) {
                     individualForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1179,7 +1182,6 @@
             if (btnIndividual) btnIndividual.classList.remove('active');
             if (btnTeam) btnTeam.classList.add('active');
 
-            // Scroll al formulario
             setTimeout(() => {
                 if (teamForm) {
                     teamForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1199,24 +1201,73 @@
             if (btnTeam) btnTeam.classList.remove('active');
         }
 
-        // Estructura
         function toggleStructureField() {
             const structureYes = document.getElementById('structure_yes');
             const structureField = document.getElementById('structureField');
-
             if (structureField) {
                 structureField.style.display = (structureYes && structureYes.checked) ? 'block' : 'none';
             }
         }
 
-        document.getElementById('structure_no')?.addEventListener('change', toggleStructureField);
-        document.getElementById('structure_yes')?.addEventListener('change', toggleStructureField);
-
         // ============================================
         // BUSCADOR PREDICTIVO
         // ============================================
 
-        let searchTimeout;
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function highlightText(text, query) {
+            if (!query) return escapeHtml(text);
+            const regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
+            return escapeHtml(text).replace(regex, '<span class="suggestion-highlight">$1</span>');
+        }
+
+        function selectStructure(id, name) {
+            existingStructureId = id;
+            existingStructureName = name;
+            document.getElementById('structure_search').value = name;
+            document.getElementById('structure_id').value = id;
+            document.getElementById('structure_name_hidden').value = name;
+            document.getElementById('structureSuggestions').style.display = 'none';
+            document.getElementById('newStructureOption').style.display = 'none';
+
+            var infoHtml = '<div class="alert alert-success" style="font-size: 0.9rem;">' +
+                '<i class="fas fa-check-circle me-2"></i>' +
+                '<strong>' + escapeHtml(name) + '</strong> (Estructura existente)' +
+                '<br><small>Se asignará automáticamente a este equipo.</small>' +
+                '</div>';
+
+            document.getElementById('selectedStructureInfo').innerHTML = infoHtml;
+            document.getElementById('structure_search').classList.remove('is-invalid');
+        }
+
+        function showNewStructureOption() {
+            const searchValue = document.getElementById('structure_search').value;
+            if (searchValue.length >= 2) {
+                if (existingStructureId && existingStructureName && existingStructureName.toLowerCase() === searchValue.toLowerCase()) {
+                    var errorHtml = '<div class="alert alert-danger" style="font-size: 0.9rem;">' +
+                        '<i class="fas fa-exclamation-triangle me-2"></i>' +
+                        '<strong>"' + escapeHtml(searchValue) + '"</strong> ya existe como estructura.' +
+                        '<br><small>Por favor selecciona la estructura existente de la lista.</small>' +
+                        '</div>';
+                    document.getElementById('selectedStructureInfo').innerHTML = errorHtml;
+                    document.getElementById('newStructureOption').style.display = 'none';
+                    document.getElementById('structure_search').classList.add('is-invalid');
+                    return;
+                }
+                document.getElementById('newStructureName').innerText = searchValue;
+                document.getElementById('newStructureOption').style.display = 'block';
+                document.getElementById('structureSuggestions').style.display = 'none';
+            }
+        }
 
         function searchStructures(query) {
             if (query.length < 2) {
@@ -1224,6 +1275,7 @@
                 document.getElementById('newStructureOption').style.display = 'none';
                 return;
             }
+
             const suggestionsDiv = document.getElementById('structureSuggestions');
             suggestionsDiv.innerHTML = '<div class="list-group-item text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</div>';
             suggestionsDiv.style.display = 'block';
@@ -1289,63 +1341,71 @@
             });
         }
 
-        function highlightText(text, query) {
-            if (!query) return escapeHtml(text);
-            var regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
-            return escapeHtml(text).replace(regex, '<span class="suggestion-highlight">$1</span>');
-        }
+        // ============================================
+        // FUNCIONES DE VEHÍCULOS
+        // ============================================
 
-        function escapeRegex(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Reemplaza TODAS las funciones que usan innerHTML con esta versión corregida
-
-        function selectStructure(id, name) {
-            existingStructureId = id;
-            existingStructureName = name;
-            document.getElementById('structure_search').value = name;
-            document.getElementById('structure_id').value = id;
-            document.getElementById('structure_name_hidden').value = name;
-            document.getElementById('structureSuggestions').style.display = 'none';
-            document.getElementById('newStructureOption').style.display = 'none';
-
-            var infoHtml = '<div class="alert alert-success" style="font-size: 0.9rem;">' +
-                '<i class="fas fa-check-circle me-2"></i>' +
-                '<strong>' + escapeHtml(name) + '</strong> (Estructura existente)' +
-                '<br><small>Se asignará automáticamente a este equipo.</small>' +
-                '</div>';
-
-            document.getElementById('selectedStructureInfo').innerHTML = infoHtml;
-            document.getElementById('structure_search').classList.remove('is-invalid');
-        }
-
-        function showNewStructureOption() {
-            const searchValue = document.getElementById('structure_search').value;
-            if (searchValue.length >= 2) {
-                if (existingStructureId && existingStructureName && existingStructureName.toLowerCase() === searchValue.toLowerCase()) {
-                    var errorHtml = '<div class="alert alert-danger" style="font-size: 0.9rem;">' +
-                        '<i class="fas fa-exclamation-triangle me-2"></i>' +
-                        '<strong>"' + escapeHtml(searchValue) + '"</strong> ya existe como estructura.' +
-                        '<br><small>Por favor selecciona la estructura existente de la lista.</small>' +
-                        '</div>';
-                    document.getElementById('selectedStructureInfo').innerHTML = errorHtml;
-                    document.getElementById('newStructureOption').style.display = 'none';
-                    document.getElementById('structure_search').classList.add('is-invalid');
-                    return;
-                }
-                document.getElementById('newStructureName').innerText = searchValue;
-                document.getElementById('newStructureOption').style.display = 'block';
-                document.getElementById('structureSuggestions').style.display = 'none';
+        function addVehicleRow() {
+            const tbody = document.getElementById('vehiclesBody');
+            if (tbody) {
+                const currentIndex = document.querySelectorAll('#vehiclesBody tr').length;
+                const newRow = '<tr>' +
+                    '<td><input type="text" name="vehicles[' + currentIndex + '][brand]" class="form-control form-control-sm" placeholder="Marca"></td>' +
+                    '<td><input type="text" name="vehicles[' + currentIndex + '][model]" class="form-control form-control-sm" placeholder="Modelo"></td>' +
+                    '<td><input type="text" name="vehicles[' + currentIndex + '][plate]" class="form-control form-control-sm" placeholder="Placa"></td>' +
+                    '<td><input type="number" name="vehicles[' + currentIndex + '][year]" class="form-control form-control-sm" placeholder="Año"></td>' +
+                    '<td><input type="text" name="vehicles[' + currentIndex + '][color]" class="form-control form-control-sm" placeholder="Color"></td>' +
+                    '<td><button type="button" class="btn btn-sm btn-danger" onclick="removeVehicleRow(this)"><i class="fas fa-trash"></i></button></td>' +
+                    '</tr>';
+                tbody.insertAdjacentHTML('beforeend', newRow);
             }
         }
+
+        function removeVehicleRow(button) {
+            const row = button.closest('tr');
+            const tbody = document.getElementById('vehiclesBody');
+            if (row && tbody && tbody.children.length > 1) {
+                row.remove();
+            } else if (row) {
+                const inputs = row.querySelectorAll('input');
+                for (let i = 0; i < inputs.length; i++) {
+                    inputs[i].value = '';
+                }
+            }
+        }
+
+        function updateFileName(name) {
+            const fileNameDiv = document.getElementById('fileName');
+            if (fileNameDiv) {
+                fileNameDiv.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo seleccionado: ' + name;
+            }
+        }
+
+        function showStructureError(message) {
+            const errorDiv = document.getElementById('structureError');
+            const errorMsg = document.getElementById('structureErrorMessage');
+            if (errorDiv && errorMsg) {
+                errorMsg.innerHTML = message;
+                errorDiv.style.display = 'block';
+                document.getElementById('structure_search').classList.add('is-invalid');
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                    document.getElementById('structure_search').classList.remove('is-invalid');
+                }, 5000);
+            }
+        }
+
+        // ============================================
+        // EVENTOS
+        // ============================================
+
+        document.getElementById('birth_date')?.addEventListener('change', function() {
+            displayAge();
+            filterCategoriesByAge();
+        });
+
+        document.getElementById('structure_no')?.addEventListener('change', toggleStructureField);
+        document.getElementById('structure_yes')?.addEventListener('change', toggleStructureField);
 
         document.getElementById('structure_search')?.addEventListener('input', function(e) {
             clearTimeout(searchTimeout);
@@ -1353,8 +1413,10 @@
             if (query.length >= 2) {
                 searchTimeout = setTimeout(() => searchStructures(query), 300);
             } else {
-                document.getElementById('structureSuggestions').style.display = 'none';
-                document.getElementById('newStructureOption').style.display = 'none';
+                const suggestionsDiv = document.getElementById('structureSuggestions');
+                if (suggestionsDiv) suggestionsDiv.style.display = 'none';
+                const newOptionDiv = document.getElementById('newStructureOption');
+                if (newOptionDiv) newOptionDiv.style.display = 'none';
             }
         });
 
@@ -1367,7 +1429,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Nombre duplicado',
-                        text: 'La estructura "' + searchValue + '" ya existe. No puedes crear una nueva con el mismo nombre. Por favor selecciona la existente.',
+                        text: 'La estructura "' + searchValue + '" ya existe. No puedes crear una nueva con el mismo nombre.',
                         confirmButtonColor: '#00ecfe'
                     });
                     checkbox.checked = false;
@@ -1381,42 +1443,22 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Nombre duplicado',
-                                text: 'La estructura "' + searchValue + '" ya existe en el sistema. No puedes crear una nueva con el mismo nombre.',
+                                text: 'La estructura "' + searchValue + '" ya existe en el sistema.',
                                 confirmButtonColor: '#00ecfe'
                             });
                             checkbox.checked = false;
                             document.getElementById('structure_id').value = data.id;
                             document.getElementById('structure_name_hidden').value = searchValue;
                             document.getElementById('structure_search').value = searchValue;
-
-                            var warningHtml = '<div class="alert alert-warning" style="font-size: 0.9rem;">' +
-                                '<i class="fas fa-exclamation-triangle me-2"></i>' +
-                                '<strong>' + escapeHtml(searchValue) + '</strong> ya existe. Se usará la estructura existente.' +
-                                '</div>';
+                            var warningHtml = '<div class="alert alert-warning">' + escapeHtml(searchValue) + ' ya existe. Se usará la estructura existente.</div>';
                             document.getElementById('selectedStructureInfo').innerHTML = warningHtml;
                         } else {
                             document.getElementById('structure_id').value = '';
                             document.getElementById('structure_name_hidden').value = searchValue;
-
-                            var infoHtml = '<div class="alert alert-info" style="font-size: 0.9rem;">' +
-                                '<i class="fas fa-plus-circle me-2"></i>' +
-                                'Se creará una nueva estructura: <strong>' + escapeHtml(searchValue) + '</strong>' +
-                                '<br><small>La estructura se registrará al completar la inscripción.</small>' +
-                                '</div>';
+                            var infoHtml = '<div class="alert alert-info">Se creará: <strong>' + escapeHtml(searchValue) + '</strong></div>';
                             document.getElementById('selectedStructureInfo').innerHTML = infoHtml;
                             document.getElementById('structure_search').classList.remove('is-invalid');
                         }
-                        document.getElementById('newStructureOption').style.display = 'none';
-                        document.getElementById('structureSuggestions').style.display = 'none';
-                    })
-                    .catch(() => {
-                        document.getElementById('structure_id').value = '';
-                        document.getElementById('structure_name_hidden').value = searchValue;
-                        var infoHtml = '<div class="alert alert-info" style="font-size: 0.9rem;">' +
-                            '<i class="fas fa-plus-circle me-2"></i>' +
-                            'Se creará: <strong>' + escapeHtml(searchValue) + '</strong>' +
-                            '</div>';
-                        document.getElementById('selectedStructureInfo').innerHTML = infoHtml;
                     });
             } else {
                 document.getElementById('structure_id').value = '';
@@ -1433,141 +1475,73 @@
             }
         });
 
-        // Drag and drop
+        // Drag and drop para archivo
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('excelFile');
-        const fileName = document.getElementById('fileName');
+        const fileNameDiv = document.getElementById('fileName');
+
         if (uploadArea) {
-            uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-            uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-            uploadArea.addEventListener('drop', e => {
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
                 e.preventDefault();
                 uploadArea.classList.remove('dragover');
                 if (e.dataTransfer.files.length) {
                     fileInput.files = e.dataTransfer.files;
-                    fileName.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo: ' + e.dataTransfer.files[0].name;
+                    if (fileNameDiv) {
+                        fileNameDiv.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo: ' + e.dataTransfer.files[0].name;
+                    }
                 }
             });
-            uploadArea.addEventListener('click', () => fileInput.click());
-        }
-        if (fileInput) {
-            fileInput.addEventListener('change', e => {
-                if (e.target.files.length) fileName.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo: ' + e.target.files[0].name;
+
+            uploadArea.addEventListener('click', function() {
+                if (fileInput) fileInput.click();
             });
         }
 
-
-        function showStructureError(message) {
-            const errorDiv = document.getElementById('structureError');
-            const errorMsg = document.getElementById('structureErrorMessage');
-            if (errorDiv && errorMsg) {
-                errorMsg.innerHTML = message;
-                errorDiv.style.display = 'block';
-                document.getElementById('structure_search').classList.add('is-invalid');
-                setTimeout(() => {
-                    errorDiv.style.display = 'none';
-                    document.getElementById('structure_search').classList.remove('is-invalid');
-                }, 5000);
-            }
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length && fileNameDiv) {
+                    fileNameDiv.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo: ' + e.target.files[0].name;
+                }
+            });
         }
 
-        // Reemplaza la función addVehicleRow por esta:
-        let vehicleIndex = 1;
+        // Mostrar formulario según errores
+        @if($errors->any() && !session('import_errors'))
+        showIndividualForm();
+        @endif
 
-        function addVehicleRow() {
-            const tbody = document.getElementById('vehiclesBody');
-            if (tbody) {
-                var newRow = '<tr>' +
-                    '<td><input type="text" name="vehicles[' + vehicleIndex + '][brand]" class="form-control form-control-sm" placeholder="Marca"></td>' +
-                    '<td><input type="text" name="vehicles[' + vehicleIndex + '][model]" class="form-control form-control-sm" placeholder="Modelo"></td>' +
-                    '<td><input type="text" name="vehicles[' + vehicleIndex + '][plate]" class="form-control form-control-sm" placeholder="Placa"></td>' +
-                    '<td><input type="number" name="vehicles[' + vehicleIndex + '][year]" class="form-control form-control-sm" placeholder="Año"></td>' +
-                    '<td><input type="text" name="vehicles[' + vehicleIndex + '][color]" class="form-control form-control-sm" placeholder="Color"></td>' +
-                    '<td><button type="button" class="btn btn-sm btn-danger" onclick="removeVehicleRow(this)"><i class="fas fa-trash"></i></button></td>' +
-                    '</tr>';
-                tbody.insertAdjacentHTML('beforeend', newRow);
-                vehicleIndex++;
-            }
-        }
+        @if(session('import_errors') || ($errors->any() && session('import_errors')))
+        showTeamForm();
+        @endif
 
-        function removeVehicleRow(button) {
-            const row = button.closest('tr');
-            const tbody = document.getElementById('vehiclesBody');
-            if (row && tbody && tbody.children.length > 1) {
-                row.remove();
-            } else if (row) {
-                // Limpiar campos en lugar de eliminar la última fila
-                row.querySelectorAll('input').forEach(input => input.value = '');
-            }
-        }
+        @if(session('form_error') == 'individual')
+        showIndividualForm();
+        @endif
 
-        function updateFileName(name) {
-            const fileName = document.getElementById('fileName');
-            if (fileName) {
-                fileName.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo seleccionado: ' + name;
-            }
-        }
+        @if(session('form_error') == 'team')
+        showTeamForm();
+        @endif
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Eventos para los radios de estructura
-            const structureNo = document.getElementById('structure_no');
-            const structureYes = document.getElementById('structure_yes');
-
-            if (structureNo) structureNo.addEventListener('change', toggleStructureField);
-            if (structureYes) structureYes.addEventListener('change', toggleStructureField);
-
-            // Mostrar formulario si hay errores
-            @if($errors->any() && !session('import_errors'))
-            showIndividualForm();
-            @endif
-
-            @if(session('import_errors') || ($errors->any() && session('import_errors')))
-            showTeamForm();
-            @endif
-
-            @if(session('form_error') == 'individual')
-            showIndividualForm();
-            @endif
-
-            @if(session('form_error') == 'team')
-            showTeamForm();
-            @endif
-        });
-
-        // Modales
+        // Modal de éxito
         @if(session('success_modal'))
         document.addEventListener('DOMContentLoaded', function() {
             var details = @json(session('success_details'));
             var table = document.getElementById('successDetailsTable');
             if (table && details) {
-                var nombre = details.nombre || '';
-                var dorsal = details.dorsal || '';
-                var categoria = details.categoria || '';
-                var estructura = details.estructura || 'Independiente';
-                var email = details.email || '';
-
-                // Usar etiquetas HTML normales sin caracteres especiales
-                var html = '<tr>' +
-                    '<td class="fw-bold">👤 Ciclista:</td>' +
-                    '<td>' + nombre + '</td>' +
-                    '</tr>' +
-                    '<tr>' +
-                    '<td class="fw-bold">🔢 Dorsal:</td>' +
-                    '<td><span class="badge bg-primary">' + dorsal + '</span></td>' +
-                    '</tr>' +
-                    '<tr>' +
-                    '<td class="fw-bold">🏆 Categoría:</td>' +
-                    '<td>' + categoria + '</td>' +
-                    '</tr>' +
-                    '<tr>' +
-                    '<td class="fw-bold">🏢 Estructura:</td>' +
-                    '<td>' + estructura + '</td>' +
-                    '</tr>' +
-                    '<tr>' +
-                    '<td class="fw-bold">📧 Email:</td>' +
-                    '<td>' + email + '</td>' +
-                    '</tr>';
-
+                var html = '<tr><td class="fw-bold">👤 Ciclista:</td><td>' + (details.nombre || '') + '</td></tr>' +
+                    '<tr><td class="fw-bold">🔢 Dorsal:</td><td><span class="badge bg-primary">' + (details.dorsal || '') + '</span></td></tr>' +
+                    '<tr><td class="fw-bold">🏆 Categoría:</td><td>' + (details.categoria || '') + '</td></tr>' +
+                    '<tr><td class="fw-bold">🏢 Estructura:</td><td>' + (details.estructura || 'Independiente') + '</td></tr>' +
+                    '<tr><td class="fw-bold">📧 Email:</td><td>' + (details.email || '') + '</td></tr>';
                 table.innerHTML = html;
             }
             document.getElementById('successMessage').innerHTML = '{{ session('success_message') }}';
@@ -1576,6 +1550,7 @@
         });
         @endif
 
+        // Modal de estado
         @if(session('show_status_modal'))
         document.addEventListener('DOMContentLoaded', function() {
             var statusData = @json(session('status_data'));
@@ -1583,25 +1558,14 @@
             if (statusContent && statusData) {
                 var statusBadge = '';
                 switch(statusData.status) {
-                    case 'pending':
-                        statusBadge = '<span class="badge bg-warning text-dark">⏳ Pendiente de revisión</span>';
-                        break;
-                    case 'approved':
-                        statusBadge = '<span class="badge bg-success">✅ Aprobada</span>';
-                        break;
-                    case 'rejected':
-                        statusBadge = '<span class="badge bg-danger">❌ Rechazada</span>';
-                        break;
-                    case 'paid':
-                        statusBadge = '<span class="badge bg-info">💰 Pagada</span>';
-                        break;
-                    default:
-                        statusBadge = '<span class="badge bg-secondary">📝 Registrada</span>';
+                    case 'pending': statusBadge = '<span class="badge bg-warning text-dark">⏳ Pendiente de revisión</span>'; break;
+                    case 'approved': statusBadge = '<span class="badge bg-success">✅ Aprobada</span>'; break;
+                    case 'rejected': statusBadge = '<span class="badge bg-danger">❌ Rechazada</span>'; break;
+                    case 'paid': statusBadge = '<span class="badge bg-info">💰 Pagada</span>'; break;
+                    default: statusBadge = '<span class="badge bg-secondary">📝 Registrada</span>';
                 }
-
                 var eventName = statusData.event ? statusData.event.name : 'Vuelta a la Fría 2026';
                 var registeredDate = new Date(statusData.registered_at).toLocaleDateString('es-VE');
-
                 var html = '<div class="text-center mb-4">' +
                     '<i class="fas fa-user-circle fa-4x text-primary"></i>' +
                     '<h5 class="mt-2">' + (statusData.registration_type === 'individual' ? 'Ciclista Individual' : 'Equipo') + '</h5>' +
@@ -1613,7 +1577,6 @@
                     '<strong>📌 Estado:</strong> ' + statusBadge + '<br>' +
                     '<strong>📅 Fecha de registro:</strong> ' + registeredDate +
                     '</div>';
-
                 if (statusData.athlete) {
                     html += '<div class="alert alert-success">' +
                         '<strong>👤 Ciclista:</strong> ' + statusData.athlete.first_name + ' ' + statusData.athlete.last_name + '<br>' +
@@ -1621,22 +1584,14 @@
                         '<strong>🏆 Categoría:</strong> ' + statusData.athlete.category +
                         '</div>';
                 }
-
                 statusContent.innerHTML = html;
             }
-            var statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
-            statusModal.show();
+            new bootstrap.Modal(document.getElementById('statusModal')).show();
         });
         @endif
 
         @if(session('error'))
         Swal.fire({ icon: 'error', title: 'Error', text: '{{ session('error') }}', confirmButtonColor: '#00ecfe' });
         @endif
-
-        @if($errors->any() && !session('import_errors')) showIndividualForm();
-        @elseif(session('import_errors') || ($errors->any() && session('import_errors'))) showTeamForm();
-        @endif
-
-
     </script>
 @endsection
