@@ -643,51 +643,39 @@
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="bank-card p-3 rounded">
                                         <div class="d-flex align-items-center mb-2">
                                             <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
                                             <h5 class="mb-0">Banco Provincial</h5>
                                         </div>
                                         <p class="mb-1"><strong>Tipo de Cuenta:</strong> Corriente</p>
-                                        <p class="mb-1"><strong>Número de Cuenta:</strong> 0108-0001-23-0012345678</p>
-                                        <p class="mb-1"><strong>Cédula/RIF:</strong> J-12345678-9</p>
-                                        <p class="mb-0"><strong>Beneficiario:</strong> Vuelta a la Fría 2026</p>
+                                        <p class="mb-1"><strong>Número de Cuenta:</strong>0108-0133-8001-0004-2510</p>
+                                        <p class="mb-1"><strong>Cédula/RIF:</strong> V-15184480</p>
+                                        <p class="mb-0"><strong>Beneficiario:</strong> Ruben Osorio</p>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="bank-card p-3 rounded">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
-                                            <h5 class="mb-0">Banco Banesco</h5>
-                                        </div>
-                                        <p class="mb-1"><strong>Tipo de Cuenta:</strong> Corriente</p>
-                                        <p class="mb-1"><strong>Número de Cuenta:</strong> 0134-0001-23-0123456789</p>
-                                        <p class="mb-1"><strong>Cédula/RIF:</strong> J-12345678-9</p>
-                                        <p class="mb-0"><strong>Beneficiario:</strong> Vuelta a la Fría 2026</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
+
+                                <div class="col-md-4">
                                     <div class="bank-card p-3 rounded">
                                         <div class="d-flex align-items-center mb-2">
                                             <i class="fas fa-mobile-alt fa-2x me-3" style="color: #00ecfe;"></i>
                                             <h5 class="mb-0">Pago Móvil</h5>
                                         </div>
-                                        <p class="mb-1"><strong>Banco:</strong> Provincial / Banesco</p>
-                                        <p class="mb-1"><strong>Teléfono:</strong> +58 424-7371101</p>
-                                        <p class="mb-1"><strong>Cédula:</strong> V-12345678</p>
-                                        <p class="mb-0"><strong>Beneficiario:</strong> Jhoana Noriega</p>
+                                        <p class="mb-1"><strong>Banco:</strong> Bancolombia</p>
+                                        <p class="mb-1"><strong>Cuenta:</strong> Ahorro</p>
+                                        <p class="mb-1"><strong>Nro:</strong>901275648</p>
+                                        <p class="mb-0"><strong>Beneficiario:</strong> INVERSIONES OSORIO MOTOS S.A.S</p>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="bank-card p-3 rounded">
                                         <div class="d-flex align-items-center mb-2">
                                             <i class="fab fa-paypal fa-2x me-3" style="color: #00ecfe;"></i>
-                                            <h5 class="mb-0">Pagos Internacionales</h5>
+                                            <h5 class="mb-0">Pagos En USDT</h5>
                                         </div>
-                                        <p class="mb-1"><strong>PayPal:</strong> vueltalafria@gmail.com</p>
-                                        <p class="mb-1"><strong>Zelle:</strong> vueltalafria@gmail.com</p>
-                                        <p class="mb-0"><strong>Transferencia Swift:</strong> Solicitar información</p>
+                                        <p class="mb-1"><strong>Correo:</strong> Rubenaosrioe@gmail.com</p>
+
                                     </div>
                                 </div>
                             </div>
