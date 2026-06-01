@@ -59,10 +59,84 @@ class PublicRegistrationController extends Controller
         return Excel::download(new TeamTemplateExport(), 'plantilla_inscripcion_equipos.xlsx');
     }
 
+    /**
+     * Comprimir y guardar imagen directamente en public/img/comprobantes/
+     */
+    private function savePaymentProof($file, $teamId)
+    {
+        $extension = strtolower($file->getClientOriginalExtension());
+        $filename = time() . '_' . $teamId;
+
+        // Directorio donde se guardarán los comprobantes
+        $uploadDir = public_path('img/comprobantes');
+
+        // Crear directorio si no existe
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        // Procesar según el tipo de archivo
+        if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
+            // Para imágenes: comprimir y convertir a JPG
+            $finalFilename = $filename . '.jpg';
+            $finalPath = $uploadDir . '/' . $finalFilename;
+
+            // Obtener la imagen desde el archivo temporal
+            $tempPath = $file->getPathname();
+            $imageInfo = getimagesize($tempPath);
+
+            if ($imageInfo) {
+                // Crear imagen según el tipo original
+                if ($extension == 'png') {
+                    $image = imagecreatefrompng($tempPath);
+                } else {
+                    $image = imagecreatefromjpeg($tempPath);
+                }
+
+                if ($image) {
+                    // Obtener dimensiones originales
+                    $width = imagesx($image);
+                    $height = imagesy($image);
+
+                    // Redimensionar si es muy grande (máx 1200px)
+                    $maxWidth = 1200;
+                    if ($width > $maxWidth) {
+                        $newWidth = $maxWidth;
+                        $newHeight = intval($height * ($maxWidth / $width));
+                        $resized = imagecreatetruecolor($newWidth, $newHeight);
+                        imagecopyresampled($resized, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+                        imagedestroy($image);
+                        $image = $resized;
+                    }
+
+                    // Guardar con compresión (calidad 70%)
+                    imagejpeg($image, $finalPath, 70);
+                    imagedestroy($image);
+
+                    return 'img/comprobantes/' . $finalFilename;
+                }
+            }
+
+            // Si algo falló, guardar como está
+            $file->move($uploadDir, $filename . '.' . $extension);
+            return 'img/comprobantes/' . $filename . '.' . $extension;
+        }
+        elseif ($extension == 'pdf') {
+            // Para PDF: solo mover
+            $finalFilename = $filename . '.pdf';
+            $file->move($uploadDir, $finalFilename);
+            return 'img/comprobantes/' . $finalFilename;
+        }
+        else {
+            // Otros formatos: mover como están
+            $finalFilename = $filename . '.' . $extension;
+            $file->move($uploadDir, $finalFilename);
+            return 'img/comprobantes/' . $finalFilename;
+        }
+    }
+
     public function submitRegistration(Request $request)
     {
-        \Log::info('Datos recibidos:', $request->all());
-
         // Validación inicial
         $validator = Validator::make($request->all(), [
             'team_name' => 'required|string|max:255',
@@ -80,6 +154,8 @@ class PublicRegistrationController extends Controller
             'return_date' => 'nullable|date',
             'return_flight_time' => 'nullable',
             'vehicles' => 'nullable|array',
+            'payment_method' => 'nullable|string',
+            'payment_reference' => 'nullable|string',
             'accept_terms' => 'required|accepted'
         ]);
 
@@ -90,7 +166,6 @@ class PublicRegistrationController extends Controller
                 ->with('form_error', 'team');
         }
 
-        // INICIAR TRANSACCIÓN - Todo o nada
         DB::beginTransaction();
 
         $team = null;
@@ -122,7 +197,7 @@ class PublicRegistrationController extends Controller
 
             // 3. Guardar datos migratorios
             if ($request->arrival_date || $request->return_date) {
-                $migrationData = TeamMigrationData::create([
+                TeamMigrationData::create([
                     'team_id' => $team->id,
                     'arrival_date' => $request->arrival_date,
                     'arrival_border' => $request->arrival_border,
@@ -131,7 +206,6 @@ class PublicRegistrationController extends Controller
                     'return_flight_time' => $request->return_flight_time,
                     'notes' => $request->migration_notes
                 ]);
-                // Si falla, lanzará excepción automáticamente
             }
 
             // 4. Guardar vehículos
@@ -159,6 +233,7 @@ class PublicRegistrationController extends Controller
             $athleteCount = $import->getAthleteCount();
             $staffCount = $import->getStaffCount();
             $totalImported = $import->getImportedCount();
+            $athletes = $import->getAthletes();
 
             // Si hay errores en el Excel, hacer ROLLBACK
             if (count($errors) > 0) {
@@ -171,14 +246,30 @@ class PublicRegistrationController extends Controller
                 throw new \Exception('El archivo Excel no contiene ningún atleta válido. Debe haber al menos un atleta en el equipo.');
             }
 
+            // Calcular el monto total
+            $totalAmount = $this->calculateTotalAmount($athletes);
+
+            // ==============================================
+            // GUARDAR COMPROBANTE DE PAGO
+            // ==============================================
+            $paymentProofPath = null;
+            if ($request->hasFile('payment_proof')) {
+                $paymentProofPath = $this->savePaymentProof($request->file('payment_proof'), $team->id);
+            }
+
             // 6. Registrar la inscripción del equipo
-            $registration = Registration::create([
+            Registration::create([
                 'event_id' => $event->id,
                 'registration_type' => 'team',
                 'team_id' => $team->id,
                 'email' => $request->delegate_email,
                 'phone' => $request->delegate_phone,
                 'status' => 'pending',
+                'amount' => $totalAmount,
+                'payment_method' => $request->payment_method,
+                'payment_reference' => $request->payment_reference,
+                'payment_proof' => $paymentProofPath,
+                'payment_status' => $request->payment_method === 'efectivo' ? 'pending' : 'pending',
                 'notes' => json_encode([
                     'delegate_name' => $request->delegate_name,
                     'delegate_whatsapp' => $request->delegate_whatsapp,
@@ -190,24 +281,28 @@ class PublicRegistrationController extends Controller
                 'registered_at' => now()
             ]);
 
-            // SI LLEGAMOS HASTA AQUÍ, TODO ESTÁ BIEN
-            // Confirmar la transacción
             DB::commit();
 
-            // Redirigir con éxito
+            // Redirigir con éxito y mostrar modal
             return redirect()->route('home')
-                ->with('team_success', '¡Inscripción exitosa!')
-                ->with('team_name', $team->name)
-                ->with('access_code', $team->access_code)
-                ->with('athletes_count', $athleteCount)
-                ->with('staff_count', $staffCount)
+                ->with('success_modal', true)
+                ->with('success_title', '¡Inscripción Registrada!')
+                ->with('success_message', "¡Inscripción registrada exitosamente para la {$event->name}!")
+                ->with('success_details', [
+                    'nombre' => $request->delegate_name,
+                    'equipo' => $team->name,
+                    'codigo' => $team->access_code,
+                    'atletas' => $athleteCount,
+                    'staff' => $staffCount,
+                    'total' => '$' . number_format($totalAmount, 2),
+                    'email' => $request->delegate_email,
+                    'telefono' => $request->delegate_phone
+                ])
                 ->with('form_error', 'none');
 
         } catch (\Exception $e) {
-            // HACER ROLLBACK DE TODO - Nada se guarda en la base de datos
             DB::rollBack();
 
-            // Registrar el error en el log del servidor
             \Log::error('ERROR EN INSCRIPCIÓN DE EQUIPO', [
                 'error' => $e->getMessage(),
                 'team_name' => $request->team_name ?? null,
@@ -215,29 +310,31 @@ class PublicRegistrationController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            // Mensaje amigable para el usuario
-            $userMessage = 'Ocurrió un error al procesar la inscripción. No se ha guardado ningún dato.';
-
-            if ($e->getMessage()) {
-                $userMessage .= ' Motivo: ' . $e->getMessage();
-            }
-
-            // Retornar error al usuario con el formulario visible nuevamente
             return redirect()->back()
-                ->with('error', $userMessage)
+                ->with('error', $e->getMessage())
                 ->with('import_errors', $import ? $import->getErrors() : [])
                 ->withInput()
                 ->with('form_error', 'team');
         }
     }
 
-    public function success()
+    private function calculateTotalAmount($athletes)
     {
-        if (!session('team_success')) {
-            return redirect()->route('home');
+        $categories3Days = ['Pre-Infantil Masculino', 'Pre-Infantil Femenino', 'Infantil Masculino', 'Infantil Femenino',
+            'Pre-Juvenil Masculino', 'Pre-Juvenil Femenino', 'Juvenil Masculino', 'Juvenil Femenino'];
+        $cost3Days = 30;
+        $cost1Day = 15;
+
+        $total = 0;
+        foreach ($athletes as $athlete) {
+            if (in_array($athlete->category, $categories3Days)) {
+                $total += $cost3Days;
+            } else {
+                $total += $cost1Day;
+            }
         }
 
-        return view('home.registration.success');
+        return $total;
     }
 
     private function getCategories()

@@ -1,9 +1,7 @@
 /node_modules
 /public/hot
 /public/storage
-/public/vehiculos
-public/productosimg/
-/public/mantenimientos
+/public/comprobantes
 /storage/*.key
 /vendor
 .env

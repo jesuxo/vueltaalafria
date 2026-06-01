@@ -28,7 +28,6 @@ class Team extends Model
         return $this->hasMany(Registration::class);
     }
 
-    // Relaciones para nuevas tablas que necesitas crear
     public function staff()
     {
         return $this->hasMany(TeamStaff::class);

@@ -186,6 +186,69 @@
             font-weight: bold;
             color: #00ecfe;
         }
+
+        /* Estilos para la sección de precios */
+        .price-card {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            height: 100%;
+        }
+
+        .price-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .price-card.featured {
+            transform: scale(1.02);
+            box-shadow: 0 20px 50px rgba(0,236,254,0.2);
+        }
+
+        .price-card .price-header {
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .price-card .price-header h3 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .price-card .price-body {
+            padding: 30px;
+            background: white;
+        }
+
+        .price-card .price {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        .price-card .price small {
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        .bank-card {
+            background: #f8f9fa;
+            border-left: 4px solid #00ecfe;
+            transition: all 0.3s;
+        }
+
+        .bank-card:hover {
+            background: #ffffff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 768px) {
+            .price-card.featured {
+                transform: scale(1);
+            }
+        }
     </style>
 @endsection
 
@@ -198,8 +261,8 @@
                 <h1 style="margin:0px;">VUELTA A LA <br><span>FRÍA</span></h1>
                 <p class="subtitulo" style="font-size: 20px;">LA VUELTA MENOR MÁS IMPORTANTE DE VENEZUELA</p>
                 <div>
-                    <a href="#preinscripcion" class="btn-custom">Inscribirme Ahora</a>
-                    <a href="#informacion" class="btn-custom btn-outline-custom">Más Información</a>
+                    <a href="#pricing" class="btn-custom">Ver Costos</a>
+                    <a href="#preinscripcion" class="btn-custom btn-outline-custom">Inscribirme Ahora</a>
                 </div>
                 <div class="row mt-5">
                     <div class="col-12 mt-2 col-md-6">
@@ -488,12 +551,164 @@
         </div>
     </section>
 
-    <!-- Sección de Inscripción Mejorada -->
+    <!-- ============================================ -->
+    <!-- SECCIÓN DE PRECIOS - PRICING CON CUENTAS BANCARIAS -->
+    <!-- ============================================ -->
+    <section id="pricing" class="section">
+        <div class="container">
+            <div class="section-title" data-aos="fade-up">
+                <h2>COSTOS DE INSCRIPCIÓN</h2>
+                <p>Elige tu categoría y conoce el costo</p>
+            </div>
+
+            <div class="row g-4 justify-content-center">
+                <!-- Tarjeta de 3 Días -->
+                <div class="col-lg-5 col-md-6" data-aos="fade-right" data-aos-delay="100">
+                    <div class="price-card featured">
+                        <div class="price-header" style="background: linear-gradient(135deg, #00ecfe 0%, #00c4d4 100%);">
+                            <h3>🚴‍♂️ 3 DÍAS DE COMPETENCIA</h3>
+                            <p class="mb-0 text-white-50">Viernes 12, Sábado 13 y Domingo 14 de junio</p>
+                        </div>
+                        <div class="price-body">
+                            <div class="price">$30 <small>USD</small></div>
+                            <hr>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Pre-Infantil (11-12 años)</p>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Infantil (13-14 años)</p>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Pre-Juvenil (15-16 años)</p>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Juvenil (17-18 años)</p>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> 3 etapas completas</p>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Premiación por etapa y general</p>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Maillot conmemorativo</p>
+                            <div class="mt-4">
+                                <a href="#preinscripcion" class="btn-custom" onclick="selectRegistrationType('individual')">
+                                    <i class="fas fa-user me-2"></i> Inscribirme Individual
+                                </a>
+                                <a href="#preinscripcion" class="btn-outline-custom mt-2 d-inline-block" onclick="selectRegistrationType('team')">
+                                    <i class="fas fa-users me-2"></i> Inscribir Equipo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de 1 Día -->
+                <div class="col-lg-5 col-md-6" data-aos="fade-left" data-aos-delay="200">
+                    <div class="price-card">
+                        <div class="price-header" style="background: linear-gradient(135deg, #00a3b3 0%, #008a99 100%);">
+                            <h3>🚲 1 DÍA DE COMPETENCIA</h3>
+                            <p class="mb-0 text-white-50">Domingo 14 de junio - Exhibición</p>
+                        </div>
+                        <div class="price-body">
+                            <div class="price">$15 <small>USD</small></div>
+                            <hr>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Compota Strider (3-4 años)</p>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Compota Pedales (3-4 años)</p>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Iniciación A (5-6 años)</p>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Iniciación B (7-8 años)</p>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Iniciación C (9-10 años)</p>
+                            <p><i class="fas fa-check-circle text-success me-2"></i> Medalla de participación</p>
+                            <div class="mt-4">
+                                <a href="#preinscripcion" class="btn-custom" onclick="selectRegistrationType('individual')">
+                                    <i class="fas fa-user me-2"></i> Inscribirme Individual
+                                </a>
+                                <a href="#preinscripcion" class="btn-outline-custom mt-2 d-inline-block" onclick="selectRegistrationType('team')">
+                                    <i class="fas fa-users me-2"></i> Inscribir Equipo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nota de Staff -->
+            <div class="row mt-4" data-aos="fade-up">
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-users me-2"></i>
+                        <strong>Personal de apoyo (Staff):</strong> Sin costo de inscripción
+                        <br><small>Entrenadores, médicos, mecánicos y acompañantes no pagan inscripción</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CUENTAS BANCARIAS -->
+            <div class="row mt-4" data-aos="fade-up">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white text-center py-3">
+                            <h4 class="mb-0" style="color: var(--primary);">
+                                <i class="fas fa-university me-2"></i> Cuentas Bancarias para el Pago
+                            </h4>
+                            <p class="text-muted mt-2 mb-0">Realiza el pago a nombre de: <strong>Vuelta a la Fría 2026</strong></p>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="bank-card p-3 rounded">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
+                                            <h5 class="mb-0">Banco Provincial</h5>
+                                        </div>
+                                        <p class="mb-1"><strong>Tipo de Cuenta:</strong> Corriente</p>
+                                        <p class="mb-1"><strong>Número de Cuenta:</strong> 0108-0001-23-0012345678</p>
+                                        <p class="mb-1"><strong>Cédula/RIF:</strong> J-12345678-9</p>
+                                        <p class="mb-0"><strong>Beneficiario:</strong> Vuelta a la Fría 2026</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="bank-card p-3 rounded">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
+                                            <h5 class="mb-0">Banco Banesco</h5>
+                                        </div>
+                                        <p class="mb-1"><strong>Tipo de Cuenta:</strong> Corriente</p>
+                                        <p class="mb-1"><strong>Número de Cuenta:</strong> 0134-0001-23-0123456789</p>
+                                        <p class="mb-1"><strong>Cédula/RIF:</strong> J-12345678-9</p>
+                                        <p class="mb-0"><strong>Beneficiario:</strong> Vuelta a la Fría 2026</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="bank-card p-3 rounded">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-mobile-alt fa-2x me-3" style="color: #00ecfe;"></i>
+                                            <h5 class="mb-0">Pago Móvil</h5>
+                                        </div>
+                                        <p class="mb-1"><strong>Banco:</strong> Provincial / Banesco</p>
+                                        <p class="mb-1"><strong>Teléfono:</strong> +58 424-7371101</p>
+                                        <p class="mb-1"><strong>Cédula:</strong> V-12345678</p>
+                                        <p class="mb-0"><strong>Beneficiario:</strong> Jhoana Noriega</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="bank-card p-3 rounded">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fab fa-paypal fa-2x me-3" style="color: #00ecfe;"></i>
+                                            <h5 class="mb-0">Pagos Internacionales</h5>
+                                        </div>
+                                        <p class="mb-1"><strong>PayPal:</strong> vueltalafria@gmail.com</p>
+                                        <p class="mb-1"><strong>Zelle:</strong> vueltalafria@gmail.com</p>
+                                        <p class="mb-0"><strong>Transferencia Swift:</strong> Solicitar información</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert alert-warning mt-3 mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Importante:</strong> Luego de realizar el pago, sube tu comprobante en el formulario de inscripción.
+                                Tu inscripción será confirmada en un plazo máximo de 48 horas.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Inscripción -->
     <section id="preinscripcion" class="section">
         <div class="container">
             <div class="section-title" data-aos="fade-up">
-                <h2>INSCRIPCIONES</h2>
-                <p>Preinscripción del 25/05 al 08/06/2026</p>
+                <h2>FORMULARIO DE INSCRIPCIÓN</h2>
+                <p>Completa el formulario para participar en la Vuelta a la Fría 2026</p>
             </div>
 
             <!-- Selección de tipo de inscripción -->
@@ -605,15 +820,11 @@
                                             <label class="form-label">¿Representas a alguna Estructura?</label>
                                             <div class="form-check mb-2">
                                                 <input class="form-check-input" type="radio" name="has_structure" id="structure_no" value="0" checked onchange="toggleStructureField()">
-                                                <label class="form-check-label" for="structure_no">
-                                                    No, soy ciclista independiente
-                                                </label>
+                                                <label class="form-check-label" for="structure_no">No, soy ciclista independiente</label>
                                             </div>
                                             <div class="form-check">
                                                 <input class="form-check-input" type="radio" name="has_structure" id="structure_yes" value="1" onchange="toggleStructureField()">
-                                                <label class="form-check-label" for="structure_yes">
-                                                    Sí, represento a una Escuela/Club/Fundación/Sponsor
-                                                </label>
+                                                <label class="form-check-label" for="structure_yes">Sí, represento a una Escuela/Club/Fundación/Sponsor</label>
                                             </div>
                                         </div>
 
@@ -645,17 +856,17 @@
                                             <select name="category" id="categorySelect" class="form-select @error('category') is-invalid @enderror" required>
                                                 <option value="">Seleccionar categoría</option>
                                                 <optgroup label="3 Etapas (Viernes a Domingo)">
-                                                    <option value="Pre-Infantil" {{ old('category') == 'Pre-Infantil' ? 'selected' : '' }}>Pre-Infantil (11-12 años - Nacidos 2015-2014)</option>
-                                                    <option value="Infantil" {{ old('category') == 'Infantil' ? 'selected' : '' }}>Infantil (13-14 años - Nacidos 2013-2012)</option>
-                                                    <option value="Pre-Juvenil" {{ old('category') == 'Pre-Juvenil' ? 'selected' : '' }}>Pre-Juvenil (15-16 años - Nacidos 2011-2010)</option>
-                                                    <option value="Juvenil" {{ old('category') == 'Juvenil' ? 'selected' : '' }}>Juvenil (17-18 años - Nacidos 2009-2008)</option>
+                                                    <option value="Pre-Infantil" {{ old('category') == 'Pre-Infantil' ? 'selected' : '' }}>Pre-Infantil (11-12 años)</option>
+                                                    <option value="Infantil" {{ old('category') == 'Infantil' ? 'selected' : '' }}>Infantil (13-14 años)</option>
+                                                    <option value="Pre-Juvenil" {{ old('category') == 'Pre-Juvenil' ? 'selected' : '' }}>Pre-Juvenil (15-16 años)</option>
+                                                    <option value="Juvenil" {{ old('category') == 'Juvenil' ? 'selected' : '' }}>Juvenil (17-18 años)</option>
                                                 </optgroup>
                                                 <optgroup label="1 Día (Domingo) - Exhibición">
-                                                    <option value="Iniciación A" {{ old('category') == 'Iniciación A' ? 'selected' : '' }}>Iniciación A (5-6 años - Nacidos 2021-2020)</option>
-                                                    <option value="Iniciación B" {{ old('category') == 'Iniciación B' ? 'selected' : '' }}>Iniciación B (7-8 años - Nacidos 2019-2018)</option>
-                                                    <option value="Iniciación C" {{ old('category') == 'Iniciación C' ? 'selected' : '' }}>Iniciación C (9-10 años - Nacidos 2017-2016)</option>
-                                                    <option value="Compota Strider" {{ old('category') == 'Compota Strider' ? 'selected' : '' }}>Compota Strider (3-4 años - Nacidos 2023-2022)</option>
-                                                    <option value="Compota Pedales" {{ old('category') == 'Compota Pedales' ? 'selected' : '' }}>Compota Pedales (3-4 años - Nacidos 2023-2022)</option>
+                                                    <option value="Iniciación A" {{ old('category') == 'Iniciación A' ? 'selected' : '' }}>Iniciación A (5-6 años)</option>
+                                                    <option value="Iniciación B" {{ old('category') == 'Iniciación B' ? 'selected' : '' }}>Iniciación B (7-8 años)</option>
+                                                    <option value="Iniciación C" {{ old('category') == 'Iniciación C' ? 'selected' : '' }}>Iniciación C (9-10 años)</option>
+                                                    <option value="Compota Strider" {{ old('category') == 'Compota Strider' ? 'selected' : '' }}>Compota Strider (3-4 años)</option>
+                                                    <option value="Compota Pedales" {{ old('category') == 'Compota Pedales' ? 'selected' : '' }}>Compota Pedales (3-4 años)</option>
                                                 </optgroup>
                                             </select>
                                             <div id="ageError" class="alert alert-warning mt-2" style="display: none; font-size: 0.9rem;"></div>
@@ -687,12 +898,8 @@
 
                                         <div class="col-12 text-center">
                                             <div class="g-recaptcha mb-3" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
-                                            <button type="submit" class="btn-custom">
-                                                <i class="fas fa-paper-plane me-2"></i> Enviar Inscripción
-                                            </button>
-                                            <button type="button" class="btn-outline-custom ms-2" onclick="hideForms()">
-                                                <i class="fas fa-times me-2"></i> Cancelar
-                                            </button>
+                                            <button type="submit" class="btn-custom">Enviar Inscripción</button>
+                                            <button type="button" class="btn-outline-custom ms-2" onclick="hideForms()">Cancelar</button>
                                         </div>
                                     </div>
                                 </form>
@@ -703,7 +910,7 @@
             </div>
 
             <!-- FORMULARIO POR EQUIPOS -->
-            <div id="teamForm" class="form-container" style="display: none;">
+            <div id="teamForm" class="form-container" style="display: {{ session('form_error') == 'team' ? 'block' : 'none' }};">
                 <div class="row justify-content-center">
                     <div class="col-lg-10">
                         <div class="card shadow-sm border-0">
@@ -718,9 +925,7 @@
                                     <div class="alert alert-success">
                                         <i class="fas fa-check-circle me-2"></i> {{ session('team_success') }}
                                         <br>
-                                        <strong>📊 Resumen:</strong>
-                                        {{ session('athletes_count') }} atletas,
-                                        {{ session('staff_count') }} personal de apoyo
+                                        <strong>📊 Resumen:</strong> {{ session('athletes_count') }} atletas, {{ session('staff_count') }} personal de apoyo
                                         <br>
                                         <strong>Código de acceso:</strong> <code>{{ session('access_code') }}</code>
                                         <br>
@@ -886,7 +1091,7 @@
                                                 <i class="fas fa-download"></i> Descargar Plantilla Excel
                                             </a>
                                             <hr class="my-2">
-                                            <small class="d-block">La plantilla debe contener: ID, APELLIDOS, NOMBRES, FECHA DE NACIMIENTO, TIPO DOCUMENTO, NÚMERO DOCUMENTO, UCI ID, CATEGORÍA, GÉNERO</small>
+                                            <small class="d-block">La plantilla debe contener: ID, NOMBRES, APELLIDOS, FECHA_DE_NACIMIENTO, TIPO_DOCUMENTO, NÚMERO_DOCUMENTO, UCI ID, CATEGORÍA, GÉNERO, ROL</small>
                                         </div>
                                         <div class="upload-area" id="uploadArea">
                                             <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
@@ -896,6 +1101,88 @@
                                             <div id="fileName" class="mt-2 small text-muted"></div>
                                         </div>
                                         <small class="text-muted">Formatos aceptados: .xlsx, .xls, .csv (máx 5MB)</small>
+                                    </div>
+
+                                    <!-- SECCIÓN DE PAGO -->
+                                    <div class="bg-light p-3 rounded mb-4">
+                                        <h5 class="mb-3" style="color: var(--primary);">
+                                            <i class="fas fa-credit-card me-2"></i> Información de Pago
+                                        </h5>
+
+                                        <div class="row">
+                                            <div class="col-md-12 mb-3">
+                                                <div class="alert alert-info">
+                                                    <strong>💰 Costos de inscripción:</strong>
+                                                    <ul class="mb-0 mt-2">
+                                                        <li>🚴‍♂️ <strong>Categorías 3 días</strong> (Pre-Infantil, Infantil, Pre-Juvenil, Juvenil): <strong class="text-success">$30 USD</strong> por atleta</li>
+                                                        <li>🚲 <strong>Categorías 1 día</strong> (Iniciación A, B, C y Compotas): <strong class="text-success">$15 USD</strong> por atleta</li>
+                                                        <li>👥 <strong>Staff/Personal de apoyo</strong>: Sin costo</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label required-field">Monto Total a Pagar (USD)</label>
+                                                <input type="number" name="amount" id="total_amount" class="form-control" step="0.01" readonly required
+                                                       value="0" style="background-color: #e8f0fe; font-weight: bold; font-size: 1.2rem;">
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label required-field">Método de Pago</label>
+                                                <select name="payment_method" id="payment_method" class="form-select" required>
+                                                    <option value="">Seleccionar método de pago</option>
+                                                    <option value="transferencia">Transferencia Bancaria</option>
+                                                    <option value="pago_movil">Pago Móvil</option>
+                                                    <option value="paypal">PayPal</option>
+                                                    <option value="zelle">Zelle</option>
+                                                    <option value="efectivo">Efectivo (el día del evento)</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-12 mb-3" id="bankAccounts" style="display: none;">
+                                                <div class="card bg-white">
+                                                    <div class="card-body">
+                                                        <h6 class="card-title"><i class="fas fa-university me-2"></i> Cuentas Bancarias Disponibles</h6>
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="border rounded p-2 mb-2">
+                                                                    <strong>🏦 Banco Provincial</strong><br>
+                                                                    <small>Cuenta Corriente: 0108-0001-23-0012345678<br>Titular: Vuelta a la Fría 2026<br>RIF: J-12345678-9</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="border rounded p-2 mb-2">
+                                                                    <strong>🏦 Banco Banesco</strong><br>
+                                                                    <small>Cuenta Corriente: 0134-0001-23-0123456789<br>Titular: Vuelta a la Fría 2026<br>RIF: J-12345678-9</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="alert alert-warning mt-2">
+                                                            <i class="fas fa-info-circle me-2"></i>
+                                                            <strong>Para pagos internacionales (PayPal/Zelle):</strong> vueltalafria@gmail.com
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12 mb-3" id="paymentReferenceField" style="display: none;">
+                                                <label class="form-label required-field">Número de Referencia/Transacción</label>
+                                                <input type="text" name="payment_reference" id="payment_reference" class="form-control"
+                                                       placeholder="Ingresa el número de referencia de tu transferencia/pago">
+                                            </div>
+
+                                            <div class="col-md-12 mb-3" id="paymentProofField" style="display: none;">
+                                                <label class="form-label">Comprobante de Pago</label>
+                                                <div class="upload-area" id="paymentUploadArea" style="padding: 15px;">
+                                                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                                    <p>Arrastra tu comprobante aquí o haz clic para seleccionar</p>
+                                                    <small class="text-muted">Formatos: JPG, PNG, PDF (Máx 2MB)</small>
+                                                    <input type="file" name="payment_proof" id="paymentProof" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('paymentProof').click()">Seleccionar comprobante</button>
+                                                    <div id="paymentFileName" class="mt-2 small text-muted"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="text-center mb-4">
@@ -910,12 +1197,8 @@
                                     </div>
 
                                     <div class="text-center">
-                                        <button type="submit" class="btn-custom btn-lg">
-                                            <i class="fas fa-paper-plane me-2"></i> Enviar Inscripción del Equipo
-                                        </button>
-                                        <button type="button" class="btn-outline-custom ms-2" onclick="hideForms()">
-                                            <i class="fas fa-times me-2"></i> Cancelar
-                                        </button>
+                                        <button type="submit" class="btn-custom btn-lg">Enviar Inscripción del Equipo</button>
+                                        <button type="button" class="btn-outline-custom ms-2" onclick="hideForms()">Cancelar</button>
                                     </div>
                                 </form>
                             </div>
@@ -926,12 +1209,12 @@
 
             <div class="text-center mt-5" data-aos="fade-up">
                 <p class="text-muted">Pago a tasa oficial BCV. Para más información contactar a Jhoana Noriega: <strong>+58 424-7371101</strong></p>
-                <p class="text-muted">Forma de pago: Cuentas bancarias disponibles al solicitar planilla de preinscripción</p>
+                <p class="text-muted">Forma de pago: Cuentas bancarias disponibles arriba</p>
             </div>
         </div>
     </section>
 
-    <!-- Modales -->
+    <!-- Modal de Términos -->
     <div class="modal fade" id="termsModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -1078,10 +1361,7 @@
             }
         });
 
-        // ============================================
         // FUNCIONES DE EDAD Y CATEGORÍA
-        // ============================================
-
         function getAgeFromBirthDate(birthDate) {
             if (!birthDate) return null;
             const today = new Date();
@@ -1118,14 +1398,12 @@
             if (!birthDate || !categorySelect) return;
             const age = getAgeFromBirthDate(birthDate);
             if (age === null) return;
-
             const ageRanges = {
                 'Compota Strider': [3,4], 'Compota Pedales': [3,4],
                 'Iniciación A': [5,6], 'Iniciación B': [7,8], 'Iniciación C': [9,10],
                 'Pre-Infantil': [11,12], 'Infantil': [13,14],
                 'Pre-Juvenil': [15,16], 'Juvenil': [17,18]
             };
-
             const options = categorySelect.querySelectorAll('option');
             options.forEach(opt => {
                 const value = opt.value;
@@ -1141,33 +1419,39 @@
                     }
                 }
             });
-
             const currentValue = categorySelect.value;
             const currentOption = Array.from(options).find(opt => opt.value === currentValue);
-            if (currentOption && currentOption.disabled) {
-                categorySelect.value = '';
-            }
+            if (currentOption && currentOption.disabled) categorySelect.value = '';
         }
 
-        // ============================================
+        document.getElementById('birth_date')?.addEventListener('change', function() {
+            displayAge();
+            filterCategoriesByAge();
+        });
+
         // FUNCIONES DE FORMULARIO
-        // ============================================
+        function selectRegistrationType(type) {
+            if (type === 'individual') {
+                showIndividualForm();
+            } else if (type === 'team') {
+                showTeamForm();
+            }
+            setTimeout(() => {
+                document.getElementById('preinscripcion').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
 
         function showIndividualForm() {
             const individualForm = document.getElementById('individualForm');
             const teamForm = document.getElementById('teamForm');
             const btnIndividual = document.getElementById('btnIndividual');
             const btnTeam = document.getElementById('btnTeam');
-
             if (individualForm) individualForm.style.display = 'block';
             if (teamForm) teamForm.style.display = 'none';
             if (btnIndividual) btnIndividual.classList.add('active');
             if (btnTeam) btnTeam.classList.remove('active');
-
             setTimeout(() => {
-                if (individualForm) {
-                    individualForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+                if (individualForm) individualForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
         }
 
@@ -1176,16 +1460,12 @@
             const teamForm = document.getElementById('teamForm');
             const btnIndividual = document.getElementById('btnIndividual');
             const btnTeam = document.getElementById('btnTeam');
-
             if (individualForm) individualForm.style.display = 'none';
             if (teamForm) teamForm.style.display = 'block';
             if (btnIndividual) btnIndividual.classList.remove('active');
             if (btnTeam) btnTeam.classList.add('active');
-
             setTimeout(() => {
-                if (teamForm) {
-                    teamForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+                if (teamForm) teamForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
         }
 
@@ -1194,7 +1474,6 @@
             const teamForm = document.getElementById('teamForm');
             const btnIndividual = document.getElementById('btnIndividual');
             const btnTeam = document.getElementById('btnTeam');
-
             if (individualForm) individualForm.style.display = 'none';
             if (teamForm) teamForm.style.display = 'none';
             if (btnIndividual) btnIndividual.classList.remove('active');
@@ -1209,10 +1488,10 @@
             }
         }
 
-        // ============================================
-        // BUSCADOR PREDICTIVO
-        // ============================================
+        document.getElementById('structure_no')?.addEventListener('change', toggleStructureField);
+        document.getElementById('structure_yes')?.addEventListener('change', toggleStructureField);
 
+        // BUSCADOR PREDICTIVO
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -1238,13 +1517,11 @@
             document.getElementById('structure_name_hidden').value = name;
             document.getElementById('structureSuggestions').style.display = 'none';
             document.getElementById('newStructureOption').style.display = 'none';
-
             var infoHtml = '<div class="alert alert-success" style="font-size: 0.9rem;">' +
                 '<i class="fas fa-check-circle me-2"></i>' +
                 '<strong>' + escapeHtml(name) + '</strong> (Estructura existente)' +
                 '<br><small>Se asignará automáticamente a este equipo.</small>' +
                 '</div>';
-
             document.getElementById('selectedStructureInfo').innerHTML = infoHtml;
             document.getElementById('structure_search').classList.remove('is-invalid');
         }
@@ -1275,23 +1552,19 @@
                 document.getElementById('newStructureOption').style.display = 'none';
                 return;
             }
-
             const suggestionsDiv = document.getElementById('structureSuggestions');
             suggestionsDiv.innerHTML = '<div class="list-group-item text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</div>';
             suggestionsDiv.style.display = 'block';
-
             fetch('/buscar-estructuras?q=' + encodeURIComponent(query))
                 .then(response => response.json())
                 .then(data => {
                     existingStructureId = null;
                     existingStructureName = null;
-
                     const exactMatch = data.find(team => team.name.toLowerCase() === query.toLowerCase());
                     if (exactMatch) {
                         existingStructureId = exactMatch.id;
                         existingStructureName = exactMatch.name;
                     }
-
                     if (data.length === 0) {
                         suggestionsDiv.style.display = 'none';
                         document.getElementById('newStructureName').innerText = query;
@@ -1304,22 +1577,18 @@
                             var isExactMatch = team.name.toLowerCase() === query.toLowerCase();
                             var badgeClass = isExactMatch ? 'bg-warning' : 'bg-success';
                             var badgeText = isExactMatch ? 'Coincidencia exacta' : 'Existente';
-
                             html += '<div class="list-group-item list-group-item-action" onclick="selectStructure(' + team.id + ', \'' + escapeHtml(team.name) + '\')">' +
                                 '<div class="d-flex justify-content-between align-items-center">' +
                                 '<div>' +
                                 '<strong>' + highlightText(team.name, query) + '</strong>';
-
                             if (team.city) {
                                 html += '<br><small class="text-muted"><i class="fas fa-map-marker-alt"></i> ' + escapeHtml(team.city) + '</small>';
                             }
-
                             html += '</div>' +
                                 '<span class="badge ' + badgeClass + '">' + badgeText + '</span>' +
                                 '</div>' +
                                 '</div>';
                         }
-
                         if (!exactMatch) {
                             html += '<div class="list-group-item list-group-item-action text-primary" onclick="showNewStructureOption()">' +
                                 '<i class="fas fa-plus-circle me-2"></i> Crear nueva estructura "' + escapeHtml(query) + '"' +
@@ -1332,7 +1601,6 @@
                                 '</div>';
                             document.getElementById('newStructureOption').style.display = 'none';
                         }
-
                         suggestionsDiv.innerHTML = html;
                         suggestionsDiv.style.display = 'block';
                     }
@@ -1341,111 +1609,31 @@
             });
         }
 
-        // ============================================
-        // FUNCIONES DE VEHÍCULOS
-        // ============================================
-
-        function addVehicleRow() {
-            const tbody = document.getElementById('vehiclesBody');
-            if (tbody) {
-                const currentIndex = document.querySelectorAll('#vehiclesBody tr').length;
-                const newRow = '<tr>' +
-                    '<td><input type="text" name="vehicles[' + currentIndex + '][brand]" class="form-control form-control-sm" placeholder="Marca"></td>' +
-                    '<td><input type="text" name="vehicles[' + currentIndex + '][model]" class="form-control form-control-sm" placeholder="Modelo"></td>' +
-                    '<td><input type="text" name="vehicles[' + currentIndex + '][plate]" class="form-control form-control-sm" placeholder="Placa"></td>' +
-                    '<td><input type="number" name="vehicles[' + currentIndex + '][year]" class="form-control form-control-sm" placeholder="Año"></td>' +
-                    '<td><input type="text" name="vehicles[' + currentIndex + '][color]" class="form-control form-control-sm" placeholder="Color"></td>' +
-                    '<td><button type="button" class="btn btn-sm btn-danger" onclick="removeVehicleRow(this)"><i class="fas fa-trash"></i></button></td>' +
-                    '</tr>';
-                tbody.insertAdjacentHTML('beforeend', newRow);
-            }
-        }
-
-        function removeVehicleRow(button) {
-            const row = button.closest('tr');
-            const tbody = document.getElementById('vehiclesBody');
-            if (row && tbody && tbody.children.length > 1) {
-                row.remove();
-            } else if (row) {
-                const inputs = row.querySelectorAll('input');
-                for (let i = 0; i < inputs.length; i++) {
-                    inputs[i].value = '';
-                }
-            }
-        }
-
-        function updateFileName(name) {
-            const fileNameDiv = document.getElementById('fileName');
-            if (fileNameDiv) {
-                fileNameDiv.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo seleccionado: ' + name;
-            }
-        }
-
-        function showStructureError(message) {
-            const errorDiv = document.getElementById('structureError');
-            const errorMsg = document.getElementById('structureErrorMessage');
-            if (errorDiv && errorMsg) {
-                errorMsg.innerHTML = message;
-                errorDiv.style.display = 'block';
-                document.getElementById('structure_search').classList.add('is-invalid');
-                setTimeout(() => {
-                    errorDiv.style.display = 'none';
-                    document.getElementById('structure_search').classList.remove('is-invalid');
-                }, 5000);
-            }
-        }
-
-        // ============================================
-        // EVENTOS
-        // ============================================
-
-        document.getElementById('birth_date')?.addEventListener('change', function() {
-            displayAge();
-            filterCategoriesByAge();
-        });
-
-        document.getElementById('structure_no')?.addEventListener('change', toggleStructureField);
-        document.getElementById('structure_yes')?.addEventListener('change', toggleStructureField);
-
         document.getElementById('structure_search')?.addEventListener('input', function(e) {
             clearTimeout(searchTimeout);
             const query = e.target.value;
             if (query.length >= 2) {
                 searchTimeout = setTimeout(() => searchStructures(query), 300);
             } else {
-                const suggestionsDiv = document.getElementById('structureSuggestions');
-                if (suggestionsDiv) suggestionsDiv.style.display = 'none';
-                const newOptionDiv = document.getElementById('newStructureOption');
-                if (newOptionDiv) newOptionDiv.style.display = 'none';
+                document.getElementById('structureSuggestions').style.display = 'none';
+                document.getElementById('newStructureOption').style.display = 'none';
             }
         });
 
         document.getElementById('createNewStructure')?.addEventListener('change', function(e) {
             const searchValue = document.getElementById('structure_search').value;
             const checkbox = e.target;
-
             if (checkbox.checked) {
                 if (existingStructureId && existingStructureName && existingStructureName.toLowerCase() === searchValue.toLowerCase()) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Nombre duplicado',
-                        text: 'La estructura "' + searchValue + '" ya existe. No puedes crear una nueva con el mismo nombre.',
-                        confirmButtonColor: '#00ecfe'
-                    });
+                    Swal.fire({ icon: 'error', title: 'Nombre duplicado', text: 'La estructura "' + searchValue + '" ya existe. No puedes crear una nueva con el mismo nombre.', confirmButtonColor: '#00ecfe' });
                     checkbox.checked = false;
                     return;
                 }
-
                 fetch('/verificar-estructura?nombre=' + encodeURIComponent(searchValue))
                     .then(response => response.json())
                     .then(data => {
                         if (data.exists) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Nombre duplicado',
-                                text: 'La estructura "' + searchValue + '" ya existe en el sistema.',
-                                confirmButtonColor: '#00ecfe'
-                            });
+                            Swal.fire({ icon: 'error', title: 'Nombre duplicado', text: 'La estructura "' + searchValue + '" ya existe en el sistema.', confirmButtonColor: '#00ecfe' });
                             checkbox.checked = false;
                             document.getElementById('structure_id').value = data.id;
                             document.getElementById('structure_name_hidden').value = searchValue;
@@ -1473,58 +1661,88 @@
             }
         });
 
-        // Drag and drop para archivo
+        // VEHÍCULOS
+        function addVehicleRow() {
+            const tbody = document.getElementById('vehiclesBody');
+            if (tbody) {
+                const currentIndex = document.querySelectorAll('#vehiclesBody tr').length;
+                const newRow = '<tr>' +
+                    '<td><input type="text" name="vehicles[' + currentIndex + '][brand]" class="form-control form-control-sm" placeholder="Marca"></td>' +
+                    '<td><input type="text" name="vehicles[' + currentIndex + '][model]" class="form-control form-control-sm" placeholder="Modelo"></td>' +
+                    '<td><input type="text" name="vehicles[' + currentIndex + '][plate]" class="form-control form-control-sm" placeholder="Placa"></td>' +
+                    '<td><input type="number" name="vehicles[' + currentIndex + '][year]" class="form-control form-control-sm" placeholder="Año"></td>' +
+                    '<td><input type="text" name="vehicles[' + currentIndex + '][color]" class="form-control form-control-sm" placeholder="Color"></td>' +
+                    '<td><button type="button" class="btn btn-sm btn-danger" onclick="removeVehicleRow(this)"><i class="fas fa-trash"></i></button></td>' +
+                    '</tr>';
+                tbody.insertAdjacentHTML('beforeend', newRow);
+            }
+        }
+
+        function removeVehicleRow(button) {
+            const row = button.closest('tr');
+            const tbody = document.getElementById('vehiclesBody');
+            if (row && tbody && tbody.children.length > 1) {
+                row.remove();
+            } else if (row) {
+                row.querySelectorAll('input').forEach(input => input.value = '');
+            }
+        }
+
+        // PAGO
+        document.getElementById('payment_method')?.addEventListener('change', function() {
+            const method = this.value;
+            const bankAccounts = document.getElementById('bankAccounts');
+            const paymentReference = document.getElementById('paymentReferenceField');
+            const paymentProof = document.getElementById('paymentProofField');
+
+            if (method === 'transferencia' || method === 'pago_movil' || method === 'paypal' || method === 'zelle') {
+                if (bankAccounts) bankAccounts.style.display = 'block';
+                if (paymentReference) paymentReference.style.display = 'block';
+                if (paymentProof) paymentProof.style.display = 'block';
+            } else if (method === 'efectivo') {
+                if (bankAccounts) bankAccounts.style.display = 'none';
+                if (paymentReference) paymentReference.style.display = 'none';
+                if (paymentProof) paymentProof.style.display = 'none';
+            } else {
+                if (bankAccounts) bankAccounts.style.display = 'none';
+                if (paymentReference) paymentReference.style.display = 'none';
+                if (paymentProof) paymentProof.style.display = 'none';
+            }
+        });
+
+        // DRAG AND DROP
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('excelFile');
         const fileNameDiv = document.getElementById('fileName');
-
         if (uploadArea) {
-            uploadArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                uploadArea.classList.add('dragover');
-            });
-
-            uploadArea.addEventListener('dragleave', function() {
-                uploadArea.classList.remove('dragover');
-            });
-
-            uploadArea.addEventListener('drop', function(e) {
+            uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+            uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+            uploadArea.addEventListener('drop', e => {
                 e.preventDefault();
                 uploadArea.classList.remove('dragover');
                 if (e.dataTransfer.files.length) {
                     fileInput.files = e.dataTransfer.files;
-                    if (fileNameDiv) {
-                        fileNameDiv.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo: ' + e.dataTransfer.files[0].name;
-                    }
+                    if (fileNameDiv) fileNameDiv.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo: ' + e.dataTransfer.files[0].name;
                 }
             });
-
-            uploadArea.addEventListener('click', function() {
-                if (fileInput) fileInput.click();
-            });
+            uploadArea.addEventListener('click', () => fileInput.click());
         }
-
         if (fileInput) {
-            fileInput.addEventListener('change', function(e) {
-                if (e.target.files.length && fileNameDiv) {
-                    fileNameDiv.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo: ' + e.target.files[0].name;
-                }
+            fileInput.addEventListener('change', e => {
+                if (e.target.files.length && fileNameDiv) fileNameDiv.innerHTML = '<i class="fas fa-check-circle text-success"></i> Archivo: ' + e.target.files[0].name;
             });
         }
 
-        // Mostrar formulario según errores - USANDO CONDICIONALES DE PHP
+        // Mostrar formulario según errores
         @if($errors->any() && !session('import_errors'))
         showIndividualForm();
         @endif
-
         @if(session('import_errors') || ($errors->any() && session('import_errors')))
         showTeamForm();
         @endif
-
         @if(session('form_error') == 'individual')
         showIndividualForm();
         @endif
-
         @if(session('form_error') == 'team')
         showTeamForm();
         @endif
@@ -1535,7 +1753,7 @@
             var details = @json(session('success_details'));
             var table = document.getElementById('successDetailsTable');
             if (table && details) {
-                var html = '<tr><td class="fw-bold">👤 Ciclista:</td><td>' + (details.nombre || '') + '</td></tr>' +
+                var html = '<tr><td class="fw-bold">👤 Ciclista:</td><td>' + (details.nombre || '') + '</td><tr>' +
                     '<tr><td class="fw-bold">🔢 Dorsal:</td><td><span class="badge bg-primary">' + (details.dorsal || '') + '</span></td></tr>' +
                     '<tr><td class="fw-bold">🏆 Categoría:</td><td>' + (details.categoria || '') + '</td></tr>' +
                     '<tr><td class="fw-bold">🏢 Estructura:</td><td>' + (details.estructura || 'Independiente') + '</td></tr>' +
@@ -1588,14 +1806,8 @@
         });
         @endif
 
-        // Mostrar error con SweetAlert - ESCAPANDO el mensaje
         @if(session('error'))
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: {!! json_encode(session('error')) !!},
-            confirmButtonColor: '#00ecfe'
-        });
+        Swal.fire({ icon: 'error', title: 'Error', text: {!! json_encode(session('error')) !!}, confirmButtonColor: '#00ecfe' });
         @endif
     </script>
 @endsection
