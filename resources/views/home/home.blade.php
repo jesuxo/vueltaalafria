@@ -659,8 +659,8 @@
                                 <div class="col-md-4">
                                     <div class="bank-card p-3 rounded">
                                         <div class="d-flex align-items-center mb-2">
-                                            <i class="fas fa-mobile-alt fa-2x me-3" style="color: #00ecfe;"></i>
-                                            <h5 class="mb-0">Pago Móvil</h5>
+                                            <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
+                                            <h5 class="mb-0">Transferencia Pesos COP</h5>
                                         </div>
                                         <p class="mb-1"><strong>Banco:</strong> Bancolombia</p>
                                         <p class="mb-1"><strong>Cuenta:</strong> Ahorro</p>
@@ -671,7 +671,7 @@
                                 <div class="col-md-4">
                                     <div class="bank-card p-3 rounded">
                                         <div class="d-flex align-items-center mb-2">
-                                            <i class="fab fa-paypal fa-2x me-3" style="color: #00ecfe;"></i>
+                                            <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
                                             <h5 class="mb-0">Pagos En USDT</h5>
                                         </div>
                                         <p class="mb-1"><strong>Correo:</strong> Rubenaosrioe@gmail.com</p>
