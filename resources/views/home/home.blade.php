@@ -1450,13 +1450,11 @@
                             document.getElementById('structure_id').value = data.id;
                             document.getElementById('structure_name_hidden').value = searchValue;
                             document.getElementById('structure_search').value = searchValue;
-                            var warningHtml = '<div class="alert alert-warning">' + escapeHtml(searchValue) + ' ya existe. Se usará la estructura existente.</div>';
-                            document.getElementById('selectedStructureInfo').innerHTML = warningHtml;
+                            document.getElementById('selectedStructureInfo').innerHTML = '<div class="alert alert-warning">' + escapeHtml(searchValue) + ' ya existe. Se usará la estructura existente.</div>';
                         } else {
                             document.getElementById('structure_id').value = '';
                             document.getElementById('structure_name_hidden').value = searchValue;
-                            var infoHtml = '<div class="alert alert-info">Se creará: <strong>' + escapeHtml(searchValue) + '</strong></div>';
-                            document.getElementById('selectedStructureInfo').innerHTML = infoHtml;
+                            document.getElementById('selectedStructureInfo').innerHTML = '<div class="alert alert-info">Se creará: <strong>' + escapeHtml(searchValue) + '</strong></div>';
                             document.getElementById('structure_search').classList.remove('is-invalid');
                         }
                     });
