@@ -1120,9 +1120,8 @@
                                                 <select name="payment_method" id="payment_method" class="form-select" required>
                                                     <option value="">Seleccionar método de pago</option>
                                                     <option value="transferencia">Transferencia Bancaria</option>
-                                                    <option value="pago_movil">Pago Móvil</option>
-                                                    <option value="paypal">PayPal</option>
-                                                    <option value="zelle">Zelle</option>
+                                                    <option value="bancolombia">Bancolombia</option>
+                                                    <option value="usdt">USDT</option>
                                                     <option value="efectivo">Efectivo (el día del evento)</option>
                                                 </select>
                                             </div>
