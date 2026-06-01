@@ -1094,7 +1094,7 @@
             if (birthDate && ageDisplay) {
                 const age = getAgeFromBirthDate(birthDate);
                 if (age !== null) {
-                    ageDisplay.innerHTML = `📅 Edad: ${age} años`;
+                    ageDisplay.innerHTML = '📅 Edad: '+age+' años';
                     if (age < 3) {
                         ageDisplay.style.color = 'red';
                         ageDisplay.innerHTML += ' - No cumple con la edad mínima (3 años)';
@@ -1537,20 +1537,82 @@
         });
 
         // Modales
+        // Modales
         @if(session('success_modal'))
         document.addEventListener('DOMContentLoaded', function() {
-            const details = @json(session('success_details'));
-            const table = document.getElementById('successDetailsTable');
+            var details = @json(session('success_details'));
+            var table = document.getElementById('successDetailsTable');
             if (table && details) {
-                table.innerHTML = `<tr><td class="fw-bold">👤 Ciclista:</td><td>${details.nombre || ''}</td></tr>
-                    <tr><td class="fw-bold">🔢 Dorsal:</td><td><span class="badge bg-primary">${details.dorsal || ''}</span></td></tr>
-                    <tr><td class="fw-bold">🏆 Categoría:</td><td>${details.categoria || ''}</td></tr>
-                    <tr><td class="fw-bold">🏢 Estructura:</td><td>${details.estructura || 'Independiente'}</td></tr>
-                    <tr><td class="fw-bold">📧 Email:</td><td>${details.email || ''}</td></tr>`;
+                var nombre = details.nombre || '';
+                var dorsal = details.dorsal || '';
+                var categoria = details.categoria || '';
+                var estructura = details.estructura || 'Independiente';
+                var email = details.email || '';
+
+                var html = '<tr><td class="fw-bold">👤 Ciclista:</td><td>' + nombre + '</td></tr>' +
+                    '<tr><td class="fw-bold">🔢 Dorsal:</td><td><span class="badge bg-primary">' + dorsal + '</span></td></tr>' +
+                    '<tr><td class="fw-bold">🏆 Categoría:</td><td>' + categoria + '</td></tr>' +
+                    '<tr><td class="fw-bold">🏢 Estructura:</td><td>' + estructura + '</td></tr>' +
+                    '<tr><td class="fw-bold">📧 Email:</td><td>' + email + '</td></tr>';
+
+                table.innerHTML = html;
             }
             document.getElementById('successMessage').innerHTML = '{{ session('success_message') }}';
             new bootstrap.Modal(document.getElementById('successModal')).show();
             hideForms();
+        });
+        @endif
+
+        @if(session('show_status_modal'))
+        document.addEventListener('DOMContentLoaded', function() {
+            var statusData = @json(session('status_data'));
+            var statusContent = document.getElementById('statusContent');
+            if (statusContent && statusData) {
+                var statusBadge = '';
+                switch(statusData.status) {
+                    case 'pending':
+                        statusBadge = '<span class="badge bg-warning text-dark">⏳ Pendiente de revisión</span>';
+                        break;
+                    case 'approved':
+                        statusBadge = '<span class="badge bg-success">✅ Aprobada</span>';
+                        break;
+                    case 'rejected':
+                        statusBadge = '<span class="badge bg-danger">❌ Rechazada</span>';
+                        break;
+                    case 'paid':
+                        statusBadge = '<span class="badge bg-info">💰 Pagada</span>';
+                        break;
+                    default:
+                        statusBadge = '<span class="badge bg-secondary">📝 Registrada</span>';
+                }
+
+                var eventName = statusData.event ? statusData.event.name : 'Vuelta a la Fría 2026';
+                var registeredDate = new Date(statusData.registered_at).toLocaleDateString('es-VE');
+
+                var html = '<div class="text-center mb-4">' +
+                    '<i class="fas fa-user-circle fa-4x text-primary"></i>' +
+                    '<h5 class="mt-2">' + (statusData.registration_type === 'individual' ? 'Ciclista Individual' : 'Equipo') + '</h5>' +
+                    '</div>' +
+                    '<div class="alert alert-info">' +
+                    '<strong>📅 Evento:</strong> ' + eventName + '<br>' +
+                    '<strong>📧 Email registrado:</strong> ' + statusData.email + '<br>' +
+                    '<strong>📞 Teléfono:</strong> ' + statusData.phone + '<br>' +
+                    '<strong>📌 Estado:</strong> ' + statusBadge + '<br>' +
+                    '<strong>📅 Fecha de registro:</strong> ' + registeredDate +
+                    '</div>';
+
+                if (statusData.athlete) {
+                    html += '<div class="alert alert-success">' +
+                        '<strong>👤 Ciclista:</strong> ' + statusData.athlete.first_name + ' ' + statusData.athlete.last_name + '<br>' +
+                        '<strong>🔢 Dorsal:</strong> <span class="badge bg-primary">' + statusData.athlete.dorsal_number + '</span><br>' +
+                        '<strong>🏆 Categoría:</strong> ' + statusData.athlete.category +
+                        '</div>';
+                }
+
+                statusContent.innerHTML = html;
+            }
+            var statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+            statusModal.show();
         });
         @endif
 
