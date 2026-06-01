@@ -1512,7 +1512,7 @@
             });
         }
 
-        // Mostrar formulario según errores
+        // Mostrar formulario según errores - USANDO CONDICIONALES DE PHP
         @if($errors->any() && !session('import_errors'))
         showIndividualForm();
         @endif
@@ -1588,8 +1588,14 @@
         });
         @endif
 
+        // Mostrar error con SweetAlert - ESCAPANDO el mensaje
         @if(session('error'))
-        Swal.fire({ icon: 'error', title: 'Error', text: '{{ session('error') }}', confirmButtonColor: '#00ecfe' });
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: {!! json_encode(session('error')) !!},
+            confirmButtonColor: '#00ecfe'
+        });
         @endif
     </script>
 @endsection
