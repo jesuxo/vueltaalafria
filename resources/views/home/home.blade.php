@@ -267,13 +267,16 @@
                 <div class="row mt-5">
                     <div class="col-12 mt-2 col-md-6">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-4 col-md-4 text-center">
+                            <div class="col-4 col-md-3 text-center">
                                 <img src="/img/gob1.png" class="img-fluid" style="max-height: 70px; width: auto;">
                             </div>
                             <div class="col-4 col-md-3 text-center">
-                                <img src="/img/gob2.png" class="img-fluid" style="max-height: 70px; width: auto; margin-left: 0;">
+                                <img src="/img/gob4.png" class="img-fluid" style="max-height: 70px; width: auto; margin-left: 0;">
                             </div>
-                            <div class="col-4 col-md-4 text-left">
+                            <div class="col-4 col-md-3 text-center">
+                                <img src="/img/gob2.png" class="img-fluid" style="max-height: 70px; width: auto;">
+                            </div>
+                            <div class="col-4 col-md-3 text-left">
                                 <img src="/img/gob3.png" class="img-fluid" style="max-height: 70px; width: auto;">
                             </div>
                         </div>
