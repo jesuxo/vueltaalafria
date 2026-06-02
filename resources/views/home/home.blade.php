@@ -80,7 +80,7 @@
         .upload-area {
             border: 2px dashed #ddd;
             border-radius: 10px;
-            padding: 30px;
+            padding: 7px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
@@ -945,6 +945,112 @@
                                 <form action="{{ route('registration.team.submit') }}" method="POST" enctype="multipart/form-data" id="teamRegistrationForm">
                                     @csrf
 
+
+                                    <!-- SECCIÓN DE PAGO -->
+                                    <div class="bg-light p-3 rounded mb-4">
+                                        <h5 class="mb-3" style="color: var(--primary);">
+                                            <i class="fas fa-credit-card me-2"></i> Información de Pago
+                                        </h5>
+
+                                        <div class="row">
+                                            <div class="col-md-12 mb-3">
+                                                <div class="alert alert-info">
+                                                    <strong>💰 Costos de inscripción:</strong>
+                                                    <ul class="mb-0 mt-2">
+                                                        <li>🚴‍♂️ <strong>Categorías 3 días</strong> (Pre-Infantil, Infantil, Pre-Juvenil, Juvenil): <strong class="text-success">$30 USD</strong> por atleta</li>
+                                                        <li>🚲 <strong>Categorías 1 día</strong> (Iniciación A, B, C y Compotas): <strong class="text-success">$15 USD</strong> por atleta</li>
+                                                        <li>👥 <strong>Staff/Personal de apoyo</strong>: Sin costo</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3 d-none">
+                                                <label class="form-label required-field">Monto Total a Pagar (USD)</label>
+                                                <input type="number" name="amount" id="total_amount" class="form-control" step="0.01" readonly required
+                                                       value="0" style="background-color: #e8f0fe; font-weight: bold; font-size: 1.2rem;">
+                                            </div>
+
+                                            <div class="col-md-12 mb-3">
+                                                <label class="form-label required-field">Método de Pago</label>
+                                                <select name="payment_method" id="payment_method" class="form-select" required>
+                                                    <option value="">Seleccionar método de pago</option>
+                                                    <option value="transferencia">Transferencia Bancaria</option>
+                                                    <option value="bancolombia">Bancolombia</option>
+                                                    <option value="usdt">USDT</option>
+                                                    <option value="efectivo">Efectivo (el día del evento)</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-12 mb-3" id="bankAccounts" style="display: none;">
+                                                <div class="card bg-white">
+                                                    <div class="card-body">
+                                                        <h6 class="card-title"><i class="fas fa-university me-2"></i> Cuentas Bancarias Disponibles</h6>
+                                                        <div class="row g-3">
+                                                            <div class="col-md-4">
+                                                                <div class="bank-card p-3 rounded">
+                                                                    <div class="d-flex align-items-center mb-2">
+                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
+                                                                        <h5 class="mb-0">Banco Provincial</h5>
+                                                                    </div>
+                                                                    <p class="mb-1"><strong>Tipo de Cuenta:</strong> Corriente</p>
+                                                                    <p class="mb-1"><strong>Número de Cuenta:</strong>0108-0133-8001-0004-2510</p>
+                                                                    <p class="mb-1"><strong>Cédula/RIF:</strong> V-15184480</p>
+                                                                    <p class="mb-0"><strong>Beneficiario:</strong> Ruben Osorio</p>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-md-4">
+                                                                <div class="bank-card p-3 rounded">
+                                                                    <div class="d-flex align-items-center mb-2">
+                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
+                                                                        <h5 class="mb-0">Transferencia Pesos COP</h5>
+                                                                    </div>
+                                                                    <p class="mb-1"><strong>Banco:</strong> Bancolombia</p>
+                                                                    <p class="mb-1"><strong>Cuenta:</strong> Ahorro</p>
+                                                                    <p class="mb-1"><strong>Nro:</strong>901275648</p>
+                                                                    <p class="mb-0"><strong>Beneficiario:</strong> INVERSIONES OSORIO MOTOS S.A.S</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <div class="bank-card p-3 rounded">
+                                                                    <div class="d-flex align-items-center mb-2">
+                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
+                                                                        <h5 class="mb-0">Pagos En USDT</h5>
+                                                                    </div>
+                                                                    <p class="mb-1"><strong>Correo:</strong> Rubenaosorioe@gmail.com</p>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12 mb-3" id="paymentReferenceField" style="display: none;">
+                                                <label class="form-label required-field">Número de Referencia/Transacción</label>
+                                                <input type="text" name="payment_reference" id="payment_reference" class="form-control"
+                                                       placeholder="Ingresa el número de referencia de tu transferencia/pago">
+                                            </div>
+
+                                            <!-- CAMPO PARA SUBIR COMPROBANTE -->
+                                            <div class="col-md-12 mb-3" id="paymentProofField" style="display: none;">
+                                                <label class="form-label">Comprobante de Pago</label>
+                                                <div class="upload-area" id="paymentUploadArea" style="padding: 15px;">
+                                                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                                    <p>Arrastra tu comprobante aquí o haz clic para seleccionar</p>
+                                                    <small class="text-muted">Formatos: JPG, PNG, PDF (Máx 2MB)</small>
+                                                    <input type="file" name="payment_proof" id="paymentProof" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('paymentProof').click()">
+                                                        Seleccionar comprobante
+                                                    </button>
+                                                    <div id="paymentFileName" class="mt-2 small text-muted"></div>
+                                                </div>
+                                                <small class="text-muted">El comprobante se comprimirá automáticamente. Formatos permitidos: JPG, PNG, PDF (Máx 2MB)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="bg-light p-3 rounded mb-4">
                                         <h5 class="mb-3" style="color: var(--primary);"><i class="fas fa-building me-2"></i> Datos del Equipo</h5>
                                         <div class="row">
@@ -976,6 +1082,33 @@
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">Región</label>
                                                 <input type="text" name="region" class="form-control" value="{{ old('region') }}">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-light p-3 rounded mb-4">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h5 class="mb-3" style="color: var(--primary);"><i class="fas fa-file-excel me-2"></i> Lista de Atletas</h5>
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-download me-2"></i>
+                                                    <strong>Descarga la plantilla:</strong>
+                                                    <a href="{{ route('registration.team.download-template') }}" class="btn btn-sm btn-primary ms-2">
+                                                        <i class="fas fa-download"></i> Descargar Plantilla Excel
+                                                    </a>
+                                                    <hr class="my-2">
+                                                    <small class="d-block">La plantilla debe contener: ID, NOMBRES, APELLIDOS, FECHA_DE_NACIMIENTO, TIPO_DOCUMENTO, NÚMERO_DOCUMENTO, UCI ID, CATEGORÍA, GÉNERO, ROL</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="upload-area" id="uploadArea">
+                                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                                    <p>Arrastra tu archivo aquí o haz clic para seleccionar</p>
+                                                    <input type="file" name="excel_file" id="excelFile" accept=".xlsx,.xls,.csv" style="display: none;" required>
+                                                    <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('excelFile').click()">Seleccionar archivo</button>
+                                                    <div id="fileName" class="mt-2 small text-muted"></div>
+                                                </div>
+                                                <small class="text-muted">Formatos aceptados: .xlsx, .xls, .csv (máx 5MB)</small>
                                             </div>
                                         </div>
                                     </div>
@@ -1067,132 +1200,6 @@
                                                 </tr>
                                                 </tbody>
                                             </table>
-                                        </div>
-                                    </div>
-
-                                    <div class="bg-light p-3 rounded mb-4">
-                                        <h5 class="mb-3" style="color: var(--primary);"><i class="fas fa-file-excel me-2"></i> Lista de Atletas</h5>
-                                        <div class="alert alert-info">
-                                            <i class="fas fa-download me-2"></i>
-                                            <strong>Descarga la plantilla:</strong>
-                                            <a href="{{ route('registration.team.download-template') }}" class="btn btn-sm btn-primary ms-2">
-                                                <i class="fas fa-download"></i> Descargar Plantilla Excel
-                                            </a>
-                                            <hr class="my-2">
-                                            <small class="d-block">La plantilla debe contener: ID, NOMBRES, APELLIDOS, FECHA_DE_NACIMIENTO, TIPO_DOCUMENTO, NÚMERO_DOCUMENTO, UCI ID, CATEGORÍA, GÉNERO, ROL</small>
-                                        </div>
-                                        <div class="upload-area" id="uploadArea">
-                                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                            <p>Arrastra tu archivo aquí o haz clic para seleccionar</p>
-                                            <input type="file" name="excel_file" id="excelFile" accept=".xlsx,.xls,.csv" style="display: none;" required>
-                                            <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('excelFile').click()">Seleccionar archivo</button>
-                                            <div id="fileName" class="mt-2 small text-muted"></div>
-                                        </div>
-                                        <small class="text-muted">Formatos aceptados: .xlsx, .xls, .csv (máx 5MB)</small>
-                                    </div>
-
-                                    <!-- SECCIÓN DE PAGO -->
-                                    <div class="bg-light p-3 rounded mb-4">
-                                        <h5 class="mb-3" style="color: var(--primary);">
-                                            <i class="fas fa-credit-card me-2"></i> Información de Pago
-                                        </h5>
-
-                                        <div class="row">
-                                            <div class="col-md-12 mb-3">
-                                                <div class="alert alert-info">
-                                                    <strong>💰 Costos de inscripción:</strong>
-                                                    <ul class="mb-0 mt-2">
-                                                        <li>🚴‍♂️ <strong>Categorías 3 días</strong> (Pre-Infantil, Infantil, Pre-Juvenil, Juvenil): <strong class="text-success">$30 USD</strong> por atleta</li>
-                                                        <li>🚲 <strong>Categorías 1 día</strong> (Iniciación A, B, C y Compotas): <strong class="text-success">$15 USD</strong> por atleta</li>
-                                                        <li>👥 <strong>Staff/Personal de apoyo</strong>: Sin costo</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label required-field">Monto Total a Pagar (USD)</label>
-                                                <input type="number" name="amount" id="total_amount" class="form-control" step="0.01" readonly required
-                                                       value="0" style="background-color: #e8f0fe; font-weight: bold; font-size: 1.2rem;">
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label required-field">Método de Pago</label>
-                                                <select name="payment_method" id="payment_method" class="form-select" required>
-                                                    <option value="">Seleccionar método de pago</option>
-                                                    <option value="transferencia">Transferencia Bancaria</option>
-                                                    <option value="bancolombia">Bancolombia</option>
-                                                    <option value="usdt">USDT</option>
-                                                    <option value="efectivo">Efectivo (el día del evento)</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="col-md-12 mb-3" id="bankAccounts" style="display: none;">
-                                                <div class="card bg-white">
-                                                    <div class="card-body">
-                                                        <h6 class="card-title"><i class="fas fa-university me-2"></i> Cuentas Bancarias Disponibles</h6>
-                                                        <div class="row g-3">
-                                                            <div class="col-md-4">
-                                                                <div class="bank-card p-3 rounded">
-                                                                    <div class="d-flex align-items-center mb-2">
-                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
-                                                                        <h5 class="mb-0">Banco Provincial</h5>
-                                                                    </div>
-                                                                    <p class="mb-1"><strong>Tipo de Cuenta:</strong> Corriente</p>
-                                                                    <p class="mb-1"><strong>Número de Cuenta:</strong>0108-0133-8001-0004-2510</p>
-                                                                    <p class="mb-1"><strong>Cédula/RIF:</strong> V-15184480</p>
-                                                                    <p class="mb-0"><strong>Beneficiario:</strong> Ruben Osorio</p>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="col-md-4">
-                                                                <div class="bank-card p-3 rounded">
-                                                                    <div class="d-flex align-items-center mb-2">
-                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
-                                                                        <h5 class="mb-0">Transferencia Pesos COP</h5>
-                                                                    </div>
-                                                                    <p class="mb-1"><strong>Banco:</strong> Bancolombia</p>
-                                                                    <p class="mb-1"><strong>Cuenta:</strong> Ahorro</p>
-                                                                    <p class="mb-1"><strong>Nro:</strong>901275648</p>
-                                                                    <p class="mb-0"><strong>Beneficiario:</strong> INVERSIONES OSORIO MOTOS S.A.S</p>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <div class="bank-card p-3 rounded">
-                                                                    <div class="d-flex align-items-center mb-2">
-                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
-                                                                        <h5 class="mb-0">Pagos En USDT</h5>
-                                                                    </div>
-                                                                    <p class="mb-1"><strong>Correo:</strong> Rubenaosorioe@gmail.com</p>
-
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-12 mb-3" id="paymentReferenceField" style="display: none;">
-                                                <label class="form-label required-field">Número de Referencia/Transacción</label>
-                                                <input type="text" name="payment_reference" id="payment_reference" class="form-control"
-                                                       placeholder="Ingresa el número de referencia de tu transferencia/pago">
-                                            </div>
-
-                                            <!-- CAMPO PARA SUBIR COMPROBANTE -->
-                                            <div class="col-md-12 mb-3" id="paymentProofField" style="display: none;">
-                                                <label class="form-label">Comprobante de Pago</label>
-                                                <div class="upload-area" id="paymentUploadArea" style="padding: 15px;">
-                                                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
-                                                    <p>Arrastra tu comprobante aquí o haz clic para seleccionar</p>
-                                                    <small class="text-muted">Formatos: JPG, PNG, PDF (Máx 2MB)</small>
-                                                    <input type="file" name="payment_proof" id="paymentProof" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
-                                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('paymentProof').click()">
-                                                        Seleccionar comprobante
-                                                    </button>
-                                                    <div id="paymentFileName" class="mt-2 small text-muted"></div>
-                                                </div>
-                                                <small class="text-muted">El comprobante se comprimirá automáticamente. Formatos permitidos: JPG, PNG, PDF (Máx 2MB)</small>
-                                            </div>
                                         </div>
                                     </div>
 
@@ -1759,16 +1766,32 @@
         @endif
 
         // Modal de éxito
+        // Reemplaza el modal de éxito por este:
+
         @if(session('success_modal'))
         document.addEventListener('DOMContentLoaded', function() {
             var details = @json(session('success_details'));
             var table = document.getElementById('successDetailsTable');
             if (table && details) {
-                var html = '<tr><td class="fw-bold">👤 Ciclista:</td><td>' + (details.nombre || '') + '</td><tr>' +
-                    '<tr><td class="fw-bold">🔢 Dorsal:</td><td><span class="badge bg-primary">' + (details.dorsal || '') + '</span></td></tr>' +
-                    '<tr><td class="fw-bold">🏆 Categoría:</td><td>' + (details.categoria || '') + '</td></tr>' +
-                    '<tr><td class="fw-bold">🏢 Estructura:</td><td>' + (details.estructura || 'Independiente') + '</td></tr>' +
-                    '<tr><td class="fw-bold">📧 Email:</td><td>' + (details.email || '') + '</td></tr>';
+                var html = '';
+
+                // Si es un equipo (tiene campo 'equipo')
+                if (details.equipo) {
+                    html = '<tr><td class="fw-bold">🏢 Equipo:</td><td>' + (details.equipo || '') + '</td></tr>' +
+                        '<tr><td class="fw-bold">🔑 Código de acceso:</td><td><span class="badge bg-primary">' + (details.codigo || '') + '</span></td></tr>' +
+                        '<tr><td class="fw-bold">👥 Atletas:</td><td>' + (details.atletas || '0') + '</td></tr>' +
+                        '<td><td class="fw-bold">👤 Staff:</td><td>' + (details.staff || '0') + '</td></tr>' +
+                        '<tr><td class="fw-bold">💰 Total a pagar:</td>lakang<td class="text-success fw-bold">' + (details.total || '$0') + '</td></tr>' +
+                        '<tr><td class="fw-bold">📧 Email contacto:</td>lakang' + (details.email || '') + '</td></tr>';
+                } else {
+                    // Para individual
+                    html = '<tr><td class="fw-bold">👤 Ciclista:</td>lakang' + (details.nombre || '') + '</td></tr>' +
+                        '<tr><td class="fw-bold">🔢 Dorsal:</td>lakang<span class="badge bg-primary">' + (details.dorsal || '') + '</span></td></tr>' +
+                        '<tr><td class="fw-bold">🏆 Categoría:</td>lakang' + (details.categoria || '') + '</td></tr>' +
+                        '<tr><td class="fw-bold">🏢 Estructura:</td>lakang' + (details.estructura || 'Independiente') + '</td></tr>' +
+                        '<tr><td class="fw-bold">📧 Email:</td>lakang' + (details.email || '') + '</td></tr>';
+                }
+
                 table.innerHTML = html;
             }
             document.getElementById('successMessage').innerHTML = '{{ session('success_message') }}';

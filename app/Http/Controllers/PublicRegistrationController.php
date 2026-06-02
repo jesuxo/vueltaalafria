@@ -286,17 +286,15 @@ class PublicRegistrationController extends Controller
             // Redirigir con éxito y mostrar modal
             return redirect()->route('home')
                 ->with('success_modal', true)
-                ->with('success_title', '¡Inscripción Registrada!')
-                ->with('success_message', "¡Inscripción registrada exitosamente para la {$event->name}!")
+                ->with('success_title', '¡Inscripción de Equipo Registrada!')
+                ->with('success_message', "¡El equipo {$team->name} se ha inscrito exitosamente para la {$event->name}!")
                 ->with('success_details', [
-                    'nombre' => $request->delegate_name,
                     'equipo' => $team->name,
                     'codigo' => $team->access_code,
                     'atletas' => $athleteCount,
                     'staff' => $staffCount,
                     'total' => '$' . number_format($totalAmount, 2),
-                    'email' => $request->delegate_email,
-                    'telefono' => $request->delegate_phone
+                    'email' => $request->delegate_email
                 ])
                 ->with('form_error', 'none');
 
