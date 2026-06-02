@@ -11,6 +11,8 @@ use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\IndividualRegistrationMail;
 use Carbon\Carbon;
 
 class RegistrationController extends Controller
@@ -402,6 +404,12 @@ class RegistrationController extends Controller
         $structureMessage = '';
         if ($structureName) {
             $structureMessage = " Representas a: {$structureName}.";
+        }
+
+        try {
+            Mail::to($request->email)->send(new IndividualRegistrationMail($registration, $athlete));
+        } catch (\Exception $e) {
+
         }
 
         return redirect()->route('home')

@@ -18,6 +18,8 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\TeamAthletesImport;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TeamRegistrationMail;
 
 class PublicRegistrationController extends Controller
 {
@@ -258,7 +260,7 @@ class PublicRegistrationController extends Controller
             }
 
             // 6. Registrar la inscripción del equipo
-            Registration::create([
+            $registration = Registration::create([
                 'event_id' => $event->id,
                 'registration_type' => 'team',
                 'team_id' => $team->id,
@@ -282,6 +284,12 @@ class PublicRegistrationController extends Controller
             ]);
 
             DB::commit();
+
+            try {
+                Mail::to($request->delegate_email)->send(new TeamRegistrationMail($registration, $team, $athleteCount, $staffCount));
+            } catch (\Exception $e) {
+
+            }
 
             // Redirigir con éxito y mostrar modal
             return redirect()->route('home')
