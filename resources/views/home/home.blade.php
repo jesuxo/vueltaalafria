@@ -1713,7 +1713,7 @@
             const paymentReference = document.getElementById('paymentReferenceField');
             const paymentProof = document.getElementById('paymentProofField');
 
-            if (method === 'transferencia' || method === 'pago_movil' || method === 'paypal' || method === 'zelle') {
+            if (method === 'transferencia' || method === 'bancolombia' || method === 'usdt' ) {
                 if (bankAccounts) bankAccounts.style.display = 'block';
                 if (paymentReference) paymentReference.style.display = 'block';
                 if (paymentProof) paymentProof.style.display = 'block';
