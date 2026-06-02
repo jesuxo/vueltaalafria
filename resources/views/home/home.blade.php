@@ -1281,7 +1281,6 @@
                     </div>
                     <div class="mt-4">
                         <p class="text-muted">Se ha enviado un correo con los detalles de tu inscripción.</p>
-                        <small class="text-muted">Guarda tu número de dorsal para el día del evento.</small>
                     </div>
                 </div>
                 <div class="modal-footer justify-content-center">
@@ -1777,19 +1776,19 @@
 
                 // Si es un equipo (tiene campo 'equipo')
                 if (details.equipo) {
-                    html = '<tr><td class="fw-bold">🏢 Equipo:</td><td>' + (details.equipo || '') + '</td></tr>' +
-                        '<tr><td class="fw-bold">🔑 Código de acceso:</td><td><span class="badge bg-primary">' + (details.codigo || '') + '</span></td></tr>' +
-                        '<tr><td class="fw-bold">👥 Atletas:</td><td>' + (details.atletas || '0') + '</td></tr>' +
-                        '<td><td class="fw-bold">👤 Staff:</td><td>' + (details.staff || '0') + '</td></tr>' +
-                        '<tr><td class="fw-bold">💰 Total a pagar:</td>lakang<td class="text-success fw-bold">' + (details.total || '$0') + '</td></tr>' +
-                        '<tr><td class="fw-bold">📧 Email contacto:</td>lakang' + (details.email || '') + '</td></tr>';
+                    html = '<tr><td class="fw-bold" align="left">🏢 Equipo:          </td><td>' + (details.equipo || '')                                + '</td></tr>' +
+                           '<tr><td class="fw-bold" align="left">🔑 Código de acceso:</td><td><span class="badge bg-primary">' + (details.codigo || '') + '</span></td></tr>' +
+                           '<tr><td class="fw-bold" align="left">👥 Atletas:         </td><td>' + (details.atletas || '0')                              + '</td></tr>' +
+                           '<tr><td class="fw-bold" align="left">👤 Staff:           </td><td>' + (details.staff || '0')                                + '</td></tr>' +
+                           '<tr><td class="fw-bold" align="left">💰 Total a pagar:   </td><td class="text-success fw-bold">' + (details.total || '$0')  + '</td></tr>' +
+                           '<tr><td class="fw-bold" align="left">📧 Email contacto:  </td><td>' + (details.email || '')                                 + '</td></tr>';
                 } else {
                     // Para individual
-                    html = '<tr><td class="fw-bold">👤 Ciclista:</td>lakang' + (details.nombre || '') + '</td></tr>' +
-                        '<tr><td class="fw-bold">🔢 Dorsal:</td>lakang<span class="badge bg-primary">' + (details.dorsal || '') + '</span></td></tr>' +
-                        '<tr><td class="fw-bold">🏆 Categoría:</td>lakang' + (details.categoria || '') + '</td></tr>' +
-                        '<tr><td class="fw-bold">🏢 Estructura:</td>lakang' + (details.estructura || 'Independiente') + '</td></tr>' +
-                        '<tr><td class="fw-bold">📧 Email:</td>lakang' + (details.email || '') + '</td></tr>';
+                    html = '<tr><td class="fw-bold">👤 Ciclista:    </td> <td> ' + (details.nombre || '')                                + '</td></tr>' +
+                           '<tr><td class="fw-bold">🔢 Dorsal:      </td> <td> <span class="badge bg-primary">' + (details.dorsal || '') + '</span></td></tr>' +
+                           '<tr><td class="fw-bold">🏆 Categoría:   </td> <td> ' + (details.categoria || '')                             + '</td></tr>' +
+                           '<tr><td class="fw-bold">🏢 Estructura:  </td> <td> ' + (details.estructura || 'Independiente')               + '</td></tr>' +
+                           '<tr><td class="fw-bold">📧 Email:       </td> <td> ' + (details.email || '')                                 + '</td></tr>';
                 }
 
                 table.innerHTML = html;
