@@ -755,7 +755,7 @@
                                     </div>
                                 @endif
 
-                                <form action="{{ route('registration.individual.submit') }}" method="POST" id="individualFormSubmit">
+                                <form action="{{ route('registration.individual.submit') }}"  enctype="multipart/form-data" method="POST" id="individualFormSubmit">
                                     @csrf
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
