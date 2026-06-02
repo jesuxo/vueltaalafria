@@ -3,40 +3,64 @@
 
 namespace App\Helpers;
 
-use Netflie\WhatsAppCloudApi\WhatsApp;
-use Netflie\WhatsAppCloudApi\Message\Template\Component;
-use Netflie\WhatsAppCloudApi\Message\Template\Language;
-use Netflie\WhatsAppCloudApi\Message\Template\Template;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class WhatsAppHelper
 {
-    protected $whatsapp;
+    protected $token;
+    protected $phoneNumberId;
 
     public function __construct()
     {
-        $this->whatsapp = new WhatsApp([
-            'from_phone_number_id' => config('services.whatsapp.from_phone_number_id'),
-            'access_token' => config('services.whatsapp.token'),
-        ]);
+        $this->token = config('services.whatsapp.token');
+        $this->phoneNumberId = config('services.whatsapp.from_phone_number_id');
     }
 
     /**
-     * Enviar notificación de inscripción individual
+     * Enviar notificación de inscripción individual usando API directa de Meta
      */
     public function sendIndividualRegistration($phone, $name, $dorsal, $category)
     {
         try {
-            $template = new Template('individual_registration_confirmation', new Language('es'));
-            $template->addComponent(Component::create()->addParameter($name));
-            $template->addComponent(Component::create()->addParameter($dorsal));
-            $template->addComponent(Component::create()->addParameter($category));
-            $template->addComponent(Component::create()->addParameter('12-14 Junio 2026'));
+            // Limpiar el número de teléfono (solo números)
+            $phone = $this->cleanPhoneNumber($phone);
 
-            $response = $this->whatsapp->sendTemplate($phone, $template);
+            // Construir el mensaje usando plantilla
+            $data = [
+                'messaging_product' => 'whatsapp',
+                'recipient_type' => 'individual',
+                'to' => $phone,
+                'type' => 'template',
+                'template' => [
+                    'name' => 'individual_registration_confirmation',
+                    'language' => [
+                        'code' => 'es'
+                    ],
+                    'components' => [
+                        [
+                            'type' => 'body',
+                            'parameters' => [
+                                ['type' => 'text', 'text' => $name],
+                                ['type' => 'text', 'text' => $dorsal],
+                                ['type' => 'text', 'text' => $category],
+                                ['type' => 'text', 'text' => '12-14 Junio 2026']
+                            ]
+                        ]
+                    ]
+                ]
+            ];
 
-            Log::info("WhatsApp individual enviado a {$phone}");
-            return $response;
+            $response = Http::withToken($this->token)
+                ->post("https://graph.facebook.com/v19.0/{$this->phoneNumberId}/messages", $data);
+
+            if ($response->successful()) {
+                Log::info("WhatsApp individual enviado a {$phone}");
+                return true;
+            } else {
+                Log::error("Error WhatsApp: " . $response->body());
+                return false;
+            }
         } catch (\Exception $e) {
             Log::error("Error enviando WhatsApp individual: " . $e->getMessage());
             return false;
@@ -49,17 +73,43 @@ class WhatsAppHelper
     public function sendTeamRegistration($phone, $teamName, $accessCode, $athletesCount, $staffCount)
     {
         try {
-            $template = new Template('team_registration_confirmation', new Language('es'));
-            $template->addComponent(Component::create()->addParameter($teamName));
-            $template->addComponent(Component::create()->addParameter($accessCode));
-            $template->addComponent(Component::create()->addParameter($athletesCount));
-            $template->addComponent(Component::create()->addParameter($staffCount));
-            $template->addComponent(Component::create()->addParameter('12-14 Junio 2026'));
+            $phone = $this->cleanPhoneNumber($phone);
 
-            $response = $this->whatsapp->sendTemplate($phone, $template);
+            $data = [
+                'messaging_product' => 'whatsapp',
+                'recipient_type' => 'individual',
+                'to' => $phone,
+                'type' => 'template',
+                'template' => [
+                    'name' => 'team_registration_confirmation',
+                    'language' => [
+                        'code' => 'es'
+                    ],
+                    'components' => [
+                        [
+                            'type' => 'body',
+                            'parameters' => [
+                                ['type' => 'text', 'text' => $teamName],
+                                ['type' => 'text', 'text' => $accessCode],
+                                ['type' => 'text', 'text' => (string)$athletesCount],
+                                ['type' => 'text', 'text' => (string)$staffCount],
+                                ['type' => 'text', 'text' => '12-14 Junio 2026']
+                            ]
+                        ]
+                    ]
+                ]
+            ];
 
-            Log::info("WhatsApp equipo enviado a {$phone}");
-            return $response;
+            $response = Http::withToken($this->token)
+                ->post("https://graph.facebook.com/v19.0/{$this->phoneNumberId}/messages", $data);
+
+            if ($response->successful()) {
+                Log::info("WhatsApp equipo enviado a {$phone}");
+                return true;
+            } else {
+                Log::error("Error WhatsApp equipo: " . $response->body());
+                return false;
+            }
         } catch (\Exception $e) {
             Log::error("Error enviando WhatsApp equipo: " . $e->getMessage());
             return false;
@@ -67,17 +117,80 @@ class WhatsAppHelper
     }
 
     /**
-     * Enviar mensaje de texto libre (solo dentro de ventana de 24h)
+     * Enviar mensaje de texto simple (solo dentro de ventana de 24h después de plantilla)
      */
     public function sendTextMessage($phone, $message)
     {
         try {
-            $response = $this->whatsapp->sendTextMessage($phone, $message);
-            Log::info("WhatsApp texto enviado a {$phone}");
-            return $response;
+            $phone = $this->cleanPhoneNumber($phone);
+
+            $data = [
+                'messaging_product' => 'whatsapp',
+                'recipient_type' => 'individual',
+                'to' => $phone,
+                'type' => 'text',
+                'text' => [
+                    'preview_url' => false,
+                    'body' => $message
+                ]
+            ];
+
+            $response = Http::withToken($this->token)
+                ->post("https://graph.facebook.com/v19.0/{$this->phoneNumberId}/messages", $data);
+
+            if ($response->successful()) {
+                Log::info("WhatsApp texto enviado a {$phone}");
+                return true;
+            } else {
+                Log::error("Error WhatsApp texto: " . $response->body());
+                return false;
+            }
         } catch (\Exception $e) {
             Log::error("Error enviando WhatsApp texto: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Verificar estado de la conexión WhatsApp
+     */
+    public function checkConnection()
+    {
+        try {
+            $response = Http::withToken($this->token)
+                ->get("https://graph.facebook.com/v19.0/{$this->phoneNumberId}");
+
+            if ($response->successful()) {
+                Log::info("WhatsApp conexión OK");
+                return true;
+            } else {
+                Log::error("WhatsApp conexión fallida: " . $response->body());
+                return false;
+            }
+        } catch (\Exception $e) {
+            Log::error("Error verificando conexión WhatsApp: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Limpiar número de teléfono (eliminar +, espacios, guiones)
+     */
+    private function cleanPhoneNumber($phone)
+    {
+        // Eliminar cualquier carácter que no sea número
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+
+        // Si el número comienza con 0, eliminarlo
+        if (substr($phone, 0, 1) === '0') {
+            $phone = substr($phone, 1);
+        }
+
+        // Asegurar que tiene código de país (si no tiene, agregar 58 para Venezuela)
+        if (strlen($phone) === 10) {
+            $phone = '58' . $phone;
+        }
+
+        return $phone;
     }
 }
