@@ -59,10 +59,12 @@ class SiteController extends Controller
     public function index(Request $request, $id = null)
     {
         //dd(bcrypt('Tucani$214'));
-
-        Mail::raw('Prueba de correo', function($message) {
-            $message->to('geal16ster@gmail.com')->subject('Prueba');
-        });
+        if(isset($request->email)) {
+            echo 'mail';
+            Mail::raw('Prueba de correo', function ($message) {
+                $message->to('geal16ster@gmail.com')->subject('Prueba');
+            });
+        }
         return view("home.home");
     }
 
