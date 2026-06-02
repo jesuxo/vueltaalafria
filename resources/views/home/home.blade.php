@@ -943,7 +943,7 @@
                                                         <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                                         <p>Arrastra tu comprobante aquí o haz clic para seleccionar</p>
                                                         <small class="text-muted">Formatos: JPG, PNG, PDF (Máx 2MB)</small>
-                                                        <input type="file" name="payment_proofindividual" id="individualPaymentProofFile" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
+                                                        <input type="file" name="payment_proof" id="individualPaymentProofFile" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
                                                         <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('individualPaymentProofFile').click()">
                                                             Seleccionar comprobante
                                                         </button>

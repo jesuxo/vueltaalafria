@@ -39,10 +39,6 @@ class RegistrationController extends Controller
      */
     private function savePaymentProofIndividual($file, $athleteId)
     {
-        // LOG para verificar que la función se está ejecutando
-        \Log::info('=== savePaymentProofIndividual INICIADO ===');
-        \Log::info('Archivo: ' . $file->getClientOriginalName());
-        \Log::info('Athlete ID: ' . $athleteId);
 
         $extension = strtolower($file->getClientOriginalExtension());
         $filename = time() . '_individual_' . $athleteId;
@@ -50,14 +46,12 @@ class RegistrationController extends Controller
         // Directorio donde se guardarán los comprobantes
         $uploadDir = public_path('img/comprobantes');
 
-        \Log::info('Directorio: ' . $uploadDir);
-        \Log::info('Extensión: ' . $extension);
 
         // Crear directorio si no existe
         if (!file_exists($uploadDir)) {
-            \Log::info('Creando directorio: ' . $uploadDir);
+
             $created = mkdir($uploadDir, 0777, true);
-            \Log::info('Directorio creado: ' . ($created ? 'Sí' : 'No'));
+
         }
 
         // Procesar según el tipo de archivo
@@ -66,26 +60,21 @@ class RegistrationController extends Controller
             $finalPath = $uploadDir . '/' . $finalFilename;
             $tempPath = $file->getPathname();
 
-            \Log::info('Procesando imagen: ' . $tempPath);
 
             // Verificar que GD esté instalado
             if (!extension_loaded('gd')) {
-                \Log::error('GD NO está instalado. La compresión no funcionará.');
                 // Guardar el archivo sin compresión
                 $file->move($uploadDir, $finalFilename);
                 return 'img/comprobantes/' . $finalFilename;
             }
 
             $imageInfo = getimagesize($tempPath);
-            \Log::info('Image info: ' . print_r($imageInfo, true));
 
             if ($imageInfo) {
                 if ($extension == 'png') {
                     $image = imagecreatefrompng($tempPath);
-                    \Log::info('Imagen PNG cargada');
                 } else {
                     $image = imagecreatefromjpeg($tempPath);
-                    \Log::info('Imagen JPG cargada');
                 }
 
                 if ($image) {
@@ -100,36 +89,27 @@ class RegistrationController extends Controller
                         imagecopyresampled($resized, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
                         imagedestroy($image);
                         $image = $resized;
-                        \Log::info('Imagen redimensionada a: ' . $newWidth . 'x' . $newHeight);
                     }
 
                     imagejpeg($image, $finalPath, 70);
                     imagedestroy($image);
-                    \Log::info('Imagen guardada en: ' . $finalPath);
-                    \Log::info('Archivo existe: ' . (file_exists($finalPath) ? 'Sí' : 'No'));
                     return 'img/comprobantes/' . $finalFilename;
                 } else {
-                    \Log::error('No se pudo crear la imagen desde el archivo');
                 }
             } else {
-                \Log::error('No se pudo obtener información de la imagen');
             }
 
-            // Si algo falló, guardar como está
-            \Log::info('Guardando archivo sin compresión');
             $file->move($uploadDir, $filename . '.' . $extension);
             return 'img/comprobantes/' . $filename . '.' . $extension;
         }
         elseif ($extension == 'pdf') {
             $finalFilename = $filename . '.pdf';
             $file->move($uploadDir, $finalFilename);
-            \Log::info('PDF guardado en: ' . $finalFilename);
             return 'img/comprobantes/' . $finalFilename;
         }
         else {
             $finalFilename = $filename . '.' . $extension;
             $file->move($uploadDir, $finalFilename);
-            \Log::info('Archivo guardado en: ' . $finalFilename);
             return 'img/comprobantes/' . $finalFilename;
         }
     }
@@ -258,7 +238,8 @@ class RegistrationController extends Controller
             'has_structure' => 'nullable|in:0,1',
             'structure_name' => 'required_if:has_structure,1|nullable|string|max:255',
             'payment_method' => 'nullable|string',
-            'payment_reference' => 'nullable|string'
+            'payment_reference' => 'nullable|string',
+            'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
         ], [
             'first_name.required' => 'El campo Nombres es obligatorio.',
             'last_name.required' => 'El campo Apellidos es obligatorio.',
@@ -388,8 +369,8 @@ class RegistrationController extends Controller
         // GUARDAR COMPROBANTE DE PAGO PARA INDIVIDUAL
         // ==============================================
         $paymentProofPath = null;
-        if ($request->hasFile('payment_proofindividual')) {
-            $paymentProofPath = $this->savePaymentProofIndividual($request->file('payment_proofindividual'), $athlete->id);
+        if ($request->hasFile('payment_proof')) {
+            $paymentProofPath = $this->savePaymentProofIndividual($request->file('payment_proof'), $athlete->id);
         }
 
         // Calcular el monto según la categoría
