@@ -943,7 +943,7 @@
                                                         <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                                         <p>Arrastra tu comprobante aquí o haz clic para seleccionar</p>
                                                         <small class="text-muted">Formatos: JPG, PNG, PDF (Máx 2MB)</small>
-                                                        <input type="file" name="payment_proof" id="individualPaymentProofFile" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
+                                                        <input type="file" name="payment_proofindividual" id="individualPaymentProofFile" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
                                                         <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('individualPaymentProofFile').click()">
                                                             Seleccionar comprobante
                                                         </button>
@@ -1870,11 +1870,10 @@
                            '<tr><td class="fw-bold" align="left">📧 Email contacto:  </td><td>' + (details.email || '')                                 + '</td></tr>';
                 } else {
                     // Para individual
-                    html = '<tr><td class="fw-bold">👤 Ciclista:    </td> <td> ' + (details.nombre || '')                                + '</td></tr>' +
-                           '<tr><td class="fw-bold">🔢 Dorsal:      </td> <td> <span class="badge bg-primary">' + (details.dorsal || '') + '</span></td></tr>' +
-                           '<tr><td class="fw-bold">🏆 Categoría:   </td> <td> ' + (details.categoria || '')                             + '</td></tr>' +
-                           '<tr><td class="fw-bold">🏢 Estructura:  </td> <td> ' + (details.estructura || 'Independiente')               + '</td></tr>' +
-                           '<tr><td class="fw-bold">📧 Email:       </td> <td> ' + (details.email || '')                                 + '</td></tr>';
+                    html = '<tr><td class="fw-bold" align="left">👤 Ciclista:    </td> <td> ' + (details.nombre || '')                                + '</td></tr>' +
+                           '<tr><td class="fw-bold" align="left">🏆 Categoría:   </td> <td> ' + (details.categoria || '')                             + '</td></tr>' +
+                           '<tr><td class="fw-bold" align="left">🏢 Estructura:  </td> <td> ' + (details.estructura || 'Independiente')               + '</td></tr>' +
+                           '<tr><td class="fw-bold" align="left">📧 Email:       </td> <td> ' + (details.email || '')                                 + '</td></tr>';
                 }
 
                 table.innerHTML = html;

@@ -339,14 +339,12 @@ class RegistrationController extends Controller
             ]);
         }
 
-        $dorsalNumber = $this->generateDorsalNumberForEvent($event->id);
-        $athlete->dorsal_number = $dorsalNumber;
         $athlete->save();
 
         AthleteEventParticipation::create([
             'athlete_id'    => $athlete->id,
             'event_id'      => $event->id,
-            'dorsal_number' => $dorsalNumber,
+            'dorsal_number' => '',
             'team_id'       => $teamId,
             'status'        => 'registered'
         ]);
@@ -355,8 +353,8 @@ class RegistrationController extends Controller
         // GUARDAR COMPROBANTE DE PAGO PARA INDIVIDUAL
         // ==============================================
         $paymentProofPath = null;
-        if ($request->hasFile('payment_proof')) {
-            $paymentProofPath = $this->savePaymentProofIndividual($request->file('payment_proof'), $athlete->id);
+        if ($request->hasFile('payment_proofindividual')) {
+            $paymentProofPath = $this->savePaymentProofIndividual($request->file('payment_proofindividual'), $athlete->id);
         }
 
         // Calcular el monto según la categoría
@@ -396,7 +394,7 @@ class RegistrationController extends Controller
             ->with('success_message', "¡Inscripción registrada exitosamente para la {$event->name}!{$structureMessage}")
             ->with('success_details', [
                 'nombre'     => $athlete->first_name . ' ' . $athlete->last_name,
-                'dorsal'     => $dorsalNumber,
+                'dorsal'     => '',
                 'categoria'  => $athlete->category,
                 'email'      => $request->email,
                 'telefono'   => $request->phone,
