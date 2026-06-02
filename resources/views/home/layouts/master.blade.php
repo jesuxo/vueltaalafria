@@ -807,8 +807,8 @@
             <!-- Fecha del evento -->
             <div class="navbar-date text-white ms-lg-3 mt-3 mt-lg-0 d-flex align-items-center">
                 <i class="fas fa-calendar-alt me-1" style="color: #00ecfe;"></i>
-                <small class="d-none d-lg-block">11-14 JUN 2026</small>
-                <small class="d-lg-none">11-14 Junio 2026</small>
+                <small class="d-none d-lg-block">12-14 JUN 2026</small>
+                <small class="d-lg-none">12-14 Junio 2026</small>
             </div>
 
             <!-- Botón inscripción -->

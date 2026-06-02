@@ -15,7 +15,6 @@ use Carbon\Carbon;
 
 class RegistrationController extends Controller
 {
-    // Obtener evento activo
     private function getActiveEvent()
     {
         $event = Event::where('is_active', true)->first();
@@ -35,7 +34,71 @@ class RegistrationController extends Controller
         return $event;
     }
 
-    // Validar edad por categoría
+    /**
+     * Guardar comprobante de pago para individual
+     */
+    private function savePaymentProofIndividual($file, $athleteId)
+    {
+        $extension = strtolower($file->getClientOriginalExtension());
+        $filename = time() . '_individual_' . $athleteId;
+
+        // Directorio donde se guardarán los comprobantes
+        $uploadDir = public_path('img/comprobantes');
+
+        // Crear directorio si no existe
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        // Procesar según el tipo de archivo
+        if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
+            $finalFilename = $filename . '.jpg';
+            $finalPath = $uploadDir . '/' . $finalFilename;
+            $tempPath = $file->getPathname();
+            $imageInfo = getimagesize($tempPath);
+
+            if ($imageInfo) {
+                if ($extension == 'png') {
+                    $image = imagecreatefrompng($tempPath);
+                } else {
+                    $image = imagecreatefromjpeg($tempPath);
+                }
+
+                if ($image) {
+                    $width = imagesx($image);
+                    $height = imagesy($image);
+                    $maxWidth = 1200;
+
+                    if ($width > $maxWidth) {
+                        $newWidth = $maxWidth;
+                        $newHeight = intval($height * ($maxWidth / $width));
+                        $resized = imagecreatetruecolor($newWidth, $newHeight);
+                        imagecopyresampled($resized, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+                        imagedestroy($image);
+                        $image = $resized;
+                    }
+
+                    imagejpeg($image, $finalPath, 70);
+                    imagedestroy($image);
+                    return 'img/comprobantes/' . $finalFilename;
+                }
+            }
+
+            $file->move($uploadDir, $filename . '.' . $extension);
+            return 'img/comprobantes/' . $filename . '.' . $extension;
+        }
+        elseif ($extension == 'pdf') {
+            $finalFilename = $filename . '.pdf';
+            $file->move($uploadDir, $finalFilename);
+            return 'img/comprobantes/' . $finalFilename;
+        }
+        else {
+            $finalFilename = $filename . '.' . $extension;
+            $file->move($uploadDir, $finalFilename);
+            return 'img/comprobantes/' . $finalFilename;
+        }
+    }
+
     private function validateAgeByCategory($birthDate, $category, $gender)
     {
         $age = Carbon::parse($birthDate)->age;
@@ -61,7 +124,6 @@ class RegistrationController extends Controller
         return $age >= $range['min'] && $age <= $range['max'];
     }
 
-    // Generar dorsal para el evento
     private function generateDorsalNumberForEvent($eventId)
     {
         $lastParticipation = AthleteEventParticipation::where('event_id', $eventId)
@@ -72,28 +134,24 @@ class RegistrationController extends Controller
         return 'D' . str_pad($number, 4, '0', STR_PAD_LEFT);
     }
 
-    // Buscar o crear equipo/estructura
     private function findOrCreateTeam($structureName)
     {
         if (empty($structureName)) {
             return null;
         }
 
-        // Buscar equipo existente por nombre exacto
         $team = Team::where('name', $structureName)->first();
 
         if ($team) {
             return $team;
         }
 
-        // Verificar nuevamente por si hay diferencia en mayúsculas/minúsculas
         $team = Team::whereRaw('LOWER(name) = ?', [strtolower($structureName)])->first();
 
         if ($team) {
             return $team;
         }
 
-        // Crear nuevo equipo/estructura
         $team = Team::create([
             'name'        => $structureName,
             'country'     => 'Venezuela',
@@ -104,7 +162,6 @@ class RegistrationController extends Controller
         return $team;
     }
 
-    // Mapear categoría
     private function mapCategory($category, $gender)
     {
         $mapping = [
@@ -127,7 +184,6 @@ class RegistrationController extends Controller
         return $mapping[$category] ?? null;
     }
 
-    // Obtener categorías
     private function getCategories()
     {
         return [
@@ -144,7 +200,6 @@ class RegistrationController extends Controller
         ];
     }
 
-    // Formulario inscripción individual
     public function individualForm()
     {
         $event = $this->getActiveEvent();
@@ -152,10 +207,8 @@ class RegistrationController extends Controller
         return view('home.registration.individual', compact('categories', 'event'));
     }
 
-    // Procesar inscripción individual
     public function individualSubmit(Request $request)
     {
-        // Validación
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -168,7 +221,9 @@ class RegistrationController extends Controller
             'accept_terms' => 'required|accepted',
             'identification_document' => 'nullable|string|max:50',
             'has_structure' => 'nullable|in:0,1',
-            'structure_name' => 'required_if:has_structure,1|nullable|string|max:255'
+            'structure_name' => 'required_if:has_structure,1|nullable|string|max:255',
+            'payment_method' => 'nullable|string',
+            'payment_reference' => 'nullable|string'
         ], [
             'first_name.required' => 'El campo Nombres es obligatorio.',
             'last_name.required' => 'El campo Apellidos es obligatorio.',
@@ -193,7 +248,6 @@ class RegistrationController extends Controller
 
         $event = $this->getActiveEvent();
 
-        // Validar fechas de inscripción
         if (!$event->isRegistrationOpen()) {
             return redirect()->route('home')
                 ->withErrors(['error' => 'El período de inscripción para este evento ha cerrado.'])
@@ -211,7 +265,6 @@ class RegistrationController extends Controller
             }
         }
 
-        // Validar edad vs categoría
         $age = Carbon::parse($request->birth_date)->age;
         if (!$this->validateAgeByCategory($request->birth_date, $request->category, $request->gender)) {
             return redirect()->route('home')
@@ -220,21 +273,17 @@ class RegistrationController extends Controller
                 ->with('form_error', 'individual');
         }
 
-        // Procesar estructura (equipo)
-        // Procesar estructura (equipo)
         $teamId = null;
         $structureName = null;
 
         if ($request->has_structure == '1') {
             if ($request->structure_id) {
-                // Usar estructura existente
                 $team = Team::find($request->structure_id);
                 if ($team) {
                     $teamId = $team->id;
                     $structureName = $team->name;
                 }
             } elseif ($request->structure_name) {
-                // Crear nueva estructura
                 $structureName = $request->structure_name;
                 $team = $this->findOrCreateTeam($structureName);
                 if ($team) {
@@ -243,7 +292,6 @@ class RegistrationController extends Controller
             }
         }
 
-        // Verificar si el ciclista ya existe
         $existingAthlete = null;
 
         if ($request->identification_document) {
@@ -258,7 +306,6 @@ class RegistrationController extends Controller
         }
 
         if ($existingAthlete) {
-            // Verificar si ya está inscrito en este evento específico
             $existingParticipation = AthleteEventParticipation::where('event_id', $event->id)
                 ->where('athlete_id', $existingAthlete->id)
                 ->exists();
@@ -272,13 +319,11 @@ class RegistrationController extends Controller
 
             $athlete = $existingAthlete;
 
-            // Si el atleta no tenía equipo y ahora tiene, actualizar
             if ($teamId && !$athlete->team_id) {
                 $athlete->team_id = $teamId;
                 $athlete->save();
             }
         } else {
-            // Crear nuevo atleta
             $athlete = Athlete::create([
                 'first_name'      => strtoupper($request->first_name),
                 'last_name'       => strtoupper($request->last_name),
@@ -294,23 +339,31 @@ class RegistrationController extends Controller
             ]);
         }
 
-        // Generar dorsal para este evento
-       // $dorsalNumber = $this->generateDorsalNumberForEvent($event->id);
-
-        // Actualizar dorsal del atleta
-        //$athlete->dorsal_number = $dorsalNumber;
+        $dorsalNumber = $this->generateDorsalNumberForEvent($event->id);
+        $athlete->dorsal_number = $dorsalNumber;
         $athlete->save();
 
-        // Crear participación en el evento
         AthleteEventParticipation::create([
             'athlete_id'    => $athlete->id,
             'event_id'      => $event->id,
-            'dorsal_number' => '',
+            'dorsal_number' => $dorsalNumber,
             'team_id'       => $teamId,
             'status'        => 'registered'
         ]);
 
-        // Registrar la inscripción
+        // ==============================================
+        // GUARDAR COMPROBANTE DE PAGO PARA INDIVIDUAL
+        // ==============================================
+        $paymentProofPath = null;
+        if ($request->hasFile('payment_proof')) {
+            $paymentProofPath = $this->savePaymentProofIndividual($request->file('payment_proof'), $athlete->id);
+        }
+
+        // Calcular el monto según la categoría
+        $categories3Days = ['Pre-Infantil Masculino', 'Pre-Infantil Femenino', 'Infantil Masculino', 'Infantil Femenino',
+            'Pre-Juvenil Masculino', 'Pre-Juvenil Femenino', 'Juvenil Masculino', 'Juvenil Femenino'];
+        $amount = in_array($athlete->category, $categories3Days) ? 30 : 15;
+
         $registration = Registration::create([
             'event_id'          => $event->id,
             'registration_type' => 'individual',
@@ -319,6 +372,11 @@ class RegistrationController extends Controller
             'email'             => $request->email,
             'phone'             => $request->phone,
             'status'            => 'pending',
+            'amount'            => $amount,
+            'payment_method'    => $request->payment_method,
+            'payment_reference' => $request->payment_reference,
+            'payment_proof'     => $paymentProofPath,
+            'payment_status'    => $request->payment_method === 'efectivo' ? 'pending' : 'pending',
             'notes'             => json_encode([
                 'emergency_contact' => $request->emergency_contact,
                 'structure_name'    => $structureName,
@@ -327,29 +385,27 @@ class RegistrationController extends Controller
             'registered_at'     => now()
         ]);
 
-        // Preparar mensaje de éxito con información de la estructura
         $structureMessage = '';
         if ($structureName) {
             $structureMessage = " Representas a: {$structureName}.";
         }
 
-        // Redirigir con modal de éxito
         return redirect()->route('home')
             ->with('success_modal', true)
             ->with('success_title', '¡Inscripción Registrada!')
             ->with('success_message', "¡Inscripción registrada exitosamente para la {$event->name}!{$structureMessage}")
             ->with('success_details', [
                 'nombre'     => $athlete->first_name . ' ' . $athlete->last_name,
-                'dorsal'     => '',
+                'dorsal'     => $dorsalNumber,
                 'categoria'  => $athlete->category,
                 'email'      => $request->email,
                 'telefono'   => $request->phone,
-                'estructura' => $structureName ?: 'Independiente'
+                'estructura' => $structureName ?: 'Independiente',
+                'total'      => '$' . number_format($amount, 2)
             ])
             ->with('form_error', 'none');
     }
 
-    // Verificar estado de inscripción
     public function checkStatus(Request $request)
     {
         $request->validate([
@@ -375,7 +431,6 @@ class RegistrationController extends Controller
             ->with('form_error', 'none');
     }
 
-    // Obtener rango de edad de la categoría
     private function getCategoryAgeRange($category)
     {
         $ageRanges = [

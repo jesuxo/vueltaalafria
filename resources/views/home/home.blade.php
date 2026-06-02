@@ -624,7 +624,7 @@
             </div>
 
             <!-- Nota de Staff -->
-            <div class="row mt-4" data-aos="fade-up">
+            <div class="row mt-5" data-aos="fade-up" style="padding-top: 20px;">
                 <div class="col-12">
                     <div class="alert alert-info text-center">
                         <i class="fas fa-users me-2"></i>
@@ -695,7 +695,7 @@
     </section>
 
     <!-- Sección de Inscripción -->
-    <section id="preinscripcion" class="section">
+    <section id="preinscripcion" class="section" style="padding-top: 0 !important;">
         <div class="container">
             <div class="section-title" data-aos="fade-up">
                 <h2>FORMULARIO DE INSCRIPCIÓN</h2>
@@ -875,6 +875,86 @@
                                             <small class="text-muted">Ej: Juan Pérez - 0414XXXXXX</small>
                                         </div>
 
+                                        <!-- SECCIÓN DE PAGO PARA INDIVIDUAL -->
+                                        <div class="bg-light p-3 rounded mb-4">
+                                            <h5 class="mb-3" style="color: var(--primary);">
+                                                <i class="fas fa-credit-card me-2"></i> Información de Pago
+                                            </h5>
+
+                                            <div class="row">
+                                                <div class="col-md-12 mb-3">
+                                                    <div class="alert alert-info">
+                                                        <strong>💰 Costo de inscripción:</strong>
+                                                        <ul class="mb-0 mt-2">
+                                                            <li>🚴‍♂️ <strong>3 días</strong> (Pre-Infantil, Infantil, Pre-Juvenil, Juvenil): <strong class="text-success">$30 USD</strong></li>
+                                                            <li>🚲 <strong>1 día</strong> (Iniciación A, B, C y Compotas): <strong class="text-success">$15 USD</strong></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-12 mb-3">
+                                                    <label class="form-label required-field">Método de Pago</label>
+                                                    <select name="payment_method" id="individual_payment_method" class="form-select" required>
+                                                        <option value="">Seleccionar método de pago</option>
+                                                        <option value="transferencia">Transferencia Bancaria</option>
+                                                        <option value="bancolombia">Bancolombia</option>
+                                                        <option value="usdt">USDT</option>
+                                                        <option value="efectivo">Efectivo (el día del evento)</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="col-md-12 mb-3" id="individualBankAccounts" style="display: none;">
+                                                    <div class="card bg-white">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title"><i class="fas fa-university me-2"></i> Cuentas Bancarias Disponibles</h6>
+                                                            <div class="row g-3">
+                                                                <div class="col-md-4">
+                                                                    <div class="bank-card p-2 rounded">
+                                                                        <strong>🏦 Banco Provincial</strong><br>
+                                                                        <small>Cuenta: 0108-0133-8001-0004-2510<br>Beneficiario: Ruben Osorio</small>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <div class="bank-card p-2 rounded">
+                                                                        <strong>🏦 Bancolombia (COP)</strong><br>
+                                                                        <small>Cuenta: 901275648<br>Beneficiario: INVERSIONES OSORIO MOTOS S.A.S</small>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <div class="bank-card p-2 rounded">
+                                                                        <strong>🪙 USDT</strong><br>
+                                                                        <small>Correo: Rubenaosorioe@gmail.com</small>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-12 mb-3" id="individualPaymentReference" style="display: none;">
+                                                    <label class="form-label required-field">Número de Referencia/Transacción</label>
+                                                    <input type="text" name="payment_reference" id="individual_payment_reference" class="form-control"
+                                                           placeholder="Ingresa el número de referencia de tu transferencia/pago">
+                                                </div>
+
+                                                <div class="col-md-12 mb-3" id="individualPaymentProof" style="display: none;">
+                                                    <label class="form-label">Comprobante de Pago</label>
+                                                    <div class="upload-area" id="individualPaymentUploadArea" style="padding: 15px;">
+                                                        <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                                        <p>Arrastra tu comprobante aquí o haz clic para seleccionar</p>
+                                                        <small class="text-muted">Formatos: JPG, PNG, PDF (Máx 2MB)</small>
+                                                        <input type="file" name="payment_proof" id="individualPaymentProofFile" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
+                                                        <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('individualPaymentProofFile').click()">
+                                                            Seleccionar comprobante
+                                                        </button>
+                                                        <div id="individualPaymentFileName" class="mt-2 small text-muted"></div>
+                                                    </div>
+                                                    <div id="individualPaymentPreview" class="mt-2 text-center"></div>
+                                                    <small class="text-muted">El comprobante se comprimirá automáticamente</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="col-12 mb-3">
                                             <div class="form-check">
                                                 <input type="checkbox" class="form-check-input @error('accept_terms') is-invalid @enderror" id="acceptTermsIndividual" name="accept_terms" required>
@@ -1049,6 +1129,8 @@
                                                     </button>
                                                     <div id="paymentFileName" class="mt-2 small text-muted"></div>
                                                 </div>
+                                                <!-- PREVIEW DEL COMPROBANTE -->
+                                                <div id="paymentPreview" class="mt-2 text-center"></div>
                                                 <small class="text-muted">El comprobante se comprimirá automáticamente. Formatos permitidos: JPG, PNG, PDF (Máx 2MB)</small>
                                             </div>
                                         </div>
@@ -1104,6 +1186,7 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
+                                                <small class="text-muted">Formatos aceptados: .xlsx, .xls, .csv (máx 5MB)</small>
                                                 <div class="upload-area" id="uploadArea">
                                                     <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
                                                     <p>Arrastra tu archivo aquí o haz clic para seleccionar</p>
@@ -1111,7 +1194,7 @@
                                                     <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('excelFile').click()">Seleccionar archivo</button>
                                                     <div id="fileName" class="mt-2 small text-muted"></div>
                                                 </div>
-                                                <small class="text-muted">Formatos aceptados: .xlsx, .xls, .csv (máx 5MB)</small>
+
                                             </div>
                                         </div>
                                     </div>
@@ -1845,5 +1928,201 @@
         @if(session('error'))
         Swal.fire({ icon: 'error', title: 'Error', text: {!! json_encode(session('error')) !!}, confirmButtonColor: '#00ecfe' });
         @endif
+
+        // PREVIEW DEL COMPROBANTE DE PAGO
+        const paymentProofInput = document.getElementById('paymentProof');
+        const paymentFileName = document.getElementById('paymentFileName');
+        const paymentPreview = document.getElementById('paymentPreview');
+
+        function handlePaymentFile(file) {
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+            const maxSize = 2 * 1024 * 1024; // 2MB
+
+            if (!validTypes.includes(file.type)) {
+                Swal.fire('Error', 'Formato no válido. Usa JPG, PNG o PDF', 'error');
+                paymentProofInput.value = '';
+                if (paymentFileName) paymentFileName.innerHTML = '';
+                if (paymentPreview) paymentPreview.innerHTML = '';
+                return;
+            }
+
+            if (file.size > maxSize) {
+                Swal.fire('Error', 'El archivo no debe superar los 2MB', 'error');
+                paymentProofInput.value = '';
+                if (paymentFileName) paymentFileName.innerHTML = '';
+                if (paymentPreview) paymentPreview.innerHTML = '';
+                return;
+            }
+
+            if (paymentFileName) {
+                paymentFileName.innerHTML = '<i class="fas fa-check-circle text-success"></i> Comprobante: ' + file.name;
+            }
+
+            // Mostrar preview
+            if (paymentPreview) {
+                if (file.type === 'application/pdf') {
+                    paymentPreview.innerHTML = '<div class="alert alert-info"><i class="fas fa-file-pdf fa-2x me-2"></i> Archivo PDF: ' + file.name + '<br><small>Haz clic en "Enviar Inscripción" para subir el archivo</small></div>';
+                } else if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        paymentPreview.innerHTML = '<img src="' + e.target.result + '" class="img-fluid rounded border" style="max-height: 150px;">';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        // Eventos para el comprobante de pago
+        if (paymentProofInput) {
+            paymentProofInput.addEventListener('change', function(e) {
+                if (e.target.files.length) {
+                    handlePaymentFile(e.target.files[0]);
+                }
+            });
+        }
+
+        // Drag and drop para comprobante de pago
+        const paymentUploadArea = document.getElementById('paymentUploadArea');
+        if (paymentUploadArea) {
+            paymentUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                paymentUploadArea.classList.add('dragover');
+            });
+
+            paymentUploadArea.addEventListener('dragleave', function() {
+                paymentUploadArea.classList.remove('dragover');
+            });
+
+            paymentUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                paymentUploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length) {
+                    paymentProofInput.files = files;
+                    handlePaymentFile(files[0]);
+                }
+            });
+
+            paymentUploadArea.addEventListener('click', function() {
+                paymentProofInput.click();
+            });
+        }
+
+        // ============================================
+        // PAGO INDIVIDUAL - CORREGIDO
+        // ============================================
+        const individualPaymentMethod = document.getElementById('individual_payment_method');
+        const individualBankAccounts = document.getElementById('individualBankAccounts');
+        const individualPaymentReference = document.getElementById('individualPaymentReference');
+        const individualPaymentProofDiv = document.getElementById('individualPaymentProof');
+        const individualPaymentProofFile = document.getElementById('individualPaymentProofFile');
+        const individualPaymentFileName = document.getElementById('individualPaymentFileName');
+        const individualPaymentPreview = document.getElementById('individualPaymentPreview');
+
+        // Si el input no existe, lo creamos con el ID correcto
+        let individualFileInput = document.getElementById('individualPaymentProofFile');
+        if (!individualFileInput && document.getElementById('individualPaymentProofFile')) {
+            individualFileInput = document.getElementById('individualPaymentProofFile');
+        }
+
+        // Función para manejar el archivo de pago individual
+        function handleIndividualPaymentFile(file) {
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+            const maxSize = 2 * 1024 * 1024; // 2MB
+
+            if (!validTypes.includes(file.type)) {
+                Swal.fire('Error', 'Formato no válido. Usa JPG, PNG o PDF', 'error');
+                if (individualFileInput) individualFileInput.value = '';
+                if (individualPaymentFileName) individualPaymentFileName.innerHTML = '';
+                if (individualPaymentPreview) individualPaymentPreview.innerHTML = '';
+                return;
+            }
+
+            if (file.size > maxSize) {
+                Swal.fire('Error', 'El archivo no debe superar los 2MB', 'error');
+                if (individualFileInput) individualFileInput.value = '';
+                if (individualPaymentFileName) individualPaymentFileName.innerHTML = '';
+                if (individualPaymentPreview) individualPaymentPreview.innerHTML = '';
+                return;
+            }
+
+            if (individualPaymentFileName) {
+                individualPaymentFileName.innerHTML = '<i class="fas fa-check-circle text-success"></i> Comprobante: ' + file.name;
+            }
+
+            if (individualPaymentPreview) {
+                if (file.type === 'application/pdf') {
+                    individualPaymentPreview.innerHTML = '<div class="alert alert-info mt-2"><i class="fas fa-file-pdf fa-2x me-2"></i> PDF: ' + file.name + '</div>';
+                } else if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        individualPaymentPreview.innerHTML = '<img src="' + e.target.result + '" class="img-fluid rounded border mt-2" style="max-height: 150px;">';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        // Función para abrir el selector de archivos
+        function openIndividualPaymentFile() {
+            if (individualFileInput) {
+                individualFileInput.click();
+            }
+        }
+
+        // Evento para el select de método de pago
+        if (individualPaymentMethod) {
+            individualPaymentMethod.addEventListener('change', function() {
+                const method = this.value;
+
+                if (method === 'transferencia' || method === 'bancolombia' || method === 'usdt') {
+                    if (individualBankAccounts) individualBankAccounts.style.display = 'block';
+                    if (individualPaymentReference) individualPaymentReference.style.display = 'block';
+                    if (individualPaymentProofDiv) individualPaymentProofDiv.style.display = 'block';
+                } else if (method === 'efectivo') {
+                    if (individualBankAccounts) individualBankAccounts.style.display = 'none';
+                    if (individualPaymentReference) individualPaymentReference.style.display = 'none';
+                    if (individualPaymentProofDiv) individualPaymentProofDiv.style.display = 'none';
+                } else {
+                    if (individualBankAccounts) individualBankAccounts.style.display = 'none';
+                    if (individualPaymentReference) individualPaymentReference.style.display = 'none';
+                    if (individualPaymentProofDiv) individualPaymentProofDiv.style.display = 'none';
+                }
+            });
+        }
+
+        // Evento para el input file
+        if (individualFileInput) {
+            individualFileInput.addEventListener('change', function(e) {
+                if (e.target.files.length) {
+                    handleIndividualPaymentFile(e.target.files[0]);
+                }
+            });
+        }
+
+        // Drag and drop individual
+        const individualUploadArea = document.getElementById('individualPaymentUploadArea');
+        if (individualUploadArea) {
+            individualUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                individualUploadArea.classList.add('dragover');
+            });
+
+            individualUploadArea.addEventListener('dragleave', function() {
+                individualUploadArea.classList.remove('dragover');
+            });
+
+            individualUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                individualUploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length) {
+                    if (individualFileInput) {
+                        individualFileInput.files = files;
+                        handleIndividualPaymentFile(files[0]);
+                    }
+                }
+            });
+        }
     </script>
 @endsection
