@@ -789,7 +789,7 @@
 <nav class="navbar navbar-expand-lg">
     <div class="container">
         <a class="navbar-brand" href="/inicio">
-            <img src="/images/logomenu.png" alt="Vuelta a la Fría 2026" style="max-width: 100%; max-height: 45px;">
+            <img src="/images/logomenu.png" alt="Vuelta a la Fría 2026" style="max-width: 100%; max-height: 55px;">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
