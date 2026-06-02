@@ -2,10 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Compra;
-use App\Models\Promocion;
-use App\Models\Sainsta;
-use App\Models\Saprod;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,58 +43,6 @@ class SiteController extends Controller
         return response()->json(json_encode($array));
     }
 
-    public function panelclientes(){
-        $home = 1;
-        return view('auth.login',compact('home'));
-    }
-
-    public function promociones(Request $request, $busqueda = null){
-        $paginapromo = 1;
-        $promociones = Promocion::where(['activo' => 1, 'pendiente' => 0]);
-
-        if($busqueda) {
-            $busqueda = str_replace("'",'', $busqueda);
-            $sql = '';
-            $vector = explode(' ', $busqueda);
-            foreach ($vector as $index => $item){
-
-                $iter   = $item;
-                $l_iter = strlen($iter);
-                $ultima = substr($iter, -1, 1);
-
-                if($ultima == 's' and $item != 'ups')
-                    $iter = substr($iter, 0, $l_iter-1);
-
-                if($index > 0) $sql .= " and ";
-                $sql .= " ( descrip like '%$iter%'  or public_title like '%$iter%' or public_descrip like '%$iter%' ) ";
-            }
-            $promociones = $promociones->whereRaw("( $sql )");
-        }
-
-        $gosearchpromo = $busqueda;
-
-        $promociones = $promociones->orderBy('descrip', 'desc')->get();
-        return view('promociones', compact('promociones', 'paginapromo', 'gosearchpromo'));
-    }
-
-    public function agregados()
-    {
-        $count  = 0;
-
-        if(auth()->id()) {
-            $compra = Compra::with('items')->where(['encurso' => 1, 'fk_user' => auth()->id()])->first();
-
-            if (isset($compra->items[0]))
-                $count = count($compra->items);
-
-            return response()->json(['count' => $count], 200);
-        }
-    }
-
-    public function tokencsrf()
-    {
-        dd(csrf_token());
-    }
 
     public function encoded(Request $request)
     {
@@ -107,131 +52,17 @@ class SiteController extends Controller
         return response()->json( $msg, 200);
     }
 
-    public function pago($amount)
-    {
-        return view('payment', compact('amount'));
-    }
-
-    public function bienvenido()
-    {
-        $instPpales =  $instancias = Sainsta::where('destacada', 1)->orderBy('codalte')->get();
-        return view('home.bienvenido', compact('instPpales'));
-    }
-
-    public function procesar(Request $request)
-    {
-        /* \Stripe\Stripe::setApiKey('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');
-
-         //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
-         //sk_test_51Hbp7MCKOhyGF8Q2ZfFKwYdN1fpwVZJOlB4BuXstW774ne98x9bG8g0TxBiIfqGnvbQLXrkRRsTjSuBM0xQ04BMh00KGlKJg3i
-
-         $token  = $request->stripeToken;
-         $nombre = $request->nombre;
-         $cedula = $request->cedula;
-         $monto  = $request->monto;
-
-         if(!$token){
-             $error = "Tarjeta de credito no verificada";
-             return redirect()->route('pagar.monto', $monto)->withErrors($error);
-         }
-         $nombre = $cedula.' '.$nombre;
-         $monto = $monto;
-         $error = '';
-
-         try {
-             if(isset($nombre) and  $nombre){
-                 $charge = \Stripe\Charge::create([
-                     'amount'      => $monto,
-                     'currency'    => 'usd',
-                     'description' => $nombre,
-                     'source'      => $token
-                 ]);
-
-                 return view('payment')->with(['success' => 'success']);
-             }else{
-                 $error .= "Verifique datos requridos";
-             }
-
-         } catch (\Stripe\Error\Card $e) {
-             $error .= $e->getMessage();
-         }
-         catch(\Stripe\Exception\CardException $e) {
-
-             $error .= 'Status is:'  . $e->getHttpStatus()     . ' ';
-             $error .= 'Type is:'    . $e->getError()->type    . ' ';
-             $error .= 'Code is:'    . $e->getError()->code    . ' ';
-             $error .= 'Param is:'   . $e->getError()->param   . ' ';
-             $error .= 'Message is:' . $e->getError()->message . ' ';
-
-         } catch (\Stripe\Exception\RateLimitException $e) {
-             $error .= 'Too many requests made to the API too quickly ';
-         } catch (\Stripe\Exception\InvalidRequestException $e) {
-             $error .= 'Invalid parameters were supplied to Stripe s API ';
-         } catch (\Stripe\Exception\AuthenticationException $e) {
-             $error .= 'Authentication with Stripe s API failed ';
-             // (maybe you changed API keys recently)
-         } catch (\Stripe\Error\ApiConnection $e) {
-             $error .= 'Could not connect to Stripe ';
-         } catch (\Stripe\Exception\ApiConnectionException $e) {
-             $error .= 'Network communication with Stripe failed ';
-         } catch (\Stripe\Exception\ApiErrorException $e) {
-             $error .= 'Display a very generic error to the user, and maybe send ';
-             // yourself an email
-         } catch (Exception $e) {
-             $error .= 'Something else happened, completely unrelated to Stripe ';
-         }
 
 
 
-         if($error){
-             return redirect()->route('pagar.monto', $monto)->withErrors($error);
-         }
-
-         return view('payment')->with(['error' => $error]);*/
-    }
-
-    public function gourl(Request $request)
-    {
-        $busqueda = $request->busqueda;
-        $busqueda = str_replace("'",'', $busqueda);
-        return redirect()->route('url.busqueda', $busqueda);
-    }
-
-    public function gourlpromo(Request $request)
-    {
-        $busqueda = $request->busqueda;
-        if($busqueda)
-            return redirect()->route('url.busquedapromo', $busqueda);
-        else
-            return redirect()->route('promociones');
-
-    }
-
-    public function promo($id)
-    {
-        $data = Promocion::find($id);
-        if(!isset($data))
-            $data = '';
-
-        $paginapromo = 1;
-
-        return view('promocion', compact('data', 'paginapromo'));
-    }
-
-    public function promoid($id)
-    {
-        $data = Promocion::find($id);
-        if(!isset($data))
-            $data = '';
-
-        $paginapromo = 1;
-
-        return view('home.layouts.partials.promo', compact('data', 'paginapromo'))->render();
-    }
 
     public function index(Request $request, $id = null)
     {
         //dd(bcrypt('Tucani$214'));
+
+        Mail::raw('Prueba de correo', function($message) {
+            $message->to('geal16ster@gmail.com')->subject('Prueba');
+        });
         return view("home.home");
     }
 
