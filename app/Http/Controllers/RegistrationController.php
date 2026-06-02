@@ -3,6 +3,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\WhatsAppHelper;
 use App\Models\Registration;
 use App\Models\Athlete;
 use App\Models\Team;
@@ -405,11 +406,26 @@ class RegistrationController extends Controller
         if ($structureName) {
             $structureMessage = " Representas a: {$structureName}.";
         }
-
+/*
         try {
             Mail::to($request->email)->send(new IndividualRegistrationMail($registration, $athlete));
         } catch (\Exception $e) {
 
+        }
+*/
+
+        try {
+            $whatsappHelper = new WhatsAppHelper();
+            $phone = str_replace('+', '', $request->phone); // Formato: 584247371101
+            $whatsappHelper->sendIndividualRegistration(
+                $phone,
+                $athlete->first_name . ' ' . $athlete->last_name,
+                '',
+                $athlete->category
+            );
+        } catch (\Exception $e) {
+
+            // No detenemos el flujo, solo registramos el error
         }
 
         return redirect()->route('home')

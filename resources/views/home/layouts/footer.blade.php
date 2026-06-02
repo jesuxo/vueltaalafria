@@ -6,7 +6,7 @@
         <div class="row">
             <div class="col-lg-4 mb-4">
                 <h4>Vuelta a la Fría</h4>
-                <p>La Vuelta Menor más importante de Venezuela. Un evento que forma jóvenes talentos y promueve el ciclismo en el municipio García de Hevia, estado Táchira.</p>
+                <p>La Vuelta Menor más importante de Venezuela. Un evento que forma jóvenes talentos y promueve el ciclismo en el municipio García de Hevia, Estado Táchira.</p>
                 <div class="social-links">
                     <a href="https://www.instagram.com/vueltalafria/" target="_blank"><i class="fab fa-instagram"></i></a>
                     <a href="https://api.whatsapp.com/send/?phone=584247371101&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0" target="_blank"><i class="fab fa-whatsapp"></i></a>

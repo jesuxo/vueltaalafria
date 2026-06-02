@@ -4,6 +4,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\TeamTemplateExport;
+use App\Helpers\WhatsAppHelper;
 use App\Models\Team;
 use App\Models\Athlete;
 use App\Models\TeamStaff;
@@ -286,7 +287,15 @@ class PublicRegistrationController extends Controller
             DB::commit();
 
             try {
-                Mail::to($request->delegate_email)->send(new TeamRegistrationMail($registration, $team, $athleteCount, $staffCount));
+                $whatsappHelper = new WhatsAppHelper();
+                $phone = str_replace('+', '', $request->delegate_phone);
+                $whatsappHelper->sendTeamRegistration(
+                    $phone,
+                    $team->name,
+                    $team->access_code,
+                    $athleteCount,
+                    $staffCount
+                );
             } catch (\Exception $e) {
 
             }

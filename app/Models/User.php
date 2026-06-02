@@ -43,4 +43,9 @@ class User extends Authenticatable
     {
         return $this->type === 'admin';
     }
+
+    public function routeNotificationForWhatsapp()
+    {
+        return $this->phone; // Ej: +584247371101
+    }
 }

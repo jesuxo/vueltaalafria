@@ -36,4 +36,9 @@ class TeamStaff extends Model
             'Conductor'
         ];
     }
+
+    public function routeNotificationForWhatsapp()
+    {
+        return str_replace('+', '', $this->phone);
+    }
 }

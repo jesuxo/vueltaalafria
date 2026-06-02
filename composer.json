@@ -13,6 +13,7 @@
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.2",
         "maatwebsite/excel": "^3.1",
+        "netflie/laravel-notification-whatsapp": "^1.4",
         "spatie/laravel-permission": "^6.24",
         "twilio/sdk": "^8.10",
         "vinkla/hashids": "^11.0"
