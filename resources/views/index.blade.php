@@ -81,7 +81,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* Tarjetas de acceso rápido */
+        /* Tarjetas de Acceso rápido */
         .quick-access-card {
             background: white;
             border-radius: 16px;
@@ -276,7 +276,7 @@
                                 </div>
                             </a>
                         </div>
-                        <div class="col-md-3 col-6">
+                        <div class="col-md-3 col-6 d-none">
                             <a href="{{ route('admin.teams.index') }}" class="text-decoration-none">
                                 <div class="quick-access-card success text-center">
                                     <div class="icon-wrapper mx-auto">
@@ -287,7 +287,7 @@
                                 </div>
                             </a>
                         </div>
-                        <div class="col-md-3 col-6">
+                        <div class="col-md-3 col-6 d-none">
                             <a href="{{ route('admin.athletes.index') }}" class="text-decoration-none">
                                 <div class="quick-access-card warning text-center">
                                     <div class="icon-wrapper mx-auto">
@@ -298,7 +298,7 @@
                                 </div>
                             </a>
                         </div>
-                        <div class="col-md-3 col-6">
+                        <div class="col-md-3 col-6 d-none">
                             <a href="{{ route('admin.stages.index') }}" class="text-decoration-none">
                                 <div class="quick-access-card purple text-center">
                                     <div class="icon-wrapper mx-auto">
