@@ -139,6 +139,46 @@
             box-shadow: 0 10px 20px rgba(0,236,254,0.3);
         }
 
+        /* LOADING OVERLAY */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.75);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #00ecfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -253,6 +293,16 @@
 @endsection
 
 @section('content')
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loader"></div>
+        <div class="loading-text">
+            <i class="fas fa-spinner fa-spin me-2"></i>
+            Procesando tu inscripción...
+        </div>
+        <small class="text-white mt-2">Por favor espera, no cierres esta ventana</small>
+    </div>
+
     <!-- Hero Section -->
     <section class="hero" id="inicio" style="text-align: left !important;">
         <div class="container text-center text-white">
@@ -755,7 +805,7 @@
                                     </div>
                                 @endif
 
-                                <form action="{{ route('registration.individual.submit') }}"  enctype="multipart/form-data" method="POST" id="individualFormSubmit">
+                                <form action="{{ route('registration.individual.submit') }}" enctype="multipart/form-data" method="POST" id="individualFormSubmit">
                                     @csrf
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
@@ -806,22 +856,46 @@
                                             @enderror
                                         </div>
 
-                                        <!-- Agrega esto después del campo fecha de nacimiento -->
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Tipo de Documento</label>
-                                            <select name="document_type" id="document_type" class="form-select">
+                                        <!-- DOCUMENTO Y NACIONALIDAD - REQUERIDOS -->
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label required-field">Tipo de Documento</label>
+                                            <select name="document_type" id="document_type" class="form-select @error('document_type') is-invalid @enderror" required>
                                                 <option value="">Seleccionar</option>
-                                                <option value="V" {{ old('document_type') == 'V' ? 'selected' : '' }}>Venezolano (V)</option>
-                                                <option value="E" {{ old('document_type') == 'E' ? 'selected' : '' }}>Extranjero (E)</option>
-                                                <option value="P" {{ old('document_type') == 'P' ? 'selected' : '' }}>Pasaporte (P)</option>
-                                                <option value="CEDULA" {{ old('document_type') == 'CEDULA' ? 'selected' : '' }}>Cédula Extranjera</option>
+                                                <option value="PASAPORTE" {{ old('document_type') == 'PASAPORTE' ? 'selected' : '' }}>Pasaporte  </option>
+                                                <option value="CEDULA" {{ old('document_type') == 'CEDULA' ? 'selected' : '' }}>Cédula</option>
                                             </select>
+                                            @error('document_type')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
                                         </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Número de Documento</label>
-                                            <input type="text" name="identification_document" class="form-control @error('identification_document') is-invalid @enderror" value="{{ old('identification_document') }}" placeholder="Ej: 12345678">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label required-field">Número de Documento</label>
+                                            <input type="text" name="identification_document" class="form-control @error('identification_document') is-invalid @enderror"
+                                                   value="{{ old('identification_document') }}" placeholder="Ej: 12345678" required>
                                             @error('identification_document')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                            <small class="text-muted">Solo números, letras y guiones</small>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label required-field">Nacionalidad</label>
+                                            <select name="nationality" class="form-select @error('nationality') is-invalid @enderror" required>
+                                                <option value="">Seleccionar nacionalidad</option>
+                                                <option value="Venezolana" {{ old('nationality') == 'Venezolana' ? 'selected' : '' }}>Venezolana</option>
+                                                <option value="Colombiana" {{ old('nationality') == 'Colombiana' ? 'selected' : '' }}>Colombiana</option>
+                                                <option value="Ecuatoriana" {{ old('nationality') == 'Ecuatoriana' ? 'selected' : '' }}>Ecuatoriana</option>
+                                                <option value="Peruana" {{ old('nationality') == 'Peruana' ? 'selected' : '' }}>Peruana</option>
+                                                <option value="Panameña" {{ old('nationality') == 'Panameña' ? 'selected' : '' }}>Panameña</option>
+                                                <option value="Costarricense" {{ old('nationality') == 'Costarricense' ? 'selected' : '' }}>Costarricense</option>
+                                                <option value="Chilena" {{ old('nationality') == 'Chilena' ? 'selected' : '' }}>Chilena</option>
+                                                <option value="Argentina" {{ old('nationality') == 'Argentina' ? 'selected' : '' }}>Argentina</option>
+                                                <option value="Mexicana" {{ old('nationality') == 'Mexicana' ? 'selected' : '' }}>Mexicana</option>
+                                                <option value="Estadounidense" {{ old('nationality') == 'Estadounidense' ? 'selected' : '' }}>Estadounidense</option>
+                                                <option value="Española" {{ old('nationality') == 'Española' ? 'selected' : '' }}>Española</option>
+                                                <option value="Otra" {{ old('nationality') == 'Otra' ? 'selected' : '' }}>Otra</option>
+                                            </select>
+                                            @error('nationality')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
                                             @enderror
                                         </div>
 
@@ -920,6 +994,9 @@
                                                         <option value="usdt">USDT</option>
                                                         <option value="efectivo">Efectivo (el día del evento)</option>
                                                     </select>
+                                                    @error('payment_method')
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                    @enderror
                                                 </div>
 
                                                 <div class="col-md-12 mb-3" id="individualBankAccounts" style="display: none;">
@@ -952,12 +1029,15 @@
 
                                                 <div class="col-md-12 mb-3" id="individualPaymentReference" style="display: none;">
                                                     <label class="form-label required-field">Número de Referencia/Transacción</label>
-                                                    <input type="text" name="payment_reference" id="individual_payment_reference" class="form-control"
-                                                           placeholder="Ingresa el número de referencia de tu transferencia/pago">
+                                                    <input type="text" name="payment_reference" id="individual_payment_reference" class="form-control @error('payment_reference') is-invalid @enderror"
+                                                           placeholder="Ingresa el número de referencia de tu transferencia/pago" value="{{ old('payment_reference') }}">
+                                                    @error('payment_reference')
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                    @enderror
                                                 </div>
 
                                                 <div class="col-md-12 mb-3" id="individualPaymentProof" style="display: none;">
-                                                    <label class="form-label">Comprobante de Pago</label>
+                                                    <label class="form-label required-field">Comprobante de Pago</label>
                                                     <div class="upload-area" id="individualPaymentUploadArea" style="padding: 15px;">
                                                         <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                                         <p>Arrastra tu comprobante aquí o haz clic para seleccionar</p>
@@ -969,6 +1049,9 @@
                                                         <div id="individualPaymentFileName" class="mt-2 small text-muted"></div>
                                                     </div>
                                                     <div id="individualPaymentPreview" class="mt-2 text-center"></div>
+                                                    @error('payment_proof')
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                    @enderror
                                                     <small class="text-muted">El comprobante se comprimirá automáticamente</small>
                                                 </div>
                                             </div>
@@ -1047,8 +1130,7 @@
                                 <form action="{{ route('registration.team.submit') }}" method="POST" enctype="multipart/form-data" id="teamRegistrationForm">
                                     @csrf
 
-
-                                    <!-- SECCIÓN DE PAGO -->
+                                    <!-- SECCIÓN DE PAGO EQUIPOS - REQUERIDO -->
                                     <div class="bg-light p-3 rounded mb-4">
                                         <h5 class="mb-3" style="color: var(--primary);">
                                             <i class="fas fa-credit-card me-2"></i> Información de Pago
@@ -1066,12 +1148,6 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-6 mb-3 d-none">
-                                                <label class="form-label required-field">Monto Total a Pagar (USD)</label>
-                                                <input type="number" name="amount" id="total_amount" class="form-control" step="0.01" readonly required
-                                                       value="0" style="background-color: #e8f0fe; font-weight: bold; font-size: 1.2rem;">
-                                            </div>
-
                                             <div class="col-md-12 mb-3">
                                                 <label class="form-label required-field">Método de Pago</label>
                                                 <select name="payment_method" id="payment_method" class="form-select" required>
@@ -1081,6 +1157,9 @@
                                                     <option value="usdt">USDT</option>
                                                     <option value="efectivo">Efectivo (el día del evento)</option>
                                                 </select>
+                                                @error('payment_method')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
                                             </div>
 
                                             <div class="col-md-12 mb-3" id="bankAccounts" style="display: none;">
@@ -1090,41 +1169,23 @@
                                                         <div class="row g-3">
                                                             <div class="col-md-4">
                                                                 <div class="bank-card p-3 rounded">
-                                                                    <div class="d-flex align-items-center mb-2">
-                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
-                                                                        <h5 class="mb-0">Banco Provincial</h5>
-                                                                    </div>
-                                                                    <p class="mb-1"><strong>Tipo de Cuenta:</strong> Corriente</p>
-                                                                    <p class="mb-1"><strong>Número de Cuenta:</strong>0108-0133-8001-0004-2510</p>
-                                                                    <p class="mb-1"><strong>Cédula/RIF:</strong> V-15184480</p>
-                                                                    <p class="mb-0"><strong>Beneficiario:</strong> Ruben Osorio</p>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="col-md-4">
-                                                                <div class="bank-card p-3 rounded">
-                                                                    <div class="d-flex align-items-center mb-2">
-                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
-                                                                        <h5 class="mb-0">Transferencia Pesos COP</h5>
-                                                                    </div>
-                                                                    <p class="mb-1"><strong>Banco:</strong> Bancolombia</p>
-                                                                    <p class="mb-1"><strong>Cuenta:</strong> Ahorro</p>
-                                                                    <p class="mb-1"><strong>Nro:</strong>901275648</p>
-                                                                    <p class="mb-0"><strong>Beneficiario:</strong> INVERSIONES OSORIO MOTOS S.A.S</p>
+                                                                    <strong>🏦 Banco Provincial</strong><br>
+                                                                    <small>Cuenta: 0108-0133-8001-0004-2510<br>Beneficiario: Ruben Osorio</small>
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-4">
                                                                 <div class="bank-card p-3 rounded">
-                                                                    <div class="d-flex align-items-center mb-2">
-                                                                        <i class="fas fa-university fa-2x me-3" style="color: #00ecfe;"></i>
-                                                                        <h5 class="mb-0">Pagos En USDT</h5>
-                                                                    </div>
-                                                                    <p class="mb-1"><strong>Correo:</strong> Rubenaosorioe@gmail.com</p>
-
+                                                                    <strong>🏦 Bancolombia (COP)</strong><br>
+                                                                    <small>Cuenta: 901275648<br>Beneficiario: INVERSIONES OSORIO MOTOS S.A.S</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <div class="bank-card p-3 rounded">
+                                                                    <strong>🪙 USDT</strong><br>
+                                                                    <small>Correo: Rubenaosorioe@gmail.com</small>
                                                                 </div>
                                                             </div>
                                                         </div>
-
                                                     </div>
                                                 </div>
                                             </div>
@@ -1135,9 +1196,8 @@
                                                        placeholder="Ingresa el número de referencia de tu transferencia/pago">
                                             </div>
 
-                                            <!-- CAMPO PARA SUBIR COMPROBANTE -->
                                             <div class="col-md-12 mb-3" id="paymentProofField" style="display: none;">
-                                                <label class="form-label">Comprobante de Pago</label>
+                                                <label class="form-label required-field">Comprobante de Pago</label>
                                                 <div class="upload-area" id="paymentUploadArea" style="padding: 15px;">
                                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                                     <p>Arrastra tu comprobante aquí o haz clic para seleccionar</p>
@@ -1148,13 +1208,15 @@
                                                     </button>
                                                     <div id="paymentFileName" class="mt-2 small text-muted"></div>
                                                 </div>
-                                                <!-- PREVIEW DEL COMPROBANTE -->
                                                 <div id="paymentPreview" class="mt-2 text-center"></div>
-                                                <small class="text-muted">El comprobante se comprimirá automáticamente. Formatos permitidos: JPG, PNG, PDF (Máx 2MB)</small>
+                                                @error('payment_proof')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                         </div>
                                     </div>
 
+                                    <!-- Resto del formulario de equipos se mantiene igual -->
                                     <div class="bg-light p-3 rounded mb-4">
                                         <h5 class="mb-3" style="color: var(--primary);"><i class="fas fa-building me-2"></i> Datos del Equipo</h5>
                                         <div class="row">
@@ -1200,12 +1262,9 @@
                                                     <a href="{{ route('registration.team.download-template') }}" class="btn btn-sm btn-primary ms-2">
                                                         <i class="fas fa-download"></i> Descargar Plantilla Excel
                                                     </a>
-                                                    <hr class="my-2">
-                                                    <small class="d-block">La plantilla debe contener: ID, NOMBRES, APELLIDOS, FECHA_DE_NACIMIENTO, TIPO_DOCUMENTO, NÚMERO_DOCUMENTO, UCI ID, CATEGORÍA, GÉNERO, ROL</small>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <small class="text-muted">Formatos aceptados: .xlsx, .xls, .csv (máx 5MB)</small>
                                                 <div class="upload-area" id="uploadArea">
                                                     <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
                                                     <p>Arrastra tu archivo aquí o haz clic para seleccionar</p>
@@ -1213,7 +1272,6 @@
                                                     <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('excelFile').click()">Seleccionar archivo</button>
                                                     <div id="fileName" class="mt-2 small text-muted"></div>
                                                 </div>
-
                                             </div>
                                         </div>
                                     </div>
@@ -1337,7 +1395,7 @@
         </div>
     </section>
 
-    <!-- Modal de Términos -->
+    <!-- Modales (se mantienen igual) -->
     <div class="modal fade" id="termsModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -1350,14 +1408,12 @@
                     <ul>
                         <li>Todos los participantes deben contar con licencia de la FVC vigente o adquirir licencia de un día en el registro.</li>
                         <li>Los ciclistas menores de 18 años deben presentar autorización firmada por sus representantes legales.</li>
-                        <li>Cada equipo es responsable de la seguridad y documentos de sus integrantes durante el traslado y competencia.</li>
                         <li>El uso de casco es OBLIGATORIO durante toda la competencia.</li>
-                        <li>Las bicicletas deben cumplir con las normas UCI para competencias de ruta.</li>
                     </ul>
                     <h6 class="mt-3">Política de Reembolsos:</h6>
                     <p>Las inscripciones no son reembolsables, pero pueden ser transferidas a otro participante hasta 3 días antes del evento.</p>
                     <h6 class="mt-3">Protección de Datos:</h6>
-                    <p>Los datos proporcionados serán utilizados exclusivamente para fines organizativos y estadísticos de la Vuelta a la Fría 2026.</p>
+                    <p>Los datos proporcionados serán utilizados exclusivamente para fines organizativos y estadísticos.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
@@ -1366,7 +1422,6 @@
         </div>
     </div>
 
-    <!-- Modal de Éxito -->
     <div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -1384,9 +1439,6 @@
                             <tbody id="successDetailsTable"></tbody>
                         </table>
                     </div>
-                    <div class="mt-4">
-                        <p class="text-muted">Se ha enviado un correo con los detalles de tu inscripción.</p>
-                    </div>
                 </div>
                 <div class="modal-footer justify-content-center">
                     <button type="button" class="btn-custom" data-bs-dismiss="modal">Aceptar</button>
@@ -1395,7 +1447,6 @@
         </div>
     </div>
 
-    <!-- Modal de Estado -->
     <div class="modal fade" id="statusModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -1468,21 +1519,6 @@
         let vehicleIndex = 1;
         let searchTimeout = null;
 
-        // Inicializar Swiper
-        const testimonialSwiper = new Swiper('.testimonial-swiper', {
-            slidesPerView: 1,
-            spaceBetween: 20,
-            loop: true,
-            autoplay: { delay: 5000, disableOnInteraction: false },
-            pagination: { el: '.swiper-pagination', clickable: true },
-            breakpoints: {
-                0: { slidesPerView: 1 },
-                640: { slidesPerView: 1 },
-                768: { slidesPerView: 2 },
-                992: { slidesPerView: 3 }
-            }
-        });
-
         // FUNCIONES DE EDAD Y CATEGORÍA
         function getAgeFromBirthDate(birthDate) {
             if (!birthDate) return null;
@@ -1551,6 +1587,107 @@
             filterCategoriesByAge();
         });
 
+        // VALIDACIÓN AL ENVIAR FORMULARIO INDIVIDUAL
+        document.getElementById('individualFormSubmit')?.addEventListener('submit', function(e) {
+            // Validar campos de documento
+            const documentType = document.getElementById('document_type')?.value;
+            const documentNumber = document.querySelector('input[name="identification_document"]')?.value;
+            const nationality = document.querySelector('select[name="nationality"]')?.value;
+            const paymentMethod = document.getElementById('individual_payment_method')?.value;
+
+            let errors = [];
+
+            if (!documentType) {
+                errors.push('• Debes seleccionar el tipo de documento');
+                document.getElementById('document_type')?.classList.add('is-invalid');
+            }
+            if (!documentNumber || documentNumber.trim() === '') {
+                errors.push('• Debes ingresar el número de documento');
+                document.querySelector('input[name="identification_document"]')?.classList.add('is-invalid');
+            }
+            if (!nationality) {
+                errors.push('• Debes seleccionar tu nacionalidad');
+                document.querySelector('select[name="nationality"]')?.classList.add('is-invalid');
+            }
+            if (!paymentMethod) {
+                errors.push('• Debes seleccionar un método de pago');
+                document.getElementById('individual_payment_method')?.classList.add('is-invalid');
+            }
+            if (paymentMethod && paymentMethod !== 'efectivo') {
+                const reference = document.getElementById('individual_payment_reference')?.value;
+                const proofFile = document.getElementById('individualPaymentProofFile')?.files[0];
+                if (!reference || reference.trim() === '') {
+                    errors.push('• Debes ingresar el número de referencia de tu pago');
+                    document.getElementById('individual_payment_reference')?.classList.add('is-invalid');
+                }
+                if (!proofFile) {
+                    errors.push('• Debes subir el comprobante de pago');
+                }
+            }
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Campos requeridos',
+                    html: 'Por favor completa los siguientes campos:<br><br>' + errors.join('<br>'),
+                    confirmButtonColor: '#00ecfe'
+                });
+                return false;
+            }
+
+            // Mostrar loading
+            document.getElementById('loadingOverlay')?.classList.add('show');
+        });
+
+        // VALIDACIÓN AL ENVIAR FORMULARIO DE EQUIPOS
+        document.getElementById('teamRegistrationForm')?.addEventListener('submit', function(e) {
+            const paymentMethod = document.getElementById('payment_method')?.value;
+            let errors = [];
+
+            if (!paymentMethod) {
+                errors.push('• Debes seleccionar un método de pago');
+                document.getElementById('payment_method')?.classList.add('is-invalid');
+            }
+            if (paymentMethod && paymentMethod !== 'efectivo') {
+                const reference = document.getElementById('payment_reference')?.value;
+                const proofFile = document.getElementById('paymentProof')?.files[0];
+                if (!reference || reference.trim() === '') {
+                    errors.push('• Debes ingresar el número de referencia de tu pago');
+                    document.getElementById('payment_reference')?.classList.add('is-invalid');
+                }
+                if (!proofFile) {
+                    errors.push('• Debes subir el comprobante de pago');
+                }
+            }
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Campos requeridos',
+                    html: errors.join('<br>'),
+                    confirmButtonColor: '#00ecfe'
+                });
+                return false;
+            }
+
+            // Mostrar loading
+            document.getElementById('loadingOverlay')?.classList.add('show');
+        });
+
+        // Limpiar clases de error al cambiar valores
+        document.getElementById('document_type')?.addEventListener('change', function() { this.classList.remove('is-invalid'); });
+        document.querySelector('input[name="identification_document"]')?.addEventListener('input', function() { this.classList.remove('is-invalid'); });
+        document.querySelector('select[name="nationality"]')?.addEventListener('change', function() { this.classList.remove('is-invalid'); });
+        document.getElementById('individual_payment_method')?.addEventListener('change', function() { this.classList.remove('is-invalid'); });
+        document.getElementById('payment_method')?.addEventListener('change', function() { this.classList.remove('is-invalid'); });
+
+        // Ocultar loading si hay errores
+        @if($errors->any())
+        document.getElementById('loadingOverlay')?.classList.remove('show');
+        @endif
+
         // FUNCIONES DE FORMULARIO
         function selectRegistrationType(type) {
             if (type === 'individual') {
@@ -1564,42 +1701,24 @@
         }
 
         function showIndividualForm() {
-            const individualForm = document.getElementById('individualForm');
-            const teamForm = document.getElementById('teamForm');
-            const btnIndividual = document.getElementById('btnIndividual');
-            const btnTeam = document.getElementById('btnTeam');
-            if (individualForm) individualForm.style.display = 'block';
-            if (teamForm) teamForm.style.display = 'none';
-            if (btnIndividual) btnIndividual.classList.add('active');
-            if (btnTeam) btnTeam.classList.remove('active');
-            setTimeout(() => {
-                if (individualForm) individualForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+            document.getElementById('individualForm').style.display = 'block';
+            document.getElementById('teamForm').style.display = 'none';
+            document.getElementById('btnIndividual').classList.add('active');
+            document.getElementById('btnTeam').classList.remove('active');
         }
 
         function showTeamForm() {
-            const individualForm = document.getElementById('individualForm');
-            const teamForm = document.getElementById('teamForm');
-            const btnIndividual = document.getElementById('btnIndividual');
-            const btnTeam = document.getElementById('btnTeam');
-            if (individualForm) individualForm.style.display = 'none';
-            if (teamForm) teamForm.style.display = 'block';
-            if (btnIndividual) btnIndividual.classList.remove('active');
-            if (btnTeam) btnTeam.classList.add('active');
-            setTimeout(() => {
-                if (teamForm) teamForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+            document.getElementById('individualForm').style.display = 'none';
+            document.getElementById('teamForm').style.display = 'block';
+            document.getElementById('btnIndividual').classList.remove('active');
+            document.getElementById('btnTeam').classList.add('active');
         }
 
         function hideForms() {
-            const individualForm = document.getElementById('individualForm');
-            const teamForm = document.getElementById('teamForm');
-            const btnIndividual = document.getElementById('btnIndividual');
-            const btnTeam = document.getElementById('btnTeam');
-            if (individualForm) individualForm.style.display = 'none';
-            if (teamForm) teamForm.style.display = 'none';
-            if (btnIndividual) btnIndividual.classList.remove('active');
-            if (btnTeam) btnTeam.classList.remove('active');
+            document.getElementById('individualForm').style.display = 'none';
+            document.getElementById('teamForm').style.display = 'none';
+            document.getElementById('btnIndividual').classList.remove('active');
+            document.getElementById('btnTeam').classList.remove('active');
         }
 
         function toggleStructureField() {
@@ -1870,40 +1989,37 @@
         @endif
 
         // Modal de éxito
-        // Reemplaza el modal de éxito por este:
-
         @if(session('success_modal'))
         document.addEventListener('DOMContentLoaded', function() {
             var details = @json(session('success_details'));
             var table = document.getElementById('successDetailsTable');
             if (table && details) {
                 var html = '';
-
-                // Si es un equipo (tiene campo 'equipo')
                 if (details.equipo) {
-                    html = '<tr><td class="fw-bold" align="left">🏢 Equipo:          </td><td>' + (details.equipo || '')                                + '</td></tr>' +
-                           '<tr><td class="fw-bold" align="left">🔑 Código de acceso:</td><td><span class="badge bg-primary">' + (details.codigo || '') + '</span></td></tr>' +
-                           '<tr><td class="fw-bold" align="left">👥 Atletas:         </td><td>' + (details.atletas || '0')                              + '</td></tr>' +
-                           '<tr><td class="fw-bold" align="left">👤 Staff:           </td><td>' + (details.staff || '0')                                + '</td></tr>' +
-                           '<tr><td class="fw-bold" align="left">💰 Total a pagar:   </td><td class="text-success fw-bold">' + (details.total || '$0')  + '</td></tr>' +
-                           '<tr><td class="fw-bold" align="left">📧 Email contacto:  </td><td>' + (details.email || '')                                 + '</td></tr>';
+                    html = '<tr><td class="fw-bold">🏢 Equipo:</td><td>' + (details.equipo || '') + '</td></tr>' +
+                        '<tr><td class="fw-bold">🔑 Código:</td><td><span class="badge bg-primary">' + (details.codigo || '') + '</span></td></tr>' +
+                        '<tr><td class="fw-bold">👥 Atletas:</td><td>' + (details.atletas || '0') + '</td></tr>' +
+                        '<tr><td class="fw-bold">👤 Staff:</td><td>' + (details.staff || '0') + '</td></tr>' +
+                        '<tr><td class="fw-bold">💰 Total:</td><td class="text-success fw-bold">' + (details.total || '$0') + '</td></tr>';
                 } else {
-                    // Para individual
-                    html = '<tr><td class="fw-bold" align="left">👤 Ciclista:    </td> <td> ' + (details.nombre || '')                                + '</td></tr>' +
-                           '<tr><td class="fw-bold" align="left">🏆 Categoría:   </td> <td> ' + (details.categoria || '')                             + '</td></tr>' +
-                           '<tr><td class="fw-bold" align="left">🏢 Estructura:  </td> <td> ' + (details.estructura || 'Independiente')               + '</td></tr>' +
-                           '<tr><td class="fw-bold" align="left">📧 Email:       </td> <td> ' + (details.email || '')                                 + '</td></tr>';
+                    html = '<tr><td class="fw-bold">👤 Ciclista:</td><td>' + (details.nombre || '') + '</td></tr>' +
+                        '<tr><td class="fw-bold">🏆 Categoría:</td><td>' + (details.categoria || '') + '</td></tr>' +
+                        '<tr><td class="fw-bold">🏢 Estructura:</td><td>' + (details.estructura || 'Independiente') + '</td></tr>' +
+                        '<tr><td class="fw-bold">📧 Email:</td><td>' + (details.email || '') + '</td></tr>';
                 }
-
                 table.innerHTML = html;
             }
             document.getElementById('successMessage').innerHTML = '{{ session('success_message') }}';
             new bootstrap.Modal(document.getElementById('successModal')).show();
             hideForms();
+            document.getElementById('loadingOverlay')?.classList.remove('show');
         });
         @endif
 
-        // Modal de estado
+        @if(session('error'))
+        Swal.fire({ icon: 'error', title: 'Error', text: {!! json_encode(session('error')) !!}, confirmButtonColor: '#00ecfe' });
+        @endif
+
         @if(session('show_status_modal'))
         document.addEventListener('DOMContentLoaded', function() {
             var statusData = @json(session('status_data'));

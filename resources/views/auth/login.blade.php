@@ -9,8 +9,7 @@
                 <div class="w-100" style="max-width: 380px; padding: 2rem;">
                     <!-- Logo -->
                     <div class="text-center mb-5">
-                        <img src="{{ URL::asset('build/images/logo-dark.png') }}" alt="Vuelta a la Fria" height="60" class="mb-3">
-                        <h2 class="fw-bold mb-1" style="color: #0c192c;">¡Bienvenido!</h2>
+                         <h2 class="fw-bold mb-1" style="color: #0c192c;">¡Bienvenido!</h2>
                         <p class="text-muted">Inicia sesión para continuar</p>
                     </div>
 

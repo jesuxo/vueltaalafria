@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title')
-    Dashboard - Stars Motors
+    Dashboard - Vuelt a la Fria 2026
 @endsection
 @section('css')
     <style>
@@ -412,150 +412,11 @@
             </p>
         </div>
         <div class="d-flex gap-2 align-items-center">
-            <!-- Contador de mantenimientos más compacto -->
-            <a href="{{ route('mantenimientos.diario') }}" class="text-decoration-none">
-                <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-pill" style="background: #f0f7ff; border: 1px solid #0072c5;">
-                    <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 32px; height: 32px; background: #0072c5;">
-                        <i class="ri-tools-line text-white" style="font-size: 16px;"></i>
-                    </div>
-                    <div>
-                        <span class="fw-bold" style="color: #0c192c; font-size: 1.1rem;" id="mantenimientosCount">
-                            Contando...
-                        </span>
-                        <span class="text-muted small d-none d-sm-inline">servicios hoy</span>
-                    </div>
-                    <i class="ri-arrow-right-s-line text-muted"></i>
-                </div>
-            </a>
-
-            <!-- Botón Registro Express -->
-
-            <a href="{{ route('mantenimiento.rapido') }}" class="d-flex align-items-center gap-2 px-3 py-2 rounded-pill" style="background: #f0f7ff; border: 1px solid #0072c5;">
-                <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 32px; height: 32px; background: #0072c5;">
-                    <i class="ri-flashlight-fill text-white" style="font-size: 16px;"></i>
-                </div>
-                <div>
-                    <span class="fw-bold" style="color: #0c192c; font-size: 1.1rem;" >Registro Express</span>
-
-                </div>
-                <i class="ri-arrow-right-s-line text-muted"></i>
-            </a>
 
         </div>
     </div>
 
-    <!-- Script para cargar el contador (mantén el que ya tienes) -->
 
-
-    <!-- Grid de acceso rápido -->
-    <div class="quick-grid mb-4">
-        <a href="/resumenVentas" class="quick-grid-item">
-            <i class="ph-wallet"></i>
-            <span>Resumen Ventas</span>
-        </a>
-        <a href="/existencias" class="quick-grid-item">
-            <i class="ph-sketch-logo text-success"></i>
-            <span>Inventario</span>
-        </a>
-        <a href="/cxc" class="quick-grid-item">
-            <i class="ph-currency-dollar-bold"></i>
-            <span>Cuentas x Cobrar</span>
-        </a>
-        <a href="/existencia/lubricantes" class="quick-grid-item">
-            <i class="ri-oil-fill text-warning"></i>
-            <span>Exist. Lubricantes</span>
-        </a>
-    </div>
-
-
-    <!-- Sección de Ventas por Categoría -->
-    <div class="section-card">
-        <div class="section-header">
-            <h5>
-                <i class="ri-bar-chart-2-line"></i>
-                Ventas por Categoría
-            </h5>
-
-        </div>
-        <div class="section-body">
-            <div class="category-menu">
-                <a href="/reporte/lubricantes" class="category-item">
-                    <div class="category-icon" style="color: #0072c5;">
-                        <i class="ri-oil-line"></i>
-                    </div>
-                    <h6>Lubricantes</h6>
-                    <small>345 ventas</small>
-                </a>
-                <a href="/reporte/filtros" class="category-item">
-                    <div class="category-icon" style="color: #7c6bff;">
-                        <i class="mdi mdi-air-filter"></i>
-                    </div>
-                    <h6>Filtros</h6>
-                    <small  style="display: none">234 ventas</small>
-                </a>
-                <a href="/reporte/baterias" class="category-item">
-                    <div class="category-icon" style="color: #06d6a0;">
-                        <i class="bi-battery-charging"></i>
-                    </div>
-                    <h6>Baterías</h6>
-                    <small  style="display: none">123 ventas</small>
-                </a>
-                <a href="/reporte/neumaticos" class="category-item" style="display: none">
-                    <div class="category-icon" style="color: #f1be46;">
-                        <i class="ri-tire-line"></i>
-                    </div>
-                    <h6>Neumáticos</h6>
-                    <small  style="display: none">89 ventas</small>
-                </a>
-            </div>
-        </div>
-    </div>
-
-
-
-    <!-- Accesos Rápidos Adicionales -->
-    <div class="row g-4">
-        <div class="col-md-3">
-            <div class="quick-access-card primary">
-                <div class="icon-wrapper">
-                    <i class="ph-wallet"></i>
-                </div>
-                <h4>Ventas por Sucursal</h4>
-                <p>Reporte de unidades vendidas</p>
-                <a href="/ventas/productos/sucursales" class="stretched-link"></a>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="quick-access-card success">
-                <div class="icon-wrapper">
-                    <i class="bi-border-top"></i>
-                </div>
-                <h4>Resultado General</h4>
-                <p>Análisis de resultados</p>
-                <a href="/ventas/resultado" class="stretched-link"></a>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="quick-access-card warning">
-                <div class="icon-wrapper">
-                    <i class="ri-file-copy-line"></i>
-                </div>
-                <h4>Mantenimientos</h4>
-                <p>Historial HOY</p>
-                <a href="/mantenimientos/diario" class="stretched-link"></a>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="quick-access-card purple">
-                <div class="icon-wrapper">
-                    <i class="ri-user-line"></i>
-                </div>
-                <h4>Clientes</h4>
-                <p>Gestión de clientes</p>
-                <a href="/clientes" class="stretched-link"></a>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @section('scripts')
@@ -564,19 +425,6 @@
 
     <script>
 
-            $(document).ready(function() {
-                cargarMantenimientosDelDia();
-                setInterval(cargarMantenimientosDelDia, 300000);
-            });
 
-            function cargarMantenimientosDelDia() {
-                $.ajax({
-                    url: '/mantenimientos/diario/count',
-                    method: 'GET',
-                    success: function(response) {
-                        $('#mantenimientosCount').html(response || 0);
-                    }
-                });
-            }
     </script>
 @endsection

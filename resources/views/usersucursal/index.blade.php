@@ -176,12 +176,12 @@
                             html += `
                                 <div class="usuario-card">
                                     <div class="usuario-header" data-user-id="${usuario.id}">
-                                        <h6 style="text-transform: uppercase">${usuario.first_name} ${usuario.last_name}</h6>
+                                        <h6 style="text-transform: uppercase">${usuario.name}  </h6>
                                         <i class="mdi mdi-chevron-down float-right"></i>
                                     </div>
                                     <div class="usuario-content" id="usuario-${usuario.id}">
                                         <div class="drag-user" data-user-id="${usuario.id}">
-                                            <strong>👤 ${usuario.first_name} ${usuario.last_name}</strong><br>
+                                            <strong>👤 ${usuario.name}</strong><br>
                                             <small class="text-muted">${usuario.email}</small>
                                         </div>
                                         <div class="mt-3">

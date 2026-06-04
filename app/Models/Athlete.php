@@ -10,7 +10,7 @@ class Athlete extends Model
     protected $table = 'athletes';
 
     protected $fillable = [
-        'first_name', 'last_name', 'dorsal_number', 'team_id',
+        'first_name', 'last_name', 'dorsal_number', 'team_id','document_type','document_number','uci_id',
         'gender', 'category', 'birth_date', 'nationality', 'is_active'
     ];
 

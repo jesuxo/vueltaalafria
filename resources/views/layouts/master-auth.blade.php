@@ -10,19 +10,19 @@
     <link rel="shortcut icon" href="{{ URL::asset('build/images/favicon.ico') }}">
 
 
-    <title>https://www.starsmotors.com.ve - SISDATO</title>
-    <meta name="description" content="Stars Motors">
-    <link rel="canonical" href="https://www.starsmotors.com.ve">
-    <meta property="og:title" content="https://www.starsmotors.com.ve - SISDATO">
-    <meta property="og:description" content=" Stars Motors">
+    <title>https://www.vueltaalafria.com - SISDATO</title>
+    <meta name="description" content="Vuelt a la Fria 2026">
+    <link rel="canonical" href="https://www.vueltaalafria.com">
+    <meta property="og:title" content="https://www.vueltaalafria.com - SISDATO">
+    <meta property="og:description" content=" Vuelt a la Fria 2026">
     <meta property="og:type" content="WebPage">
-    <meta property="og:image" content="https://starsmotors.com.ve/build/images/logo.png">
-    <meta property="og:url" content="https://starsmotors.com.ve">
+    <meta property="og:image" content="https://vueltaalafria.com/build/images/logo.png">
+    <meta property="og:url" content="https://vueltaalafria.com">
 
-    <meta name="twitter:title" content="https://www.starsmotors.com.ve - SISDATO ">
-    <meta name="twitter:description" content=" Stars Motors ">
-    <meta name="twitter:site" content="@starsmotorsve">
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Stars Motors","description":" "}</script>
+    <meta name="twitter:title" content="https://www.vueltaalafria.com - SISDATO ">
+    <meta name="twitter:description" content=" Vuelt a la Fria 2026 ">
+    <meta name="twitter:site" content="@vueltalafria">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Vuelt a la Fria 2026","description":" "}</script>
 
 
     <script

@@ -42,19 +42,15 @@ class RegistrationController extends Controller
      */
     private function savePaymentProofIndividual($file, $athleteId)
     {
-
         $extension = strtolower($file->getClientOriginalExtension());
         $filename = time() . '_individual_' . $athleteId;
 
         // Directorio donde se guardarán los comprobantes
         $uploadDir = public_path('img/comprobantes');
 
-
         // Crear directorio si no existe
         if (!file_exists($uploadDir)) {
-
-            $created = mkdir($uploadDir, 0777, true);
-
+            mkdir($uploadDir, 0777, true);
         }
 
         // Procesar según el tipo de archivo
@@ -63,10 +59,8 @@ class RegistrationController extends Controller
             $finalPath = $uploadDir . '/' . $finalFilename;
             $tempPath = $file->getPathname();
 
-
             // Verificar que GD esté instalado
             if (!extension_loaded('gd')) {
-                // Guardar el archivo sin compresión
                 $file->move($uploadDir, $finalFilename);
                 return 'img/comprobantes/' . $finalFilename;
             }
@@ -97,9 +91,7 @@ class RegistrationController extends Controller
                     imagejpeg($image, $finalPath, 70);
                     imagedestroy($image);
                     return 'img/comprobantes/' . $finalFilename;
-                } else {
                 }
-            } else {
             }
 
             $file->move($uploadDir, $filename . '.' . $extension);
@@ -227,6 +219,8 @@ class RegistrationController extends Controller
 
     public function individualSubmit(Request $request)
     {
+
+// Validación con reglas actualizadas - AHORA LOS DOCUMENTOS SON REQUERIDOS
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -237,13 +231,15 @@ class RegistrationController extends Controller
             'birth_date' => 'required|date|before:today',
             'emergency_contact' => 'required|string',
             'accept_terms' => 'required|accepted',
+            // CAMPOS DE DOCUMENTO - AHORA REQUERIDOS
+            'document_type' => 'required|string|in:CEDULA,PASAPORTE',
+            'identification_document' => 'required|string|max:50|regex:/^[0-9A-Z-]+$/i',
+            'nationality' => 'required|string|max:100',
             'has_structure' => 'nullable|in:0,1',
             'structure_name' => 'required_if:has_structure,1|nullable|string|max:255',
-            'payment_method' => 'nullable|string',
-            'payment_reference' => 'nullable|string',
-            'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'document_type' => 'nullable|string|max:10|in:V,E,P,J,CEDULA',
-            'identification_document' => 'nullable|string|max:50|required_with:document_type|regex:/^[0-9A-Z-]+$/i',
+            'payment_method' => 'required|string|in:transferencia,bancolombia,usdt,efectivo',
+            'payment_reference' => 'required_if:payment_method,transferencia,bancolombia,usdt|nullable|string',
+            'payment_proof' => 'required_if:payment_method,transferencia,bancolombia,usdt|nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ], [
             'first_name.required' => 'El campo Nombres es obligatorio.',
             'last_name.required' => 'El campo Apellidos es obligatorio.',
@@ -256,9 +252,19 @@ class RegistrationController extends Controller
             'birth_date.before' => 'La fecha de nacimiento debe ser anterior a hoy.',
             'emergency_contact.required' => 'El contacto de emergencia es obligatorio.',
             'accept_terms.accepted' => 'Debes aceptar los términos y condiciones.',
-            'structure_name.required_if' => 'Debes ingresar el nombre de la Escuela/Club/Fundación/Sponsor que representas.',
-            'identification_document.required_with' => 'El número de documento es obligatorio cuando seleccionas un tipo de documento.',
+            // MENSAJES PARA DOCUMENTOS
+            'document_type.required' => 'Debes seleccionar el tipo de documento.',
+            'document_type.in' => 'El tipo de documento seleccionado no es válido.',
+            'identification_document.required' => 'El número de documento es obligatorio.',
             'identification_document.regex' => 'El número de documento solo puede contener números, letras y guiones.',
+            'nationality.required' => 'Debes seleccionar tu nacionalidad.',
+            'structure_name.required_if' => 'Debes ingresar el nombre de la Escuela/Club/Fundación/Sponsor que representas.',
+            'payment_method.required' => 'Debes seleccionar un método de pago.',
+            'payment_reference.required_if' => 'Debes ingresar el número de referencia de tu pago.',
+            'payment_proof.required_if' => 'Debes subir el comprobante de pago.',
+            'payment_proof.file' => 'El comprobante debe ser un archivo válido.',
+            'payment_proof.mimes' => 'El comprobante debe ser JPG, PNG o PDF.',
+            'payment_proof.max' => 'El comprobante no debe superar los 2MB.',
         ]);
 
         if ($validator->fails()) {
@@ -346,6 +352,8 @@ class RegistrationController extends Controller
                 $athlete->save();
             }
         } else {
+            $tipodoc = $request->document_type;
+
             $athlete = Athlete::create([
                 'first_name'      => strtoupper($request->first_name),
                 'last_name'       => strtoupper($request->last_name),
@@ -355,7 +363,7 @@ class RegistrationController extends Controller
                 'category'        => $this->mapCategory($request->category, $request->gender),
                 'birth_date'      => $request->birth_date,
                 'nationality'     => $request->nationality ?? 'Venezolana',
-                'document_type'   => $request->document_type,
+                'document_type'   => $tipodoc,
                 'document_number' => $request->identification_document,
                 'is_active'       => true
             ]);
@@ -371,9 +379,7 @@ class RegistrationController extends Controller
             'status'        => 'registered'
         ]);
 
-        // ==============================================
         // GUARDAR COMPROBANTE DE PAGO PARA INDIVIDUAL
-        // ==============================================
         $paymentProofPath = null;
         if ($request->hasFile('payment_proof')) {
             $paymentProofPath = $this->savePaymentProofIndividual($request->file('payment_proof'), $athlete->id);
@@ -394,13 +400,16 @@ class RegistrationController extends Controller
             'status'            => 'pending',
             'amount'            => $amount,
             'payment_method'    => $request->payment_method,
-            'payment_reference' => $request->payment_reference,
+            'payment_reference' => $request->payment_method != 'efectivo' ? $request->payment_reference : null,
             'payment_proof'     => $paymentProofPath,
             'payment_status'    => $request->payment_method === 'efectivo' ? 'pending' : 'pending',
             'notes'             => json_encode([
                 'emergency_contact' => $request->emergency_contact,
                 'structure_name'    => $structureName,
-                'has_structure'     => $request->has_structure
+                'has_structure'     => $request->has_structure,
+                'nationality'       => $request->nationality,
+                'document_type'     => $request->document_type,
+                'document_number'   => $request->identification_document
             ]),
             'registered_at'     => now()
         ]);
@@ -409,17 +418,10 @@ class RegistrationController extends Controller
         if ($structureName) {
             $structureMessage = " Representas a: {$structureName}.";
         }
-/*
-        try {
-            Mail::to($request->email)->send(new IndividualRegistrationMail($registration, $athlete));
-        } catch (\Exception $e) {
-
-        }
-*/
 
         try {
             $whatsappHelper = new WhatsAppHelper();
-            $phone = str_replace('+', '', $request->phone); // Formato: 584247371101
+            $phone = str_replace('+', '', $request->phone);
             $whatsappHelper->sendIndividualRegistration(
                 $phone,
                 $athlete->first_name . ' ' . $athlete->last_name,
@@ -427,8 +429,7 @@ class RegistrationController extends Controller
                 $athlete->category
             );
         } catch (\Exception $e) {
-
-            // No detenemos el flujo, solo registramos el error
+            // No detenemos el flujo
         }
 
         return redirect()->route('home')

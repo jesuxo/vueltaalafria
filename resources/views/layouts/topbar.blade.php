@@ -31,20 +31,10 @@
                     </span>
                 </button>
 
-                <button onclick="focusbusqueda()" type="button" class="btn btn-sm px-3 fs-15 user-name-text header-item d-none d-md-block" data-bs-toggle="modal" data-bs-target="#searchModal">
-                    <span class="bi bi-search me-2"></span> Busqueda...
-                </button>
-                <script>
-                    function selectinput(){
-                        $('#search-options').select();
-                    }
-                    function focusbusqueda(){
-                        $('#searchModal').modal('show');
-                        setTimeout(selectinput, 600);
-                    }
-                </script>
+
+
                 @else
-                    Usuario: {{auth()->user()->first_name}} {{auth()->user()->last_nae}}
+                    Usuario: {{auth()->user()->name}}
                 @endif
 
             </div>
@@ -264,58 +254,7 @@
                     </div>
                 </div>
 
-                @if(Auth::user() and auth()->user()->type == 'admin')
-                <div class="dropdown topbar-head-dropdown ms-1 header-item dropdown-hover-end"  >
-                    <button type="button" class="btn btn-icon btn-topbar btn-ghost-dark rounded-circle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="bi bi-arrow-left-right align-middle fs-20 "></i>
-                    </button>
-                    <div class="dropdown-menu p-2 dropdown-menu-end" id="light-dark-mode" style="width: 400px">
-                        <div class="dropdown-head rounded-top">
-                            <div class="p-3 border-bottom border-bottom-dashed">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <h6 class="mb-0 fs-16 fw-semibold"> Grupo de empresas
-                                            <span class="badge bg-danger-subtle text-danger  fs-13 notification-badge">
-                                                @php $count = 0;@endphp
-                                                @if(isset($comerciales))
-                                                    @foreach($comerciales as $comercial)
-                                                        @php @$count++;@endphp
-                                                    @endforeach
-                                                @endif
-                                                {{$count}}
-                                            </span>
-                                        </h6>
-                                        <p class="fs-14 text-muted mt-1 mb-0"> Seleccione el grupo que necesita consutar </p>
-                                    </div>
-                                    <div class="col-auto dropdown" style="display: none">
-                                        <a href="javascript:void(0);" data-bs-toggle="dropdown" class="link-secondar2 fs-15" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></a>
-                                        <ul class="dropdown-menu" style="">
-                                            <li><a class="dropdown-item" href="#">All Clear</a></li>
-                                            <li><a class="dropdown-item" href="#">Mark all as read</a></li>
-                                            <li><a class="dropdown-item" href="#">Archive All</a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
 
-                        </div>
-                        @php
-                        $comerciales = \App\Models\Sacomercial::orderBy('id')->get();
-                        @endphp
-                        @if(isset($comerciales) and Auth::user() and auth()->user()->type == 'admin')
-                            @foreach($comerciales as $comercial)
-                                <a href="/cambiarcomercial/{{$comercial->id}}"
-                                   class="dropdown-item @if(session('comercialid') == $comercial->id) text-primary @endif" data-mode="light">
-                                    <i class="bi bi-shop"></i>
-                                    @if(session('comercialid') == $comercial->id)
-                                        >>
-                                    @endif
-                                    {{$comercial->descrip}}</a>
-                            @endforeach
-                        @endif
-                    </div>
-                </div>
-                @endif
 
                 <div class="dropdown topbar-head-dropdown ms-1 header-item dropdown-hover-end" style="display:none;">
                     <button type="button" class="btn btn-icon btn-topbar btn-ghost-dark rounded-circle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -484,19 +423,17 @@
                         <span class="d-flex align-items-center">
                             <img class="rounded-circle header-profile-user" src="@if(@Auth::user()->avatar) {{ URL::asset('images/users/')."/". @Auth::user()->avatar}} @else {{ URL::asset('build/images/users/avatar-1.jpg') }} @endif" alt="Header Avatar">
                             <span class="text-start ms-xl-2">
-                                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{{ @Auth::user()->first_name  }}</span>
+                                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{{ @Auth::user()->name  }}</span>
                                 <span class="d-none d-xl-block ms-1 fs-13 user-name-sub-text " style="display: none !important;">Founder</span>
                             </span>
                         </span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end">
                         <!-- item-->
-                        <h6 class="dropdown-header"> {{@Auth::user()->first_name}} {{@Auth::user()->last_name}}</h6>
+                        <h6 class="dropdown-header"> {{@Auth::user()->name}}  </h6>
                         <a class="dropdown-item" style="display: none" href="account"><i class="bi bi-person-circle text-muted fs-15 align-middle me-1"></i> <span class="align-middle">Profile</span></a>
                         <a class="dropdown-item" style="display: none"href="calendar"><i class="bi bi-cart4 text-muted fs-15 align-middle me-1"></i> <span class="align-middle">Order Track</span></a>
-                        @if(Auth::user() and auth()->user()->type == 'admin')
-                            <a class="dropdown-item" href="/productos"><i class="bi bi-box-seam text-muted fs-15 align-middle me-1"></i> <span class="align-middle">Productos</span></a>
-                        @endif
+
                         <a class="dropdown-item"  style="display: none" href="javascript:void(0)"><span class="badge bg-success-subtle text-success float-end ms-2">New</span><i class="bi bi-cassette text-muted fs-15 align-middle me-1"></i> <span class="align-middle">Frontend</span></a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="account-setting"  style="display: none"><i class="bi bi-gear text-muted fs-15 align-middle me-1"></i> <span class="align-middle">Settings</span></a>
@@ -508,118 +445,6 @@
     </div>
 </header>
 
-
-<!-- Modal -->
-<div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content rounded">
-            <div class="modal-header p-3">
-                <div class="position-relative w-100">
-                    <input type="text" class="form-control form-control-lg border-2 busquedaproductos"
-                           placeholder="Busqueda de productos..." autocomplete="off"
-                           id="search-options" value="">
-                    <span class="bi bi-search search-widget-icon fs-17"></span>
-                    <a href="javascript:void(0);" class="search-widget-icon fs-14 link-secondary text-decoration-underline search-widget-icon-close d-none" id="search-close-options">Limpiar</a>
-                </div>
-            </div>
-            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0 overflow-hidden" id="search-dropdown">
-
-                <div class="dropdown-head rounded-top">
-                    <div class="p-3">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <h6 class="m-0 fs-14 text-muted fw-semibold"> Coincidencias con la busqueda </h6>
-                            </div>
-                            <div class="col" style="text-align: right">
-                                <h6 class="m-0 fs-14 text-muted fw-semibold" id="textbusqueda"> Coincidencias con la busqueda </h6>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="dropdown-item bg-transparent text-wrap" id="ajaxbusquedaproductos">
-
-                    </div>
-
-                    <script>
-
-                        $( document ).ready(function() {
-                            $('.busquedaproductos').unbind('change').bind('change',function () {
-
-                                var busqueda  = $(this).val();
-                                console.log(busqueda);
-                                if(busqueda != '')
-                                    $('#textbusqueda').html("Busqueda: "+busqueda);
-
-                                $('#ajaxbusquedaproductos').html('<button class="btn btn-outline-primary btn-load"><span class="d-flex align-items-center"><span class="spinner-border flex-shrink-0" role="status"> <span class="visually-hidden"> Cargando...</span> </span> <span class="flex-grow-1 ms-2">Cargando... </span> </span> </button>');
-
-                                $.ajax({
-                                    type: 'POST',
-                                    url: '/saprod/home/busqueda',
-                                    headers: {
-                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                                    },
-                                    data:{ busqueda: busqueda },
-                                    success: function (response) {
-                                        $('#ajaxbusquedaproductos').html(response);
-                                    }
-                                });
-                            });
-                        });
-
-                    </script>
-                </div>
-
-                <div data-simplebar style=" display:none !important; max-height: 300px;" class="pe-2 ps-3 mt-3">
-                    <div class="list-group list-group-flush border-dashed">
-                        <div class="notification-group-list">
-                            <h5 class="text-overflow text-muted fs-13 mb-2 mt-3 text-uppercase notification-title">Apps Pages</h5>
-                            <a href="javascript:void(0);" class="list-group-item dropdown-item notify-item"><i class="bi bi-speedometer2 me-2"></i> <span>Analytics Dashboard</span></a>
-                            <a href="javascript:void(0);" class="list-group-item dropdown-item notify-item"><i class="bi bi-filetype-psd me-2"></i> <span>Toner.psd</span></a>
-                            <a href="javascript:void(0);" class="list-group-item dropdown-item notify-item"><i class="bi bi-ticket-detailed me-2"></i> <span>Support Tickets</span></a>
-                            <a href="javascript:void(0);" class="list-group-item dropdown-item notify-item"><i class="bi bi-file-earmark-zip me-2"></i> <span>Toner.zip</span></a>
-                        </div>
-
-                        <div class="notification-group-list">
-                            <h5 class="text-overflow text-muted fs-13 mb-2 mt-3 text-uppercase notification-title">Links</h5>
-                            <a href="javascript:void(0);" class="list-group-item dropdown-item notify-item"><i class="bi bi-link-45deg me-2 align-middle"></i> <span>www.themesbrand.com</span></a>
-                        </div>
-
-                        <div class="notification-group-list">
-                            <h5 class="text-overflow text-muted fs-13 mb-2 mt-3 text-uppercase notification-title">People</h5>
-                            <a href="javascript:void(0);" class="list-group-item dropdown-item notify-item">
-                                <div class="d-flex align-items-center">
-                                    <img src="{{ URL::asset('build/images/users/avatar-1.jpg') }}" alt="" class="avatar-xs rounded-circle flex-shrink-0 me-2">
-                                    <div>
-                                        <h6 class="mb-0">Ayaan Bowen</h6>
-                                        <span class="fs-12 text-muted">React Developer</span>
-                                    </div>
-                                </div>
-                            </a>
-                            <a href="javascript:void(0);" class="list-group-item dropdown-item notify-item">
-                                <div class="d-flex align-items-center">
-                                    <img src="{{ URL::asset('build/images/users/avatar-7.jpg') }}" alt="" class="avatar-xs rounded-circle flex-shrink-0 me-2">
-                                    <div>
-                                        <h6 class="mb-0">Alexander Kristi</h6>
-                                        <span class="fs-12 text-muted">React Developer</span>
-                                    </div>
-                                </div>
-                            </a>
-                            <a href="javascript:void(0);" class="list-group-item dropdown-item notify-item">
-                                <div class="d-flex align-items-center">
-                                    <img src="{{ URL::asset('build/images/users/avatar-5.jpg') }}" alt="" class="avatar-xs rounded-circle flex-shrink-0 me-2">
-                                    <div>
-                                        <h6 class="mb-0">Alan Carla</h6>
-                                        <span class="fs-12 text-muted">React Developer</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- removeNotificationModal -->
 <div id="removeNotificationModal" class="modal fade zoomIn" tabindex="-1" aria-hidden="true">
