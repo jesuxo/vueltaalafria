@@ -237,12 +237,13 @@ class RegistrationController extends Controller
             'birth_date' => 'required|date|before:today',
             'emergency_contact' => 'required|string',
             'accept_terms' => 'required|accepted',
-            'identification_document' => 'nullable|string|max:50',
             'has_structure' => 'nullable|in:0,1',
             'structure_name' => 'required_if:has_structure,1|nullable|string|max:255',
             'payment_method' => 'nullable|string',
             'payment_reference' => 'nullable|string',
-            'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'document_type' => 'nullable|string|max:10|in:V,E,P,J,CEDULA',
+            'identification_document' => 'nullable|string|max:50|required_with:document_type|regex:/^[0-9A-Z-]+$/i',
         ], [
             'first_name.required' => 'El campo Nombres es obligatorio.',
             'last_name.required' => 'El campo Apellidos es obligatorio.',
@@ -255,7 +256,9 @@ class RegistrationController extends Controller
             'birth_date.before' => 'La fecha de nacimiento debe ser anterior a hoy.',
             'emergency_contact.required' => 'El contacto de emergencia es obligatorio.',
             'accept_terms.accepted' => 'Debes aceptar los términos y condiciones.',
-            'structure_name.required_if' => 'Debes ingresar el nombre de la Escuela/Club/Fundación/Sponsor que representas.'
+            'structure_name.required_if' => 'Debes ingresar el nombre de la Escuela/Club/Fundación/Sponsor que representas.',
+            'identification_document.required_with' => 'El número de documento es obligatorio cuando seleccionas un tipo de documento.',
+            'identification_document.regex' => 'El número de documento solo puede contener números, letras y guiones.',
         ]);
 
         if ($validator->fails()) {
@@ -352,7 +355,7 @@ class RegistrationController extends Controller
                 'category'        => $this->mapCategory($request->category, $request->gender),
                 'birth_date'      => $request->birth_date,
                 'nationality'     => $request->nationality ?? 'Venezolana',
-                'document_type'   => $request->document_type ?? 'V',
+                'document_type'   => $request->document_type,
                 'document_number' => $request->identification_document,
                 'is_active'       => true
             ]);

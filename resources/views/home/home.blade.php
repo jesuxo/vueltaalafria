@@ -806,6 +806,25 @@
                                             @enderror
                                         </div>
 
+                                        <!-- Agrega esto después del campo fecha de nacimiento -->
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Tipo de Documento</label>
+                                            <select name="document_type" id="document_type" class="form-select">
+                                                <option value="">Seleccionar</option>
+                                                <option value="V" {{ old('document_type') == 'V' ? 'selected' : '' }}>Venezolano (V)</option>
+                                                <option value="E" {{ old('document_type') == 'E' ? 'selected' : '' }}>Extranjero (E)</option>
+                                                <option value="P" {{ old('document_type') == 'P' ? 'selected' : '' }}>Pasaporte (P)</option>
+                                                <option value="CEDULA" {{ old('document_type') == 'CEDULA' ? 'selected' : '' }}>Cédula Extranjera</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Número de Documento</label>
+                                            <input type="text" name="identification_document" class="form-control @error('identification_document') is-invalid @enderror" value="{{ old('identification_document') }}" placeholder="Ej: 12345678">
+                                            @error('identification_document')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
                                         <!-- Estructura -->
                                         <div class="col-md-12 mb-3">
                                             <label class="form-label">¿Representas a alguna Estructura?</label>
