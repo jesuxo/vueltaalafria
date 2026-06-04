@@ -3,115 +3,135 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Registration;
 use App\Models\Team;
 use App\Models\Athlete;
-use App\Models\Stage;
-use App\Models\Registration;
-use App\Models\Result;
+use App\Models\TeamPhoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AdminDashboardController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'admin']);
+    }
+
     public function index()
     {
-        // Estadísticas generales
-        $stats = [
-            'total_teams' => Team::count(),
-            'total_athletes' => Athlete::count(),
-            'total_stages' => Stage::count(),
-            'total_registrations' => Registration::count(),
-            'pending_registrations' => Registration::where('status', 'pending')->count(),
-            'completed_athletes' => Athlete::where('is_active', true)->count(),
-        ];
-
-        // Inscripciones por mes
-        $registrationsByMonth = Registration::select(
-            DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month'),
-            DB::raw('COUNT(*) as count')
-        )
-            ->groupBy('month')
-            ->orderBy('month', 'desc')
-            ->limit(6)
-            ->get();
-
-        // Atletas por categoría
-        $athletesByCategory = Athlete::select('category', DB::raw('COUNT(*) as count'))
-            ->groupBy('category')
-            ->get();
-
-        // Equipos por país
-        $teamsByCountry = Team::select('country', DB::raw('COUNT(*) as count'))
-            ->groupBy('country')
-            ->orderBy('count', 'desc')
-            ->get();
-
-        // Últimas inscripciones
-        $recentRegistrations = Registration::with(['team', 'athlete'])
-            ->latest()
+        $pendingRegistrations = Registration::where('status', 'pending')->count();
+        $approvedRegistrations = Registration::where('status', 'approved')->count();
+        $totalTeams = Team::count();
+        $totalAthletes = Athlete::count();
+        $recentRegistrations = Registration::with(['athlete', 'team'])
+            ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
 
-        // Próxima etapa
-        $nextStage = Stage::where('date', '>=', now())
-            ->orderBy('date')
-            ->first();
-
-        return view('admin.dashboard', compact(
-            'stats',
-            'registrationsByMonth',
-            'athletesByCategory',
-            'teamsByCountry',
-            'recentRegistrations',
-            'nextStage'
+        return view('index', compact(
+            'pendingRegistrations',
+            'approvedRegistrations',
+            'totalTeams',
+            'totalAthletes',
+            'recentRegistrations'
         ));
     }
 
-    // Aprobar/rechazar inscripciones
-    public function approveRegistration($id)
+    public function registrations(Request $request)
     {
-        $registration = Registration::findOrFail($id);
-        $registration->status = 'approved';
-        $registration->save();
+        $query = Registration::with(['athlete', 'team']);
 
-        return redirect()->back()->with('success', 'Inscripción aprobada');
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        if ($request->type) {
+            $query->where('registration_type', $request->type);
+        }
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('email', 'like', "%{$request->search}%")
+                    ->orWhere('phone', 'like', "%{$request->search}%")
+                    ->orWhereHas('athlete', function($sq) use ($request) {
+                        $sq->where('first_name', 'like', "%{$request->search}%")
+                            ->orWhere('last_name', 'like', "%{$request->search}%");
+                    })
+                    ->orWhereHas('team', function($sq) use ($request) {
+                        $sq->where('name', 'like', "%{$request->search}%");
+                    });
+            });
+        }
+
+        $registrations = $query->orderBy('created_at', 'desc')->paginate(20);
+
+        return view('registrations.index', compact('registrations'));
     }
 
-    public function rejectRegistration($id)
+    public function showRegistration($id)
     {
-        $registration = Registration::findOrFail($id);
-        $registration->status = 'rejected';
-        $registration->save();
-
-        return redirect()->back()->with('success', 'Inscripción rechazada');
+        $registration = Registration::with(['athlete', 'team'])->findOrFail($id);
+        return response()->json($registration);
     }
 
-    // Aprobar fotos de equipos
-    public function pendingPhotos()
+    public function updateRegistrationStatus($id, Request $request)
     {
-        $photos = \App\Models\TeamPhoto::where('is_approved', false)
-            ->with('team')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        try {
+            $registration = Registration::findOrFail($id);
+            $registration->status = $request->status;
+            $registration->save();
 
-        return view('admin.photos.pending', compact('photos'));
+            return response()->json(['success' => true, 'message' => 'Estado actualizado']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
-    public function approvePhoto($id)
+    public function deleteRegistration($id)
     {
-        $photo = \App\Models\TeamPhoto::findOrFail($id);
-        $photo->is_approved = true;
-        $photo->save();
+        try {
+            $registration = Registration::findOrFail($id);
+            if ($registration->payment_proof && file_exists(public_path($registration->payment_proof))) {
+                unlink(public_path($registration->payment_proof));
+            }
+            $registration->delete();
 
-        return response()->json(['success' => true]);
+            return response()->json(['success' => true, 'message' => 'Inscripción eliminada']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
-    public function deletePhoto($id)
+    public function exportRegistrations()
     {
-        $photo = \App\Models\TeamPhoto::findOrFail($id);
-        \Storage::disk('public')->delete($photo->photo_path);
-        $photo->delete();
+        $registrations = Registration::with(['athlete', 'team'])->get();
 
-        return redirect()->back()->with('success', 'Foto eliminada');
+        $filename = 'inscripciones_' . date('Y-m-d') . '.csv';
+
+        $callback = function() use ($registrations) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['ID', 'Tipo', 'Nombre', 'Email', 'Teléfono', 'Monto', 'Estado', 'Fecha Registro']);
+
+            foreach ($registrations as $reg) {
+                $nombre = $reg->registration_type == 'individual' && $reg->athlete
+                    ? $reg->athlete->first_name . ' ' . $reg->athlete->last_name
+                    : ($reg->team ? $reg->team->name : 'N/A');
+
+                fputcsv($file, [
+                    $reg->id,
+                    $reg->registration_type,
+                    $nombre,
+                    $reg->email,
+                    $reg->phone,
+                    $reg->amount,
+                    $reg->status,
+                    $reg->registered_at->format('Y-m-d H:i:s')
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 }

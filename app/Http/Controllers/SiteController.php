@@ -62,7 +62,7 @@ class SiteController extends Controller
             });
         }
         if(Auth::user() and auth()->user()->type == 'admin'){
-            return view('index');
+            return response()->redirectTo('/admin');
         }
         return view("home.home");
     }

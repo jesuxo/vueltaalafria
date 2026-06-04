@@ -42,16 +42,10 @@
                         @if(Auth::user() and auth()->user()->type == 'admin')
                             <ul class="nav nav-sm flex-column">
                                 <li class="nav-item"  >
-                                    <a href="/" class="nav-link" data-key="t-create-product">Inicio</a>
+                                    <a href="/admin" class="nav-link" data-key="t-create-product">Inicio</a>
                                 </li>
                             </ul>
-                            <ul class="nav nav-sm flex-column">
 
-                                <li class="nav-item"  >
-                                    <a href="/" class="nav-link" data-key="t-create-product">Reporte </a>
-                                </li>
-
-                            </ul>
                         @endif
                     </div>
                 </li>

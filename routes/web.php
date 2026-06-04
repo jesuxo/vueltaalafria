@@ -163,6 +163,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/export', [AdminDashboardController::class, 'exportRegistrations'])->name('export');
     });
 
+    // Dentro del grupo admin, agrega:
+    Route::get('/registrations/{id}', [AdminDashboardController::class, 'showRegistration'])->name('registrations.show');
+    Route::post('/registrations/{id}/status', [AdminDashboardController::class, 'updateRegistrationStatus'])->name('registrations.status');
+
     // ========== GESTIÓN DE FOTOS ==========
     Route::prefix('photos')->name('photos.')->group(function () {
         Route::get('/pending', [AdminDashboardController::class, 'pendingPhotos'])->name('pending');
