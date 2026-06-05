@@ -747,7 +747,7 @@
     <!-- Sección de Inscripción -->
     <section id="preinscripcion" class="section" style="padding-top: 0 !important;">
         <div class="container">
-            <div class="section-title" data-aos="fade-up">
+            <div class="section-title d-none" data-aos="fade-up">
                 <h2>FORMULARIO DE INSCRIPCIÓN</h2>
                 <p>Completa el formulario para participar en la Vuelta a la Fría 2026</p>
             </div>
