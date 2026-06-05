@@ -1702,18 +1702,18 @@
 
         function showIndividualForm() {
             window.location.href="https://api.whatsapp.com/send/?phone=584247371101&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0"
-            document.getElementById('individualForm').style.display = 'block';
+            /*document.getElementById('individualForm').style.display = 'block';
             document.getElementById('teamForm').style.display = 'none';
             document.getElementById('btnIndividual').classList.add('active');
-            document.getElementById('btnTeam').classList.remove('active');
+            document.getElementById('btnTeam').classList.remove('active');*/
         }
 
         function showTeamForm() {
             window.location.href="https://api.whatsapp.com/send/?phone=584247371101&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0"
-            document.getElementById('individualForm').style.display = 'none';
+            /*document.getElementById('individualForm').style.display = 'none';
             document.getElementById('teamForm').style.display = 'block';
             document.getElementById('btnIndividual').classList.remove('active');
-            document.getElementById('btnTeam').classList.add('active');
+            document.getElementById('btnTeam').classList.add('active');*/
         }
 
         function hideForms() {
