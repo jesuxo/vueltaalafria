@@ -992,7 +992,7 @@
                                                         <option value="transferencia">Transferencia Bancaria</option>
                                                         <option value="bancolombia">Bancolombia</option>
                                                         <option value="usdt">USDT</option>
-                                                        <option value="efectivo">Efectivo (el día del evento)</option>
+                                                        <!--<option value="efectivo">Efectivo (el día del evento)</option>-->
                                                     </select>
                                                     @error('payment_method')
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -1155,7 +1155,7 @@
                                                     <option value="transferencia">Transferencia Bancaria</option>
                                                     <option value="bancolombia">Bancolombia</option>
                                                     <option value="usdt">USDT</option>
-                                                    <option value="efectivo">Efectivo (el día del evento)</option>
+                                                   <!-- <option value="efectivo">Efectivo (el día del evento)</option>-->
                                                 </select>
                                                 @error('payment_method')
                                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -1701,6 +1701,7 @@
         }
 
         function showIndividualForm() {
+            window.location.href="https://api.whatsapp.com/send/?phone=584247371101&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0"
             document.getElementById('individualForm').style.display = 'block';
             document.getElementById('teamForm').style.display = 'none';
             document.getElementById('btnIndividual').classList.add('active');
@@ -1708,6 +1709,7 @@
         }
 
         function showTeamForm() {
+            window.location.href="https://api.whatsapp.com/send/?phone=584247371101&text=Hola+Srs.+de+la+vuelta+a+la+fria+quisiera+informacion+sobre%3A+&type=phone_number&app_absent=0"
             document.getElementById('individualForm').style.display = 'none';
             document.getElementById('teamForm').style.display = 'block';
             document.getElementById('btnIndividual').classList.remove('active');
