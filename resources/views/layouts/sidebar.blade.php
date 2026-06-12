@@ -55,11 +55,6 @@
                                         <i class="ri-upload-cloud-line me-2"></i> Subir Fotos
                                     </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a href="{{ url('/galeria') }}" class="nav-link" data-key="t-gallery">
-                                        <i class="ri-image-line me-2"></i> Ver Galería
-                                    </a>
-                                </li>
                                 <li class="nav-item d-none">
                                     <a href="{{ url('/admin/photos/pending') }}" class="nav-link" data-key="t-pending-photos">
                                         <i class="ri-time-line me-2"></i> Fotos Pendientes
@@ -68,6 +63,11 @@
                                 <li class="nav-item">
                                     <a href="{{ url('/admin/photos/orders') }}" class="nav-link" data-key="t-photo-orders">
                                         <i class="ri-shopping-cart-line me-2"></i> Pedidos de Fotos
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('admin.reports.photo-revenue') }}">
+                                        <i class="fas fa-camera me-2"></i> Ingresos por Fotos
                                     </a>
                                 </li>
                             </ul>

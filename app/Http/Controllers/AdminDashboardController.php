@@ -67,6 +67,132 @@ class AdminDashboardController extends Controller
         return view('photos.order-detail-full', compact('order'));
     }
 
+    public function photoRevenueReport(Request $request)
+    {
+        // Filtros
+        $period = $request->get('period', 'month'); // day, week, month, year, custom
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $status = $request->get('status', 'completed'); // pending, paid, completed, all
+
+        // Construir consulta base
+        $query = PhotoOrder::with(['items.photo.stage']);
+
+        // Filtrar por estado
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        } else {
+            // Para reporte de ingresos reales, solo pedidos completados o pagados
+            $query->whereIn('status', ['completed', 'paid']);
+        }
+
+        // Filtrar por fecha
+        if ($period === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('created_at', [
+                Carbon::parse($startDate)->startOfDay(),
+                Carbon::parse($endDate)->endOfDay()
+            ]);
+        } elseif ($period === 'today') {
+            $query->whereDate('created_at', Carbon::today());
+        } elseif ($period === 'week') {
+            $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+        } elseif ($period === 'month') {
+            $query->whereMonth('created_at', Carbon::now()->month)
+                ->whereYear('created_at', Carbon::now()->year);
+        } elseif ($period === 'year') {
+            $query->whereYear('created_at', Carbon::now()->year);
+        }
+
+        // Obtener pedidos
+        $orders = $query->orderBy('created_at', 'desc')->paginate(20);
+
+        // Estadísticas generales
+        $stats = [
+            'total_orders' => $query->count(),
+            'total_revenue' => $query->sum('total'),
+            'total_photos_sold' => PhotoOrder::whereIn('status', ['completed', 'paid'])
+                ->withCount('items')
+                ->get()
+                ->sum('items_count'),
+            'avg_order_value' => $query->count() > 0 ? $query->sum('total') / $query->count() : 0,
+        ];
+
+        // Estadísticas por método de pago
+        $paymentMethods = PhotoOrder::whereIn('status', ['completed', 'paid'])
+            ->selectRaw('payment_method, COUNT(*) as count, SUM(total) as total')
+            ->groupBy('payment_method')
+            ->get();
+
+        // Ingresos por mes (últimos 12 meses)
+        $monthlyRevenue = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $date = Carbon::now()->subMonths($i);
+            $monthStart = $date->copy()->startOfMonth();
+            $monthEnd = $date->copy()->endOfMonth();
+
+            $revenue = PhotoOrder::whereIn('status', ['completed', 'paid'])
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->sum('total');
+
+            $monthlyRevenue[] = [
+                'month' => $date->format('M Y'),
+                'revenue' => $revenue,
+                'orders' => PhotoOrder::whereIn('status', ['completed', 'paid'])
+                    ->whereBetween('created_at', [$monthStart, $monthEnd])
+                    ->count()
+            ];
+        }
+
+        // Top fotos más vendidas
+        $topPhotos = Photo::withCount(['orderItems as sold_count' => function($query) {
+            $query->whereHas('order', function($q) {
+                $q->whereIn('status', ['completed', 'paid']);
+            });
+        }])
+            ->orderBy('sold_count', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Ingresos por etapa/evento
+        $revenueByStage = PhotoOrder::whereIn('status', ['completed', 'paid'])
+            ->with(['items.photo.stage'])
+            ->get()
+            ->flatMap(function($order) {
+                return $order->items;
+            })
+            ->groupBy(function($item) {
+                return $item->photo->stage->name ?? 'Sin categoría';
+            })
+            ->map(function($items) {
+                return [
+                    'count' => $items->count(),
+                    'revenue' => $items->sum('price')
+                ];
+            });
+
+        return view('admin.reports.photo-revenue', compact(
+            'orders', 'stats', 'paymentMethods', 'monthlyRevenue',
+            'topPhotos', 'revenueByStage', 'period', 'status'
+        ));
+    }
+
+    /**
+     * Exportar reporte de ingresos a Excel
+     */
+    public function exportPhotoRevenue(Request $request)
+    {
+        // Similar al método anterior pero para exportar
+        $query = PhotoOrder::with(['items.photo.stage'])
+            ->whereIn('status', ['completed', 'paid']);
+
+        // Aplicar mismos filtros...
+
+        $orders = $query->orderBy('created_at', 'desc')->get();
+
+        // Generar Excel
+        return Excel::download(new PhotoRevenueExport($orders), 'reporte_ingresos_fotos.xlsx');
+    }
+
     /**
      * Actualizar estado de un pedido de fotos
      */

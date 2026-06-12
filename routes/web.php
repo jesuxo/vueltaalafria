@@ -215,6 +215,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/athletes', [AdminDashboardController::class, 'athletesReport'])->name('athletes');
         Route::get('/financial', [AdminDashboardController::class, 'financialReport'])->name('financial');
         Route::get('/export', [AdminDashboardController::class, 'exportReport'])->name('export');
+        // Agrega esta línea para el reporte de ingresos por fotos
+        Route::get('/photo-revenue', [AdminDashboardController::class, 'photoRevenueReport'])->name('photo-revenue');
+        Route::get('/photo-revenue-export', [AdminDashboardController::class, 'exportPhotoRevenue'])->name('photo-revenue-export');
     });
 
     // ========== CONFIGURACIÓN ==========
