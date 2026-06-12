@@ -1,11 +1,4 @@
-{{-- resources/views/admin/photos/order-detail-full.blade.php --}}
-@extends('layouts.master')
 
-@section('title')
-    Detalle del Pedido - Vuelta a la Fría
-@endsection
-
-@section('css')
     <style>
         .status-badge {
             display: inline-block;
@@ -51,9 +44,8 @@
             margin-bottom: 20px;
         }
     </style>
-@endsection
 
-@section('content')
+
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
@@ -236,10 +228,8 @@
             </div>
         </div>
     </div>
-@endsection
 
-@section('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         // Función para actualizar el estado (opcional)
         function updateOrderStatus(orderId, status) {
@@ -265,4 +255,4 @@
                 });
         }
     </script>
-@endsection
+
