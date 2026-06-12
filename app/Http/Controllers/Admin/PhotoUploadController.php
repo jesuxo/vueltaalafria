@@ -113,7 +113,7 @@ class PhotoUploadController extends Controller
             imagedestroy($src);
 
             // === CAPA 1: MARCA DE AGUA GRANDE EN EL CENTRO ===
-            $logoPath = public_path('img/logopng.png');
+            $logoPath = public_path('img/lo222go.png');
             if (file_exists($logoPath)) {
                 $logo = imagecreatefrompng($logoPath);
                 if ($logo) {
@@ -140,8 +140,8 @@ class PhotoUploadController extends Controller
 
             // Textos de copyright
             $copyrights = [
-                "© VUELTA A LA FRÍA 2026",
-                "PROHIBIDA SU REPRODUCCIÓN",
+                " VUELTA A LA FRIA 2026",
+                "PROHIBIDA SU REPRODUCCION",
                 "VENTA AUTORIZADA - COMPRA EN VUELTALAFRIA.COM"
             ];
 
