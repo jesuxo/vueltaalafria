@@ -116,10 +116,7 @@ class PhotoUploadController extends Controller
             imagedestroy($src);
 
             // Cargar el logo (marca de agua)
-            $logoPath = public_path('img/logopng.png');
-            if (!file_exists($logoPath)) {
-                $logoPath = public_path('img/logo.png');
-            }
+            $logoPath = public_path('img/lo222go.png');
 
             if (file_exists($logoPath)) {
                 $logo = imagecreatefrompng($logoPath);

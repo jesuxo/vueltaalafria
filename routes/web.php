@@ -14,6 +14,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TeamPanelController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SpecialController;
+use App\Http\Controllers\PhotoDownloadController;
 use App\Http\Controllers\PhotoGalleryController;
 use App\Http\Controllers\Admin\PhotoUploadController;
 
@@ -144,10 +145,17 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
 
+    // routes/web.php - Agregar dentro del grupo admin
+
     Route::prefix('specials')->name('specials.')->group(function () {
-        Route::get('/', [SpecialController::class, 'index'])->name('index');
-        Route::post('/', [SpecialController::class, 'store'])->name('store');
-        Route::delete('/{id}', [SpecialController::class, 'destroy'])->name('destroy');
+        Route::get('/', [App\Http\Controllers\Admin\SpecialController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\SpecialController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\SpecialController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [App\Http\Controllers\Admin\SpecialController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [App\Http\Controllers\Admin\SpecialController::class, 'update'])->name('update');
+        Route::delete('/{id}', [App\Http\Controllers\Admin\SpecialController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/toggle-status', [App\Http\Controllers\Admin\SpecialController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/list', [App\Http\Controllers\Admin\SpecialController::class, 'getList'])->name('list');
     });
 
     // ========== GESTIÓN DE EQUIPOS ==========

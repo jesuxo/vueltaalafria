@@ -2,7 +2,7 @@
 <div class="app-menu navbar-menu">
     <!-- LOGO -->
     <div class="navbar-brand-box">
-        <a href="/dashboard" class="logo logo-dark">
+        <a href="/admin" class="logo logo-dark">
             <span class="logo-sm">
                 <img src="{{ URL::asset('build/images/logo-sm.png') }}" alt="" height="50">
             </span>
@@ -10,7 +10,7 @@
                 <img src="{{ URL::asset('build/images/logo-light.png') }}" alt="" height="50">
             </span>
         </a>
-        <a href="/dashboard" class="logo logo-light">
+        <a href="/admin" class="logo logo-light">
             <span class="logo-sm">
                 <img src="{{ URL::asset('build/images/logo-sm.png') }}" alt="" height="50">
             </span>
@@ -34,7 +34,7 @@
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="{{ url('/admin') }}">
                         <i class="bi bi-speedometer2"></i>
-                        <span data-key="t-dashboard">Dashboard</span>
+                        <span data-key="t-dashboard">Inicio</span>
                     </a>
                 </li>
 
@@ -74,7 +74,7 @@
                         </div>
                     </li>
 
-                    <!-- Gestión de Etapas -->
+                    <!-- Gestión de Etapas
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="#sidebarStages" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarStages">
@@ -101,8 +101,31 @@
                             </ul>
                         </div>
                     </li>
+ -->
 
-                    <!-- Resultados y Clasificaciones -->
+                    <li class="nav-item">
+                        <a class="nav-link menu-link" href="#sidebarSpecials" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="sidebarSpecials">
+                            <i class="bi bi-star"></i>
+                            <span data-key="t-specials">Momentos Especiales</span>
+                            <span class="badge bg-info rounded-pill ms-2">Nuevo</span>
+                        </a>
+                        <div class="collapse menu-dropdown" id="sidebarSpecials">
+                            <ul class="nav nav-sm flex-column">
+                                <li class="nav-item">
+                                    <a href="{{ url('/admin/specials') }}" class="nav-link" data-key="t-list-specials">
+                                        <i class="ri-list-check me-2"></i> Lista de Eventos
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url('/admin/specials/create') }}" class="nav-link" data-key="t-create-special">
+                                        <i class="ri-add-line me-2"></i> Crear Evento Especial
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <!-- Gestión de Momentos Especiales (NUEVO)
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="#sidebarResults" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarResults">
@@ -135,7 +158,6 @@
                         </div>
                     </li>
 
-                    <!-- Gestión de Equipos -->
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="#sidebarTeams" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarTeams">
@@ -163,7 +185,6 @@
                         </div>
                     </li>
 
-                    <!-- Inscripciones -->
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="#sidebarRegistrations" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarRegistrations">
@@ -197,7 +218,6 @@
                         </div>
                     </li>
 
-                    <!-- Reportes -->
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="#sidebarReports" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarReports">
@@ -225,7 +245,6 @@
                         </div>
                     </li>
 
-                    <!-- Configuración -->
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="#sidebarSettings" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="sidebarSettings">
@@ -250,7 +269,6 @@
 
                 @endif
 
-                <!-- Panel de Equipo (para usuarios tipo team) -->
                 @if(Auth::user() && auth()->user()->type == 'team')
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="{{ url('/equipo/dashboard') }}">
@@ -271,11 +289,9 @@
                         </a>
                     </li>
                 @endif
-
-                <!-- Separador -->
+                -->
                 <li class="menu-title mt-3"><span data-key="t-utilities">Utilidades</span></li>
 
-                <!-- Galería Pública -->
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="{{ url('/galeria') }}" target="_blank">
                         <i class="bi bi-camera"></i>
