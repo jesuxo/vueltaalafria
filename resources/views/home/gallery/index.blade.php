@@ -3,7 +3,7 @@
 
 @section('css')
     <style>
-        /* Tus estilos existentes se mantienen */
+        /* Estilos generales */
         .gallery-stage-tab {
             cursor: pointer;
             transition: all 0.3s;
@@ -107,18 +107,6 @@
             align-items: center;
             justify-content: center;
         }
-        .search-photo-input {
-            border-radius: 50px;
-            padding: 12px 20px;
-            border: 1px solid #ddd;
-            width: 100%;
-            transition: all 0.3s;
-        }
-        .search-photo-input:focus {
-            outline: none;
-            border-color: #00ecfe;
-            box-shadow: 0 0 0 3px rgba(0,236,254,0.1);
-        }
         .photo-price-badge {
             position: absolute;
             bottom: 10px;
@@ -140,6 +128,65 @@
             animation: pulse 1s infinite;
         }
 
+        /* Estilos para el buscador - todo en una línea */
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-photo-input {
+            width: 100%;
+            border-radius: 50px;
+            padding: 12px 40px 12px 20px;
+            border: 1px solid #ddd;
+            transition: all 0.3s;
+            font-size: 16px;
+            background: white;
+        }
+
+        .search-photo-input:focus {
+            outline: none;
+            border-color: #00ecfe;
+            box-shadow: 0 0 0 3px rgba(0,236,254,0.1);
+        }
+
+        .clear-search-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+            z-index: 10;
+        }
+
+        .clear-search-btn:hover {
+            color: #dc3545;
+        }
+
+        #searchPhotoBtn {
+            flex-shrink: 0;
+            white-space: nowrap;
+            border-radius: 50px;
+            padding: 12px 25px;
+            margin-left: 0 !important;
+        }
+
         /* Estilos para el indicador de búsqueda */
         .search-loading {
             display: inline-block;
@@ -149,52 +196,13 @@
             border-top: 2px solid #00ecfe;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-left: 10px;
+            margin-right: 10px;
+            vertical-align: middle;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        .search-status {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-
-        .search-status i {
-            font-size: 48px;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        /* Botón de limpiar búsqueda */
-        .clear-search-btn {
-            background: none;
-            border: none;
-            color: #999;
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            display: none;
-        }
-
-        .clear-search-btn:hover {
-            color: #dc3545;
-        }
-
-        .search-container {
-            position: relative;
-        }
-
-        .search-results-count {
-            font-size: 14px;
-            color: #666;
-            margin-top: 10px;
-            text-align: center;
         }
 
         .search-status {
@@ -211,11 +219,24 @@
             margin-bottom: 5px;
             display: inline-block;
             margin-right: 10px;
+            vertical-align: middle;
         }
 
         .search-status p {
             display: inline-block;
             margin: 0;
+            vertical-align: middle;
+        }
+
+        .search-results-count {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+            text-align: center;
+            padding: 8px;
+            background: #e8f0fe;
+            border-radius: 20px;
+            animation: fadeIn 0.3s ease;
         }
 
         @keyframes fadeIn {
@@ -229,14 +250,19 @@
             }
         }
 
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-                transform: translateY(0);
+        /* Responsive para móviles */
+        @media (max-width: 768px) {
+            .search-container {
+                flex-direction: column;
+                gap: 10px;
             }
-            to {
-                opacity: 0;
-                transform: translateY(-10px);
+
+            .search-input-wrapper {
+                width: 100%;
+            }
+
+            #searchPhotoBtn {
+                width: 100%;
             }
         }
     </style>
@@ -254,11 +280,13 @@
             <div class="row mb-4" data-aos="fade-up">
                 <div class="col-md-8 mx-auto">
                     <div class="search-container">
-                        <input type="text" id="searchPhotoInput" class="search-photo-input" placeholder="🔍 Buscar por dorsal, nombre o equipo...">
-                        <button class="clear-search-btn" id="clearSearchBtn" style="display: none;">
-                            <i class="fas fa-times-circle"></i>
-                        </button>
-                        <button class="btn-custom" id="searchPhotoBtn" style="border-radius: 50px; margin-left: 10px;">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="searchPhotoInput" class="search-photo-input" placeholder="🔍 Buscar por dorsal, nombre o equipo...">
+                            <button class="clear-search-btn" id="clearSearchBtn" style="display: none;">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                        <button class="btn-custom" id="searchPhotoBtn">
                             <i class="fas fa-search"></i> Buscar
                         </button>
                     </div>
@@ -302,7 +330,7 @@
         </div>
     </section>
 
-    <!-- Carrito Sidebar (igual que antes) -->
+    <!-- Carrito Sidebar -->
     <div class="cart-overlay" id="cartOverlay"></div>
     <div class="cart-sidebar" id="cartSidebar">
         <div class="p-3 border-bottom" style="background: #f8f9fa;">
@@ -342,7 +370,7 @@
         <span class="cart-count" id="floatingCartCount">0</span>
     </div>
 
-    <!-- Modal de Checkout (igual que antes) -->
+    <!-- Modal de Checkout -->
     <div class="modal fade" id="checkoutModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -352,7 +380,10 @@
                 </div>
                 <form id="checkoutForm">
                     <div class="modal-body">
-
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Cada foto tiene un costo de <strong>$5 USD</strong>. Recibirás las fotos en alta resolución por email.
+                        </div>
                         <div class="mb-3">
                             <label class="form-label required-field">Nombre Completo</label>
                             <input type="text" id="customer_name" class="form-control" required>
@@ -424,7 +455,6 @@
         let currentPage = 1;
         let isLoading = false;
         let hasMore = true;
-        let isSearching = false;
         let currentSearchQuery = '';
 
         // Cargar carrito desde localStorage
@@ -574,27 +604,25 @@
             if (status === 'loading') {
                 searchStatus.style.display = 'block';
                 searchStatus.innerHTML = `
-            <div class="d-flex justify-content-center align-items-center">
-                <div class="search-loading"></div>
-                <span class="ms-2">${message || 'Buscando fotos...'}</span>
-            </div>
-        `;
+                    <div class="d-flex justify-content-center align-items-center">
+                        <div class="search-loading"></div>
+                        <span class="ms-2">${message || 'Buscando fotos...'}</span>
+                    </div>
+                `;
                 searchResultsCount.style.display = 'none';
             } else if (status === 'results') {
                 searchStatus.style.display = 'block';
                 searchStatus.innerHTML = `
-            <i class="fas fa-check-circle text-success"></i>
-            <p>${message}</p>
-        `;
-                // Ocultar después de 3 segundos
+                    <i class="fas fa-check-circle text-success"></i>
+                    <p>${message}</p>
+                `;
                 setTimeout(() => {
                     if (searchStatus.style.display !== 'none') {
                         searchStatus.style.display = 'none';
                     }
                 }, 3000);
-              //  searchResultsCount.style.display = 'block';
+                searchResultsCount.style.display = 'block';
                 searchResultsCount.innerHTML = message;
-                // Ocultar el contador después de 3 segundos
                 setTimeout(() => {
                     if (searchResultsCount.style.display !== 'none') {
                         searchResultsCount.style.display = 'none';
@@ -603,9 +631,9 @@
             } else if (status === 'error') {
                 searchStatus.style.display = 'block';
                 searchStatus.innerHTML = `
-            <i class="fas fa-exclamation-triangle text-warning"></i>
-            <p>${message}</p>
-        `;
+                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                    <p>${message}</p>
+                `;
                 setTimeout(() => {
                     searchStatus.style.display = 'none';
                 }, 3000);
@@ -618,20 +646,15 @@
             }
         }
 
+        // Limpiar búsqueda
         function clearSearch() {
             const searchInput = document.getElementById('searchPhotoInput');
             searchInput.value = '';
             currentSearchQuery = '';
             document.getElementById('clearSearchBtn').style.display = 'none';
-
-            // Limpiar mensajes
             showSearchStatus('clear');
-
-            // Reactivar infinite scroll
             hasMore = true;
             currentPage = 1;
-
-            // Recargar fotos normales de la etapa actual
             if (currentStageId) {
                 loadPhotos(true);
             }
@@ -642,11 +665,7 @@
         // ============================================
 
         async function loadPhotos(reset = true) {
-            // Si estamos en modo búsqueda, no ejecutar
-            if (currentSearchQuery && currentSearchQuery.length >= 2) {
-                return;
-            }
-
+            if (currentSearchQuery && currentSearchQuery.length >= 2) return;
             if (isLoading || !currentStageId) return;
 
             if (reset) {
@@ -657,23 +676,21 @@
 
             isLoading = true;
 
-            // Mostrar spinner en el grid si es reset
             if (reset) {
                 const grid = document.getElementById('photosGrid');
                 grid.innerHTML = `
-            <div class="col-12 text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-                <p class="mt-2 text-muted">Cargando fotos...</p>
-            </div>
-        `;
+                    <div class="col-12 text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Cargando fotos...</p>
+                    </div>
+                `;
             }
 
             try {
                 const response = await fetch(`/galeria/stage/${currentStageId}?page=${currentPage}`);
                 const photos = await response.json();
-
                 const grid = document.getElementById('photosGrid');
 
                 if (reset) grid.innerHTML = '';
@@ -681,22 +698,22 @@
                 if (!Array.isArray(photos)) {
                     if (reset) {
                         grid.innerHTML = `
-                    <div class="col-12 text-center py-5">
-                        <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
-                        <p>Error al cargar las fotos. Por favor, intenta de nuevo.</p>
-                    </div>
-                `;
+                            <div class="col-12 text-center py-5">
+                                <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                                <p>Error al cargar las fotos. Por favor, intenta de nuevo.</p>
+                            </div>
+                        `;
                     }
                     hasMore = false;
                 } else if (photos.length === 0) {
                     if (reset) {
                         grid.innerHTML = `
-                    <div class="col-12 text-center py-5">
-                        <i class="fas fa-camera-slash fa-4x text-muted mb-3"></i>
-                        <p>No hay fotos disponibles para esta etapa aún.</p>
-                        <small>Las fotos se irán subiendo durante el evento.</small>
-                    </div>
-                `;
+                            <div class="col-12 text-center py-5">
+                                <i class="fas fa-camera-slash fa-4x text-muted mb-3"></i>
+                                <p>No hay fotos disponibles para esta etapa aún.</p>
+                                <small>Las fotos se irán subiendo durante el evento.</small>
+                            </div>
+                        `;
                     }
                     hasMore = false;
                 } else {
@@ -705,16 +722,16 @@
                         const col = document.createElement('div');
                         col.className = 'col-md-4 col-lg-3';
                         col.innerHTML = `
-                    <div class="gallery-photo-card ${isSelected ? 'selected' : ''}" data-photo-id="${photo.id}">
-                        <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover;" alt="Foto">
-                        <div class="photo-checkmark">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="photo-price-badge">
-                            <i class="fas fa-dollar-sign"></i> ${photo.price || 5}
-                        </div>
-                    </div>
-                `;
+                            <div class="gallery-photo-card ${isSelected ? 'selected' : ''}" data-photo-id="${photo.id}">
+                                <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover;" alt="Foto">
+                                <div class="photo-checkmark">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="photo-price-badge">
+                                    <i class="fas fa-dollar-sign"></i> ${photo.price || 5}
+                                </div>
+                            </div>
+                        `;
                         col.querySelector('.gallery-photo-card').addEventListener('click', () => {
                             if (isSelected) {
                                 removeFromCart(photo.id);
@@ -733,11 +750,11 @@
                 const grid = document.getElementById('photosGrid');
                 if (reset) {
                     grid.innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
-                    <p>Error de conexión. Por favor, intenta de nuevo.</p>
-                </div>
-            `;
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+                            <p>Error de conexión. Por favor, intenta de nuevo.</p>
+                        </div>
+                    `;
                 }
             } finally {
                 isLoading = false;
@@ -751,9 +768,108 @@
                     loadPhotos(false);
                 }
             }, { threshold: 0.1 });
-
             const trigger = document.getElementById('loadMoreTrigger');
             if (trigger) observer.observe(trigger);
+        }
+
+        // ============================================
+        // BÚSQUEDA
+        // ============================================
+
+        async function performSearch() {
+            const searchInput = document.getElementById('searchPhotoInput');
+            const query = searchInput.value.trim();
+
+            if (query.length === 0) {
+                if (currentSearchQuery) clearSearch();
+                return;
+            }
+
+            if (query.length < 2) {
+                showSearchStatus('error', 'Ingresa al menos 2 caracteres para buscar');
+                return;
+            }
+
+            currentSearchQuery = query;
+            showSearchStatus('loading', `Buscando "${query}"...`);
+
+            document.querySelectorAll('.gallery-stage-tab').forEach(tab => {
+                tab.style.opacity = '0.5';
+                tab.style.pointerEvents = 'none';
+            });
+
+            currentPage = 1;
+            hasMore = false;
+
+            const grid = document.getElementById('photosGrid');
+            grid.innerHTML = `
+                <div class="col-12 text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Buscando fotos que coincidan con "${query}"...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`/galeria/search?q=${encodeURIComponent(query)}`);
+                const photos = await response.json();
+                grid.innerHTML = '';
+
+                if (!Array.isArray(photos) || photos.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-camera-slash fa-4x text-muted mb-3"></i>
+                            <p>No se encontraron fotos con "${query}"</p>
+                            <small>Intenta con otro término de búsqueda (dorsal, nombre o equipo)</small>
+                            <div class="mt-3">
+                                <button class="btn-outline-custom" onclick="clearSearch()">
+                                    <i class="fas fa-arrow-left me-2"></i> Volver a la galería
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    showSearchStatus('results', `No se encontraron resultados para "${query}"`);
+                } else {
+                    photos.forEach(photo => {
+                        const isSelected = cart.some(item => item.id === photo.id);
+                        const col = document.createElement('div');
+                        col.className = 'col-md-4 col-lg-3';
+                        col.innerHTML = `
+                            <div class="gallery-photo-card ${isSelected ? 'selected' : ''}" data-photo-id="${photo.id}">
+                                <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover;" alt="Foto">
+                                <div class="photo-checkmark">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="photo-price-badge">
+                                    <i class="fas fa-dollar-sign"></i> ${photo.price || 5}
+                                </div>
+                            </div>
+                        `;
+                        col.querySelector('.gallery-photo-card').addEventListener('click', () => {
+                            if (isSelected) removeFromCart(photo.id);
+                            else addToCart(photo);
+                        });
+                        grid.appendChild(col);
+                    });
+                    showSearchStatus('results', `Se encontraron ${photos.length} foto(s) para "${query}"`);
+                }
+            } catch (error) {
+                console.error('Error en búsqueda:', error);
+                grid.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+                        <p>Error de conexión al buscar</p>
+                        <small>Por favor, intenta nuevamente</small>
+                    </div>
+                `;
+                showSearchStatus('error', 'Error de conexión. Intenta nuevamente.');
+            } finally {
+                document.querySelectorAll('.gallery-stage-tab').forEach(tab => {
+                    tab.style.opacity = '1';
+                    tab.style.pointerEvents = 'auto';
+                });
+            }
         }
 
         // ============================================
@@ -796,39 +912,35 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Limpiar carrito
                     cart = [];
                     saveCart();
-
-                    // Cerrar modal
                     bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
                     document.getElementById('checkoutForm').reset();
 
-                    // Mostrar modal con el resultado del pedido
                     Swal.fire({
                         title: '¡Pedido creado!',
                         html: `
-                    <div class="text-center">
-                        <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-                        <p><strong>Tu pedido ha sido creado exitosamente</strong></p>
-                        <div class="alert alert-info">
-                            <strong>Código de pedido:</strong><br>
-                            <code style="font-size: 18px;">${result.public_code}</code>
-                        </div>
-                        <p>Guarda este código para consultar el estado de tu pedido</p>
-                        <hr>
-                        <div class="mt-3">
-                            <a href="${result.public_url}" class="btn btn-custom" target="_blank">
-                                <i class="fas fa-external-link-alt me-2"></i> Ver mi pedido
-                            </a>
-                        </div>
-                        ${result.qr_code ? `
-                        <div class="mt-3">
-                            <img src="data:image/png;base64,${result.qr_code}" style="max-width: 150px;">
-                        </div>
-                        ` : ''}
-                    </div>
-                `,
+                            <div class="text-center">
+                                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                                <p><strong>Tu pedido ha sido creado exitosamente</strong></p>
+                                <div class="alert alert-info">
+                                    <strong>Código de pedido:</strong><br>
+                                    <code style="font-size: 18px;">${result.public_code}</code>
+                                </div>
+                                <p>Guarda este código para consultar el estado de tu pedido</p>
+                                <hr>
+                                <div class="mt-3">
+                                    <a href="${result.public_url}" class="btn btn-custom" target="_blank">
+                                        <i class="fas fa-external-link-alt me-2"></i> Ver mi pedido
+                                    </a>
+                                </div>
+                                ${result.qr_code ? `
+                                <div class="mt-3">
+                                    <img src="data:image/png;base64,${result.qr_code}" style="max-width: 150px;">
+                                </div>
+                                ` : ''}
+                            </div>
+                        `,
                         icon: 'success',
                         confirmButtonText: 'Aceptar',
                         confirmButtonColor: '#00ecfe',
@@ -859,14 +971,10 @@
                 setupInfiniteScroll();
             }
 
-            // Pestañas de etapas - Limpiar búsqueda al cambiar
+            // Pestañas de etapas
             document.querySelectorAll('.gallery-stage-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
-                    // Limpiar búsqueda primero
-                    if (currentSearchQuery) {
-                        clearSearch();
-                    }
-
+                    if (currentSearchQuery) clearSearch();
                     document.querySelectorAll('.gallery-stage-tab').forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
                     currentStageId = tab.dataset.stageId;
@@ -879,160 +987,20 @@
             const searchBtn = document.getElementById('searchPhotoBtn');
             const clearSearchBtn = document.getElementById('clearSearchBtn');
 
-            // Mostrar/ocultar botón de limpiar
             searchInput.addEventListener('input', function() {
                 if (this.value.length > 0) {
-                    clearSearchBtn.style.display = 'block';
-                    // Si se borra el texto, limpiar búsqueda
-                    if (this.value.length === 0 && currentSearchQuery) {
-                        clearSearch();
-                    }
+                    clearSearchBtn.style.display = 'flex';
+                    if (this.value.length === 0 && currentSearchQuery) clearSearch();
                 } else {
                     clearSearchBtn.style.display = 'none';
-                    if (currentSearchQuery) {
-                        clearSearch();
-                    }
+                    if (currentSearchQuery) clearSearch();
                 }
             });
 
             clearSearchBtn.addEventListener('click', clearSearch);
             searchBtn.addEventListener('click', performSearch);
-
             searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
-
-            async function performSearch() {
-                const searchInput = document.getElementById('searchPhotoInput');
-                const query = searchInput.value.trim();
-
-                if (query.length === 0) {
-                    if (currentSearchQuery) {
-                        clearSearch();
-                    }
-                    return;
-                }
-
-                if (query.length < 2) {
-                    showSearchStatus('error', 'Ingresa al menos 2 caracteres para buscar');
-                    return;
-                }
-
-                // Guardar la consulta actual
-                currentSearchQuery = query;
-
-                // Mostrar loading
-                showSearchStatus('loading', `Buscando "${query}"...`);
-
-                // Desactivar pestañas durante la búsqueda
-                document.querySelectorAll('.gallery-stage-tab').forEach(tab => {
-                    tab.style.opacity = '0.5';
-                    tab.style.pointerEvents = 'none';
-                });
-
-                // Resetear paginación
-                currentPage = 1;
-                hasMore = false; // Desactivar infinite scroll durante búsqueda
-
-                // Limpiar grid y mostrar loading
-                const grid = document.getElementById('photosGrid');
-                grid.innerHTML = `
-        <div class="col-12 text-center">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p class="mt-2 text-muted">Buscando fotos que coincidan con "${query}"...</p>
-        </div>
-    `;
-
-                try {
-                    const response = await fetch(`/galeria/search?q=${encodeURIComponent(query)}`);
-                    const photos = await response.json();
-
-                    grid.innerHTML = '';
-
-                    if (!Array.isArray(photos) || photos.length === 0) {
-                        grid.innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <i class="fas fa-camera-slash fa-4x text-muted mb-3"></i>
-                    <p>No se encontraron fotos con "${query}"</p>
-                    <small>Intenta con otro término de búsqueda (dorsal, nombre o equipo)</small>
-                    <div class="mt-3">
-                        <button class="btn-outline-custom" onclick="clearSearch()">
-                            <i class="fas fa-arrow-left me-2"></i> Volver a la galería
-                        </button>
-                    </div>
-                </div>
-            `;
-                        showSearchStatus('results', `No se encontraron resultados para "${query}"`);
-                    } else {
-                        // Mostrar resultados
-                        photos.forEach(photo => {
-                            const isSelected = cart.some(item => item.id === photo.id);
-                            const col = document.createElement('div');
-                            col.className = 'col-md-4 col-lg-3';
-                            col.innerHTML = `
-                    <div class="gallery-photo-card ${isSelected ? 'selected' : ''}" data-photo-id="${photo.id}">
-                        <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover;" alt="Foto">
-                        <div class="photo-checkmark">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="photo-price-badge">
-                            <i class="fas fa-dollar-sign"></i> ${photo.price || 5}
-                        </div>
-                    </div>
-                `;
-                            col.querySelector('.gallery-photo-card').addEventListener('click', () => {
-                                if (isSelected) {
-                                    removeFromCart(photo.id);
-                                } else {
-                                    addToCart(photo);
-                                }
-                            });
-                            grid.appendChild(col);
-                        });
-
-                        showSearchStatus('results', `Se encontraron ${photos.length} foto(s) para "${query}"`);
-                    }
-
-                } catch (error) {
-                    console.error('Error en búsqueda:', error);
-                    grid.innerHTML = `
-            <div class="col-12 text-center py-5">
-                <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
-                <p>Error de conexión al buscar</p>
-                <small>Por favor, intenta nuevamente</small>
-            </div>
-        `;
-                    showSearchStatus('error', 'Error de conexión. Intenta nuevamente.');
-                } finally {
-                    // Reactivar pestañas
-                    document.querySelectorAll('.gallery-stage-tab').forEach(tab => {
-                        tab.style.opacity = '1';
-                        tab.style.pointerEvents = 'auto';
-                    });
-
-                    // Ocultar el loading después de un tiempo
-                    setTimeout(() => {
-                        if (document.getElementById('searchStatus').style.display !== 'none') {
-                            // No ocultar automáticamente si hay resultados
-                            if (document.getElementById('searchStatus').innerHTML.includes('No se encontraron')) {
-                                setTimeout(() => {
-                                    showSearchStatus('clear');
-                                }, 3000);
-                            }
-                        }
-                    }, 5000);
-                }
-            }
-
-            searchBtn.addEventListener('click', performSearch);
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
+                if (e.key === 'Enter') performSearch();
             });
 
             // Carrito sidebar
@@ -1067,7 +1035,7 @@
                 new bootstrap.Modal(document.getElementById('checkoutModal')).show();
             });
 
-            // Mostrar/ocultar campos según método de pago
+            // Métodos de pago
             document.getElementById('payment_method').addEventListener('change', function() {
                 const bankAccounts = document.getElementById('bankAccountsInfo');
                 const referenceField = document.getElementById('referenceField');

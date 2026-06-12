@@ -2,6 +2,11 @@
 /public/hot
 /public/storage
 /public/img/comprobantes
+/public/img/comprobantes_fotos
+/public/img/galeria
+/public/img/galeria/full
+/public/img/galeria/thumbs
+/public/img/galeria/*
 /public/comprobantes
 /storage/*.key
 /vendor
