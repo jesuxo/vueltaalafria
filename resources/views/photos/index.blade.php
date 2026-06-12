@@ -4,15 +4,6 @@
 @section('css')
     <style>
         /* Estilos generales */
-        .gallery-stage-tab {
-            cursor: pointer;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-        }
-        .gallery-stage-tab.active {
-            border-bottom-color: #00ecfe;
-            color: #00ecfe;
-        }
         .gallery-photo-card {
             position: relative;
             border-radius: 12px;
@@ -128,7 +119,7 @@
             animation: pulse 1s infinite;
         }
 
-        /* Estilos para el buscador - todo en una línea */
+        /* Estilos para el buscador */
         .search-container {
             display: flex;
             align-items: center;
@@ -187,6 +178,75 @@
             margin-left: 0 !important;
         }
 
+        /* Estilos para el selector de categoría (menos invasivo) */
+        .category-selector {
+            max-width: 400px;
+            margin: 0 auto 30px auto;
+        }
+
+        .category-select {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 20px center;
+        }
+
+        .category-select:focus {
+            outline: none;
+            border-color: #00ecfe;
+            box-shadow: 0 0 0 3px rgba(0,236,254,0.1);
+        }
+
+        .category-select optgroup {
+            font-weight: bold;
+            color: #00ecfe;
+        }
+
+        .category-select option {
+            padding: 10px;
+            font-weight: normal;
+        }
+
+        /* Sección de etapas (compacta) */
+        .stages-section {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+        }
+
+        .stages-section-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: #999;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* Grid de fotos */
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .photos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 15px;
+            }
+        }
+
         /* Estilos para el indicador de búsqueda */
         .search-loading {
             display: inline-block;
@@ -239,47 +299,6 @@
             animation: fadeIn 0.3s ease;
         }
 
-        /* Estilos para categorías especiales */
-        .special-tab {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 50px !important;
-        }
-
-        .special-tab.active {
-            background: linear-gradient(135deg, #00ecfe 0%, #00c4d4 100%);
-            color: white !important;
-            border-bottom-color: transparent !important;
-        }
-
-        .special-tab.active small {
-            color: rgba(255,255,255,0.8) !important;
-        }
-
-        .special-tab h5 i {
-            margin-right: 8px;
-        }
-
-        .section-divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            margin: 30px 0 20px;
-        }
-
-        .section-divider::before,
-        .section-divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 2px dashed #ddd;
-        }
-
-        .section-divider span {
-            padding: 0 20px;
-            color: #00ecfe;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -289,6 +308,18 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        /* Badge de categoría activa */
+        .active-category-badge {
+            display: inline-block;
+            background: #00ecfe20;
+            color: #00c4d4;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            text-align: center;
         }
 
         /* Responsive para móviles */
@@ -305,6 +336,19 @@
             #searchPhotoBtn {
                 width: 100%;
             }
+
+            .category-selector {
+                max-width: 100%;
+                margin-bottom: 20px;
+            }
+
+            .stages-section {
+                padding: 10px 15px;
+            }
+        }
+
+        .navbar {
+            background: rgba(0,0,0,0.9) !important;
         }
     </style>
 @endsection
@@ -336,56 +380,50 @@
                 </div>
             </div>
 
-            <!-- Pestañas de ETAPAS -->
-            <div class="row mb-2" data-aos="fade-up">
-                <div class="col-12">
-                    <h4 class="mb-3"><i class="fas fa-flag-checkered me-2"></i> Etapas de la Carrera</h4>
-                    <div class="d-flex flex-wrap justify-content-center gap-3">
-                        @foreach($stages as $stage)
-                            <div class="gallery-stage-tab py-2 px-3 {{ $loop->first && !isset($activeSpecial) ? 'active' : '' }}" data-stage-id="{{ $stage->id }}" data-type="stage">
-                                <h5 class="mb-0">{{ $stage->name }}</h5>
-                                <small class="text-muted">
-                                    @if($stage->stage_number)
-                                        Etapa {{ $stage->stage_number }}
-                                    @endif
-                                    @if($stage->date)
-                                        - {{ \Carbon\Carbon::parse($stage->date)->format('d/m/Y') }}
-                                    @endif
-                                </small>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
+            <!-- Selector de categorías (menos invasivo) -->
+            <div class="category-selector" data-aos="fade-up">
+                <select id="categorySelect" class="category-select">
+                    @php
+                        $hasActive = false;
+                    @endphp
+
+                    @if(isset($stages) && $stages->count() > 0)
+                        <optgroup label="🏁 ETAPAS DE LA CARRERA">
+                            @foreach($stages as $stage)
+                                <option value="{{ $stage->id }}" data-type="stage" {{ $loop->first && !$hasActive ? 'selected' : '' }}>
+                                    🏁 {{ $stage->name }}
+                                    @if($stage->stage_number) - Etapa {{ $stage->stage_number }} @endif
+                                    @if($stage->date) - {{ \Carbon\Carbon::parse($stage->date)->format('d/m/Y') }} @endif
+                                </option>
+                                @php
+                                    if($loop->first && !$hasActive) $hasActive = true;
+                                @endphp
+                            @endforeach
+                        </optgroup>
+                    @endif
+
+                    @if(isset($specials) && $specials->count() > 0)
+                        <optgroup label="✨ MOMENTOS ESPECIALES">
+                            @foreach($specials as $special)
+                                <option value="{{ $special->id }}" data-type="special">
+                                    {{ $special->icon ?? '📸' }} {{ $special->name }}
+                                    @if($special->date) - {{ \Carbon\Carbon::parse($special->date)->format('d/m/Y') }} @endif
+                                </option>
+                            @endforeach
+                        </optgroup>
+                    @endif
+                </select>
             </div>
 
-            <!-- Separador visual -->
-            @if(isset($specials) && $specials->count() > 0)
-                <div class="section-divider" data-aos="fade-up">
-                    <span><i class="fas fa-star me-2"></i> Momentos Especiales <i class="fas fa-star ms-2"></i></span>
-                </div>
-
-                <!-- Pestañas de ESPECIALES -->
-                <div class="row mb-4" data-aos="fade-up">
-                    <div class="col-12">
-                        <div class="d-flex flex-wrap justify-content-center gap-3">
-                            @foreach($specials as $special)
-                                <div class="gallery-stage-tab special-tab py-2 px-3" data-stage-id="{{ $special->id }}" data-type="special">
-                                    <h5 class="mb-0">
-                                        <i class="{{ $special->icon ?? 'fas fa-camera' }} me-2"></i>
-                                        {{ $special->name }}
-                                    </h5>
-                                    @if($special->date)
-                                        <small class="text-muted">{{ \Carbon\Carbon::parse($special->date)->format('d/m/Y') }}</small>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            @endif
+            <!-- Indicador de categoría activa -->
+            <div class="text-center" id="activeCategoryBadge" style="display: none;">
+                <span class="active-category-badge">
+                    <i class="fas fa-eye me-1"></i> Mostrando: <strong id="activeCategoryName"></strong>
+                </span>
+            </div>
 
             <!-- Grid de fotos -->
-            <div class="row g-4" id="photosGrid" data-aos="fade-up">
+            <div class="photos-grid" id="photosGrid" data-aos="fade-up">
                 <div class="col-12 text-center">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Cargando...</span>
@@ -728,6 +766,26 @@
             }
         }
 
+        // Actualizar badge de categoría activa
+        function updateActiveCategoryBadge() {
+            const select = document.getElementById('categorySelect');
+            const selectedOption = select.options[select.selectedIndex];
+            const categoryName = selectedOption.textContent.replace(/^[^\w]+/, '').trim();
+            const badge = document.getElementById('activeCategoryBadge');
+            const categoryNameSpan = document.getElementById('activeCategoryName');
+
+            if (categoryNameSpan) {
+                categoryNameSpan.textContent = categoryName;
+            }
+
+            if (badge) {
+                badge.style.display = 'block';
+                setTimeout(() => {
+                    if (badge) badge.style.display = 'none';
+                }, 3000);
+            }
+        }
+
         // ============================================
         // CARGAR FOTOS
         // ============================================
@@ -788,10 +846,11 @@
                     photos.forEach(photo => {
                         const isSelected = cart.some(item => item.id === photo.id);
                         const col = document.createElement('div');
-                        col.className = 'col-md-4 col-lg-3';
+                        col.className = 'gallery-photo-card';
+                        col.setAttribute('data-photo-id', photo.id);
                         col.innerHTML = `
-                            <div class="gallery-photo-card ${isSelected ? 'selected' : ''}" data-photo-id="${photo.id}">
-                                <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover;" alt="Foto">
+                            <div class="position-relative">
+                                <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover; border-radius: 12px;" alt="Foto">
                                 <div class="photo-checkmark">
                                     <i class="fas fa-check-circle"></i>
                                 </div>
@@ -800,7 +859,10 @@
                                 </div>
                             </div>
                         `;
-                        col.querySelector('.gallery-photo-card').addEventListener('click', () => {
+
+                        if (isSelected) col.classList.add('selected');
+
+                        col.addEventListener('click', () => {
                             if (isSelected) {
                                 removeFromCart(photo.id);
                             } else {
@@ -861,10 +923,9 @@
             currentSearchQuery = query;
             showSearchStatus('loading', `Buscando "${query}"...`);
 
-            document.querySelectorAll('.gallery-stage-tab').forEach(tab => {
-                tab.style.opacity = '0.5';
-                tab.style.pointerEvents = 'none';
-            });
+            const select = document.getElementById('categorySelect');
+            select.style.opacity = '0.5';
+            select.style.pointerEvents = 'none';
 
             currentPage = 1;
             hasMore = false;
@@ -902,10 +963,11 @@
                     photos.forEach(photo => {
                         const isSelected = cart.some(item => item.id === photo.id);
                         const col = document.createElement('div');
-                        col.className = 'col-md-4 col-lg-3';
+                        col.className = 'gallery-photo-card';
+                        col.setAttribute('data-photo-id', photo.id);
                         col.innerHTML = `
-                            <div class="gallery-photo-card ${isSelected ? 'selected' : ''}" data-photo-id="${photo.id}">
-                                <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover;" alt="Foto">
+                            <div class="position-relative">
+                                <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover; border-radius: 12px;" alt="Foto">
                                 <div class="photo-checkmark">
                                     <i class="fas fa-check-circle"></i>
                                 </div>
@@ -914,7 +976,10 @@
                                 </div>
                             </div>
                         `;
-                        col.querySelector('.gallery-photo-card').addEventListener('click', () => {
+
+                        if (isSelected) col.classList.add('selected');
+
+                        col.addEventListener('click', () => {
                             if (isSelected) removeFromCart(photo.id);
                             else addToCart(photo);
                         });
@@ -933,10 +998,8 @@
                 `;
                 showSearchStatus('error', 'Error de conexión. Intenta nuevamente.');
             } finally {
-                document.querySelectorAll('.gallery-stage-tab').forEach(tab => {
-                    tab.style.opacity = '1';
-                    tab.style.pointerEvents = 'auto';
-                });
+                select.style.opacity = '1';
+                select.style.pointerEvents = 'auto';
             }
         }
 
@@ -1032,31 +1095,21 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadCart();
 
-            // Obtener la primera pestaña activa (priorizar stages, sino specials)
-            const firstStageTab = document.querySelector('.gallery-stage-tab[data-type="stage"]');
-            const firstSpecialTab = document.querySelector('.gallery-stage-tab[data-type="special"]');
-
-            if (firstStageTab) {
-                firstStageTab.classList.add('active');
-                currentStageId = firstStageTab.dataset.stageId;
+            // Obtener el valor inicial del select
+            const categorySelect = document.getElementById('categorySelect');
+            if (categorySelect && categorySelect.options.length > 0) {
+                currentStageId = categorySelect.value;
                 loadPhotos();
                 setupInfiniteScroll();
-            } else if (firstSpecialTab) {
-                firstSpecialTab.classList.add('active');
-                currentStageId = firstSpecialTab.dataset.stageId;
-                loadPhotos();
-                setupInfiniteScroll();
+                updateActiveCategoryBadge();
             }
 
-            // Pestañas de etapas y especiales
-            document.querySelectorAll('.gallery-stage-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    if (currentSearchQuery) clearSearch();
-                    document.querySelectorAll('.gallery-stage-tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    currentStageId = tab.dataset.stageId;
-                    loadPhotos(true);
-                });
+            // Evento cambio de categoría
+            categorySelect.addEventListener('change', function() {
+                if (currentSearchQuery) clearSearch();
+                currentStageId = this.value;
+                loadPhotos(true);
+                updateActiveCategoryBadge();
             });
 
             // Búsqueda
