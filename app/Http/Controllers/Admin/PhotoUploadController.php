@@ -115,8 +115,7 @@ class PhotoUploadController extends Controller
             imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
             imagedestroy($src);
 
-            // === CAPA 1: MÚLTIPLES MARCAS DE AGUA ===
-            $logoPath = public_path('img/logopng.png');
+            $logoPath = public_path('img/lo222go.png');
             if (file_exists($logoPath)) {
                 $logo = imagecreatefrompng($logoPath);
                 if ($logo) {
@@ -149,7 +148,7 @@ class PhotoUploadController extends Controller
             // === CAPA 2: TEXTO DE COPYRIGHT EN TODA LA IMAGEN ===
             $textColor = imagecolorallocate($dst, 200, 200, 200);
             $fontSize = 3;
-            $text = "© VUELTA A LA FRÍA 2026 - PROHIBIDA SU REPRODUCCIÓN";
+            $text = " VUELTA A LA FRIA 2026 - PROHIBIDA SU REPRODUCCIÓN";
 
             // Texto repetido en mosaico
             $textWidth = imagefontwidth($fontSize) * strlen($text);
