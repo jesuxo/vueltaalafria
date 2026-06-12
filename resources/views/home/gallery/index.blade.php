@@ -568,10 +568,7 @@
                 </div>
                 <form id="checkoutForm">
                     <div class="modal-body">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Cada foto tiene un costo de <strong>$5 USD</strong>. Recibirás las fotos en alta resolución por email.
-                        </div>
+
                         <div class="mb-3">
                             <label class="form-label required-field">Nombre Completo</label>
                             <input type="text" id="customer_name" class="form-control" required>
