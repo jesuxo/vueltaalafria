@@ -32,31 +32,178 @@ class PhotoGalleryController extends Controller
     }
 
 
+
     public function serveProtectedImage($id)
     {
         $photo = Photo::findOrFail($id);
 
-        // Usar preview_path (con marca de agua)
-        $imagePath = public_path($photo->preview_path);
+        // Usar preview_path si existe, sino thumbnail
+        $sourcePath = public_path($photo->preview_path ?? $photo->thumbnail_path);
 
-        if (!file_exists($imagePath)) {
-            // Si no existe preview, usar thumbnail
-            $imagePath = public_path($photo->thumbnail_path);
-        }
-
-        if (!file_exists($imagePath)) {
+        if (!file_exists($sourcePath)) {
             abort(404);
         }
 
-        // Headers de protección (sin distorsión visual)
-        return response()->file($imagePath, [
-            'Cache-Control' => 'no-cache, no-store, must-revalidate, private',
-            'Pragma' => 'no-cache',
-            'Expires' => '0',
-            'Content-Disposition' => 'inline',
-            'X-Content-Type-Options' => 'nosniff',
-            'Content-Security-Policy' => "default-src 'none'; img-src 'self'",
-        ]);
+        // Crear una imagen protegida en tiempo real
+        return $this->createProtectedImage($sourcePath, $photo);
+    }
+
+    private function createProtectedImage($sourcePath, $photo)
+    {
+        try {
+            // Cargar la imagen original
+            $imageInfo = getimagesize($sourcePath);
+            if (!$imageInfo) {
+                return response()->file($sourcePath);
+            }
+
+            $width = $imageInfo[0];
+            $height = $imageInfo[1];
+            $type = $imageInfo[2];
+
+            // REDUCIR TAMAÑO SIGNIFICATIVAMENTE (máx 600px - calidad baja)
+            $maxDimension = 600;
+            if ($width > $maxDimension || $height > $maxDimension) {
+                $ratio = min($maxDimension / $width, $maxDimension / $height);
+                $newWidth = intval($width * $ratio);
+                $newHeight = intval($height * $ratio);
+            } else {
+                $newWidth = $width;
+                $newHeight = $height;
+            }
+
+            // Crear lienzo
+            $dst = imagecreatetruecolor($newWidth, $newHeight);
+
+            // Cargar imagen original
+            switch ($type) {
+                case IMAGETYPE_JPEG:
+                    $src = imagecreatefromjpeg($sourcePath);
+                    break;
+                case IMAGETYPE_PNG:
+                    $src = imagecreatefrompng($sourcePath);
+                    break;
+                default:
+                    return response()->file($sourcePath);
+            }
+
+            // Redimensionar
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagedestroy($src);
+
+            // === MARCA DE AGUA (logo grande y semi-transparente) ===
+            $logoPath = public_path('img/lo222go.png');
+            if (file_exists($logoPath)) {
+                $logo = imagecreatefrompng($logoPath);
+                if ($logo) {
+                    // Redimensionar logo proporcionalmente (30% del ancho de la imagen)
+                    $logoWidth = imagesx($logo);
+                    $logoHeight = imagesy($logo);
+                    $newLogoWidth = intval($newWidth * 0.3);
+                    $newLogoHeight = intval($logoHeight * ($newLogoWidth / $logoWidth));
+
+                    $tempLogo = imagecreatetruecolor($newLogoWidth, $newLogoHeight);
+                    imagecopyresampled($tempLogo, $logo, 0, 0, 0, 0, $newLogoWidth, $newLogoHeight, $logoWidth, $logoHeight);
+
+                    // Posición CENTRO
+                    $posX = ($newWidth - $newLogoWidth) / 2;
+                    $posY = ($newHeight - $newLogoHeight) / 2;
+
+                    imagecopy($dst, $tempLogo, $posX, $posY, 0, 0, $newLogoWidth, $newLogoHeight);
+
+                    imagedestroy($logo);
+                    imagedestroy($tempLogo);
+                }
+            }
+
+            // === TEXTO "PROHIBIDA SU DISTRIBUCIÓN" GRANDE EN EL CENTRO ===
+            $textoCentral = "PROHIBIDA SU DISTRIBUCION";
+            $textoCentral2 = "© VUELTA A LA FRIA 2026";
+
+            // Colores para el texto central (blanco con borde negro)
+            $white = imagecolorallocate($dst, 255, 255, 255);
+            $black = imagecolorallocate($dst, 0, 0, 0);
+            $red = imagecolorallocate($dst, 255, 0, 0);
+
+            // Calcular posición central para texto grande
+            $fontSizeGrande = 5; // Tamaño máximo de fuente integrada (5 = 5px por carácter)
+            $textWidth1 = imagefontwidth($fontSizeGrande) * strlen($textoCentral);
+            $textHeight1 = imagefontheight($fontSizeGrande);
+
+            $posX1 = ($newWidth - $textWidth1) / 2;
+            $posY1 = ($newHeight / 2) - 20;
+
+            // Texto con borde negro (sombra)
+            imagestring($dst, $fontSizeGrande, $posX1 - 1, $posY1 - 1, $textoCentral, $black);
+            imagestring($dst, $fontSizeGrande, $posX1 + 1, $posY1 - 1, $textoCentral, $black);
+            imagestring($dst, $fontSizeGrande, $posX1 - 1, $posY1 + 1, $textoCentral, $black);
+            imagestring($dst, $fontSizeGrande, $posX1 + 1, $posY1 + 1, $textoCentral, $black);
+            imagestring($dst, $fontSizeGrande, $posX1, $posY1, $textoCentral, $red);
+
+            // Segundo texto (copyright) debajo
+            $textWidth2 = imagefontwidth($fontSizeGrande) * strlen($textoCentral2);
+            $posX2 = ($newWidth - $textWidth2) / 2;
+            $posY2 = $posY1 + $textHeight1 + 10;
+
+            imagestring($dst, $fontSizeGrande, $posX2 - 1, $posY2 - 1, $textoCentral2, $black);
+            imagestring($dst, $fontSizeGrande, $posX2 + 1, $posY2 - 1, $textoCentral2, $black);
+            imagestring($dst, $fontSizeGrande, $posX2 - 1, $posY2 + 1, $textoCentral2, $black);
+            imagestring($dst, $fontSizeGrande, $posX2 + 1, $posY2 + 1, $textoCentral2, $black);
+            imagestring($dst, $fontSizeGrande, $posX2, $posY2, $textoCentral2, $white);
+
+            // === TEXTO DE COPYRIGHT REPETIDO EN MOSAICO (más pequeño) ===
+            $textColorMosaico = imagecolorallocatealpha($dst, 255, 255, 255, 50);
+            $fontSizeMosaico = 2;
+            $textMosaico = "© VUELTA A LA FRIA 2026 - PROHIBIDA SU DISTRIBUCION";
+
+            $textWidthMosaico = imagefontwidth($fontSizeMosaico) * strlen($textMosaico);
+            $textHeightMosaico = imagefontheight($fontSizeMosaico);
+
+            // Repetir texto en mosaico por toda la imagen (fondo)
+            for ($x = -$textWidthMosaico; $x < $newWidth + $textWidthMosaico; $x += $textWidthMosaico + 20) {
+                for ($y = -$textHeightMosaico; $y < $newHeight + $textHeightMosaico; $y += $textHeightMosaico + 40) {
+                    imagestring($dst, $fontSizeMosaico, $x, $y, $textMosaico, $textColorMosaico);
+                }
+            }
+
+            // === LÍNEAS DIAGONALES DE PROTECCIÓN ===
+            $lineColor = imagecolorallocatealpha($dst, 255, 0, 0, 40);
+            for ($i = -$newHeight; $i < $newWidth + $newHeight; $i += 30) {
+                imageline($dst, $i, 0, $i + $newHeight, $newHeight, $lineColor);
+                imageline($dst, 0, $i, $newWidth, $i + $newWidth, $lineColor);
+            }
+
+            // === PATRÓN DE PUNTOS (dificulta restauración por IA) ===
+            $dotColor = imagecolorallocatealpha($dst, 0, 0, 0, 70);
+            for ($i = 0; $i < ($newWidth * $newHeight) / 100; $i++) {
+                imagesetpixel($dst, rand(0, $newWidth - 1), rand(0, $newHeight - 1), $dotColor);
+            }
+
+            // Puntos blancos también
+            $whiteDotColor = imagecolorallocatealpha($dst, 255, 255, 255, 70);
+            for ($i = 0; $i < ($newWidth * $newHeight) / 150; $i++) {
+                imagesetpixel($dst, rand(0, $newWidth - 1), rand(0, $newHeight - 1), $whiteDotColor);
+            }
+
+            // === GUARDAR CON CALIDAD EXTREMADAMENTE BAJA (15%) ===
+            ob_start();
+            imagejpeg($dst, null, 15);
+            $imageData = ob_get_clean();
+            imagedestroy($dst);
+
+            // Devolver la imagen con headers de protección
+            return response($imageData)
+                ->header('Content-Type', 'image/jpeg')
+                ->header('Cache-Control', 'no-cache, no-store, must-revalidate, private')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0')
+                ->header('X-Content-Type-Options', 'nosniff')
+                ->header('Content-Disposition', 'inline');
+
+        } catch (\Exception $e) {
+            \Log::error('Error creando imagen protegida: ' . $e->getMessage());
+            return response()->file($sourcePath);
+        }
     }
 
     // Obtener fotos de una etapa o especial
