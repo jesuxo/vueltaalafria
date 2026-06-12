@@ -1,549 +1,308 @@
-{{-- resources/views/home/gallery/index.blade.php --}}
-@extends('home.layouts.master')
+{{-- resources/views/photos/index.blade.php --}}
+@extends('layouts.master')
+
+@section('title')
+    Panel de fotos
+@endsection
 
 @section('css')
     <style>
-        /* Estilos generales */
-        .gallery-photo-card {
-            position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        .gallery-photo-card:hover {
-            transform: scale(1.02);
-        }
-        .gallery-photo-card.selected {
-            box-shadow: 0 0 0 3px #00ecfe;
-        }
-        .photo-checkmark {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 30px;
-            height: 30px;
-            background: #00ecfe;
-            border-radius: 50%;
+        /* Tus estilos existentes se mantienen igual */
+        .preview-container {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .gallery-photo-card.selected .photo-checkmark {
-            opacity: 1;
-        }
-        .cart-sidebar {
-            position: fixed;
-            right: -380px;
-            top: 0;
-            width: 380px;
-            height: 100vh;
-            background: white;
-            box-shadow: -5px 0 20px rgba(0,0,0,0.1);
-            z-index: 1000;
-            transition: right 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .cart-sidebar.open {
-            right: 0;
-        }
-        .cart-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            display: none;
-        }
-        .cart-overlay.open {
-            display: block;
-        }
-        .cart-toggle-btn {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #00ecfe 0%, #00c4d4 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            z-index: 1001;
-            box-shadow: 0 4px 15px rgba(0,236,254,0.3);
-            transition: transform 0.3s;
-        }
-        .cart-toggle-btn:hover {
-            transform: scale(1.1);
-        }
-        .cart-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: red;
-            color: white;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .photo-price-badge {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-        .photo-price-badge i {
-            color: #ffd700;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        .cart-toggle-btn.has-items {
-            animation: pulse 1s infinite;
-        }
-
-        /* Estilos para el buscador */
-        .search-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .search-input-wrapper {
-            flex: 1;
-            position: relative;
-        }
-
-        .search-photo-input {
-            width: 100%;
-            border-radius: 50px;
-            padding: 12px 40px 12px 20px;
-            border: 1px solid #ddd;
-            transition: all 0.3s;
-            font-size: 16px;
-            background: white;
-        }
-
-        .search-photo-input:focus {
-            outline: none;
-            border-color: #00ecfe;
-            box-shadow: 0 0 0 3px rgba(0,236,254,0.1);
-        }
-
-        .clear-search-btn {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #999;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: color 0.3s;
-            z-index: 10;
-        }
-
-        .clear-search-btn:hover {
-            color: #dc3545;
-        }
-
-        #searchPhotoBtn {
-            flex-shrink: 0;
-            white-space: nowrap;
-            border-radius: 50px;
-            padding: 12px 25px;
-            margin-left: 0 !important;
-        }
-
-        /* Estilos para el selector de categoría (menos invasivo) */
-        .category-selector {
-            max-width: 400px;
-            margin: 0 auto 30px auto;
-        }
-
-        .category-select {
-            width: 100%;
-            padding: 14px 20px;
-            font-size: 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 50px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
-            background-repeat: no-repeat;
-            background-position: right 20px center;
-        }
-
-        .category-select:focus {
-            outline: none;
-            border-color: #00ecfe;
-            box-shadow: 0 0 0 3px rgba(0,236,254,0.1);
-        }
-
-        .category-select optgroup {
-            font-weight: bold;
-            color: #00ecfe;
-        }
-
-        .category-select option {
-            padding: 10px;
-            font-weight: normal;
-        }
-
-        /* Sección de etapas (compacta) */
-        .stages-section {
-            background: #f8f9fa;
-            border-radius: 20px;
-            padding: 15px 20px;
-            margin-bottom: 30px;
-        }
-
-        .stages-section-title {
-            font-size: 14px;
-            text-transform: uppercase;
-            color: #999;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        /* Grid de fotos */
-        .photos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .photos-grid {
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-                gap: 15px;
-            }
-        }
-
-        /* Estilos para el indicador de búsqueda */
-        .search-loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #00ecfe;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .search-status {
-            text-align: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
             padding: 15px;
             background: #f8f9fa;
             border-radius: 10px;
-            margin-top: 15px;
-            animation: fadeIn 0.3s ease;
+            max-height: 400px;
+            overflow-y: auto;
         }
-
-        .search-status i {
-            font-size: 24px;
-            margin-bottom: 5px;
-            display: inline-block;
-            margin-right: 10px;
-            vertical-align: middle;
+        .preview-item {
+            position: relative;
+            width: 150px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: white;
+            transition: transform 0.2s;
         }
-
-        .search-status p {
-            display: inline-block;
-            margin: 0;
-            vertical-align: middle;
+        .preview-item:hover {
+            transform: scale(1.05);
         }
-
-        .search-results-count {
-            font-size: 14px;
-            color: #666;
-            margin-top: 10px;
+        .preview-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+        .preview-item .preview-info {
+            padding: 5px;
+            font-size: 11px;
             text-align: center;
-            padding: 8px;
-            background: #e8f0fe;
-            border-radius: 20px;
-            animation: fadeIn 0.3s ease;
+            background: white;
         }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .preview-item .remove-preview {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255,0,0,0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s;
         }
-
-        /* Badge de categoría activa */
-        .active-category-badge {
-            display: inline-block;
-            background: #00ecfe20;
-            color: #00c4d4;
+        .preview-item .remove-preview:hover {
+            background: red;
+            transform: scale(1.1);
+        }
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .clear-all-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
             padding: 5px 12px;
-            border-radius: 50px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .upload-stats {
+            background: #e8f0fe;
+            border-left: 4px solid #00ecfe;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
             font-size: 13px;
-            margin-bottom: 15px;
+        }
+        .file-validation-error {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        .drop-zone {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 30px;
             text-align: center;
+            background: #fafafa;
+            transition: all 0.3s;
+            cursor: pointer;
         }
-
-        /* Responsive para móviles */
-        @media (max-width: 768px) {
-            .search-container {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .search-input-wrapper {
-                width: 100%;
-            }
-
-            #searchPhotoBtn {
-                width: 100%;
-            }
-
-            .category-selector {
-                max-width: 100%;
-                margin-bottom: 20px;
-            }
-
-            .stages-section {
-                padding: 10px 15px;
-            }
+        .drop-zone.dragover {
+            border-color: #00ecfe;
+            background: #e8f0fe;
         }
-
-        .navbar {
-            background: rgba(0,0,0,0.9) !important;
+        .select-files-btn {
+            background: #00ecfe;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .photo-card-img {
+            height: 180px;
+            object-fit: cover;
+            width: 100%;
+        }
+        .btn-group-custom {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-group-custom .btn {
+            flex: 1;
         }
     </style>
 @endsection
 
 @section('content')
-    <section class="section" style="padding-top: 120px;">
-        <div class="container">
-            <div class="section-title" data-aos="fade-up">
-                <h2>GALERÍA DE FOTOS</h2>
-                <p>Selecciona las fotos que quieras comprar de cada etapa o evento especial</p>
-            </div>
-
-            <!-- Buscador por dorsal/nombre -->
-            <div class="row mb-4" data-aos="fade-up">
-                <div class="col-md-8 mx-auto">
-                    <div class="search-container">
-                        <div class="search-input-wrapper">
-                            <input type="text" id="searchPhotoInput" class="search-photo-input" placeholder="🔍 Buscar por dorsal, nombre o equipo...">
-                            <button class="clear-search-btn" id="clearSearchBtn" style="display: none;">
-                                <i class="fas fa-times-circle"></i>
-                            </button>
-                        </div>
-                        <button class="btn-custom" id="searchPhotoBtn">
-                            <i class="fas fa-search"></i> Buscar
-                        </button>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-camera me-2"></i> Subir Fotos por Etapa</h3>
                     </div>
-                    <div id="searchStatus" class="search-status" style="display: none;"></div>
-                    <div id="searchResultsCount" class="search-results-count" style="display: none;"></div>
-                </div>
-            </div>
-
-            <!-- Selector de categorías (menos invasivo) -->
-            <div class="category-selector" data-aos="fade-up">
-                <select id="categorySelect" class="category-select">
-                    @php
-                        $hasActive = false;
-                    @endphp
-
-                    @if(isset($stages) && $stages->count() > 0)
-                        <optgroup label="🏁 ETAPAS DE LA CARRERA">
-                            @foreach($stages as $stage)
-                                <option value="{{ $stage->id }}" data-type="stage" {{ $loop->first && !$hasActive ? 'selected' : '' }}>
-                                    🏁 {{ $stage->name }}
-                                    @if($stage->stage_number) - Etapa {{ $stage->stage_number }} @endif
-                                    @if($stage->date) - {{ \Carbon\Carbon::parse($stage->date)->format('d/m/Y') }} @endif
-                                </option>
-                                @php
-                                    if($loop->first && !$hasActive) $hasActive = true;
-                                @endphp
-                            @endforeach
-                        </optgroup>
-                    @endif
-
-                    @if(isset($specials) && $specials->count() > 0)
-                        <optgroup label="✨ MOMENTOS ESPECIALES">
-                            @foreach($specials as $special)
-                                <option value="{{ $special->id }}" data-type="special">
-                                    {{ $special->icon ?? '📸' }} {{ $special->name }}
-                                    @if($special->date) - {{ \Carbon\Carbon::parse($special->date)->format('d/m/Y') }} @endif
-                                </option>
-                            @endforeach
-                        </optgroup>
-                    @endif
-                </select>
-            </div>
-
-            <!-- Indicador de categoría activa -->
-            <div class="text-center" id="activeCategoryBadge" style="display: none;">
-                <span class="active-category-badge">
-                    <i class="fas fa-eye me-1"></i> Mostrando: <strong id="activeCategoryName"></strong>
-                </span>
-            </div>
-
-            <!-- Grid de fotos -->
-            <div class="photos-grid" id="photosGrid" data-aos="fade-up">
-                <div class="col-12 text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Indicador de carga infinita -->
-            <div id="loadMoreTrigger" style="height: 20px;"></div>
-        </div>
-    </section>
-
-    <!-- Carrito Sidebar -->
-    <div class="cart-overlay" id="cartOverlay"></div>
-    <div class="cart-sidebar" id="cartSidebar">
-        <div class="p-3 border-bottom" style="background: #f8f9fa;">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-shopping-cart me-2"></i> Mis Fotos
-                    <span id="cartItemCount" class="badge bg-primary ms-2">0</span>
-                </h5>
-                <button class="btn-close" id="closeCartBtn"></button>
-            </div>
-            <small class="text-muted">Cada foto: <strong>$5 USD</strong></small>
-        </div>
-        <div class="flex-grow-1 overflow-auto p-3" id="cartItemsList">
-            <div class="text-center text-muted py-5">
-                <i class="fas fa-camera fa-3x mb-3"></i>
-                <p>No has seleccionado ninguna foto</p>
-                <small>Haz clic en las fotos que te gusten para agregarlas</small>
-            </div>
-        </div>
-        <div class="p-3 border-top" style="background: #f8f9fa;">
-            <div class="d-flex justify-content-between mb-3">
-                <strong>Total:</strong>
-                <strong id="cartTotal">$0.00 USD</strong>
-            </div>
-            <button class="btn-custom w-100" id="checkoutBtn">
-                <i class="fas fa-credit-card me-2"></i> Solicitar Fotos
-            </button>
-            <button class="btn-outline-custom w-100 mt-2" id="clearCartBtn">
-                <i class="fas fa-trash me-2"></i> Vaciar Carrito
-            </button>
-        </div>
-    </div>
-
-    <!-- Botón flotante del carrito -->
-    <div class="cart-toggle-btn" id="cartToggleBtn">
-        <i class="fas fa-shopping-cart fa-2x"></i>
-        <span class="cart-count" id="floatingCartCount">0</span>
-    </div>
-
-    <!-- Modal de Checkout -->
-    <div class="modal fade" id="checkoutModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header" style="background: linear-gradient(135deg, #00ecfe 0%, #00c4d4 100%);">
-                    <h5 class="modal-title text-white">Completar Pedido</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form id="checkoutForm">
-                    <div class="modal-body">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Cada foto tiene un costo de <strong>$5 USD</strong>. Recibirás las fotos en alta resolución por email.
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label required-field">Nombre Completo</label>
-                            <input type="text" id="customer_name" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label required-field">Email</label>
-                            <input type="email" id="customer_email" class="form-control" required>
-                            <small>Las fotos se enviarán a este correo</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label required-field">Teléfono/WhatsApp</label>
-                            <input type="text" id="customer_phone" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label required-field">Método de Pago</label>
-                            <select id="payment_method" class="form-select" required>
-                                <option value="">Seleccionar</option>
-                                <option value="transferencia">Transferencia Bancaria (VES/USD)</option>
-                                <option value="bancolombia">Bancolombia (COP)</option>
-                                <option value="usdt">USDT (Cripto)</option>
-                            </select>
-                        </div>
-                        <div id="bankAccountsInfo" class="mb-3" style="display: none;">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h6><i class="fas fa-university me-2"></i> Cuentas Bancarias</h6>
-                                    <hr>
-                                    <p><strong>🏦 Banco Provincial:</strong> 0108-0133-8001-0004-2510<br>Beneficiario: Ruben Osorio</p>
-                                    <p><strong>🏦 Bancolombia (COP):</strong> 901275648<br>Beneficiario: INVERSIONES OSORIO MOTOS S.A.S</p>
-                                    <p><strong>🪙 USDT:</strong> Rubenaosorioe@gmail.com</p>
-                                </div>
+                    <div class="card-body">
+                        <!-- Drop Zone -->
+                        <div class="drop-zone" id="dropZone">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p><strong>Arrastra tus fotos aquí</strong> o haz clic para seleccionarlas</p>
+                            <small class="text-muted">Formatos permitidos: JPG, JPEG, PNG (máx 5MB por foto)</small>
+                            <div>
+                                <button type="button" class="select-files-btn" onclick="document.getElementById('photos').click()">
+                                    <i class="fas fa-folder-open me-2"></i> Seleccionar archivos
+                                </button>
                             </div>
                         </div>
-                        <div class="mb-3" id="referenceField" style="display: none;">
-                            <label class="form-label required-field">Número de Referencia/Transacción</label>
-                            <input type="text" id="payment_reference" class="form-control">
+
+                        <form id="uploadForm" enctype="multipart/form-data" style="display: none;">
+                            @csrf
+                            <input type="file" name="photos[]" id="photos" multiple accept="image/jpeg,image/png,image/jpg">
+                        </form>
+
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Etapa / Evento</label>
+                                <select id="stageSelect" class="form-select" required>
+                                    <option value="">Seleccionar</option>
+
+                                    @if(isset($stages) && $stages->count() > 0)
+                                        <optgroup label="🏁 Etapas de la Carrera">
+                                            @foreach($stages->where('type', 'stage') as $stage)
+                                                <option value="{{ $stage->id }}">
+                                                    🏁 {{ $stage->name }}
+                                                    @if($stage->stage_number) - Etapa {{ $stage->stage_number }} @endif
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
+
+                                    @if(isset($specials) && $specials->count() > 0)
+                                        <optgroup label="📸 Momentos Especiales">
+                                            @foreach($specials as $special)
+                                                <option value="{{ $special->id }}">
+                                                    {{ $special->icon ? '<i class="'.$special->icon.'"></i>' : '📸' }}
+                                                    {{ $special->name }}
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Precio por foto (USD)</label>
+                                <input type="number" id="priceInput" class="form-control" value="5" step="0.5">
+                            </div>
                         </div>
-                        <div class="mb-3" id="proofField" style="display: none;">
-                            <label class="form-label required-field">Comprobante de Pago</label>
-                            <input type="file" id="payment_proof" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
-                            <small class="text-muted">Sube el comprobante de tu transferencia (JPG, PNG o PDF, máx 2MB)</small>
+
+                        <!-- Área de preview -->
+                        <div id="previewArea" style="display: none;">
+                            <div class="preview-header mt-3">
+                                <h6><i class="fas fa-images me-2"></i> Fotos seleccionadas (<span id="previewCount">0</span>)</h6>
+                                <button type="button" class="clear-all-btn" onclick="clearAllPreviews()">
+                                    <i class="fas fa-trash-alt me-1"></i> Limpiar todo
+                                </button>
+                            </div>
+                            <div id="previewContainer" class="preview-container"></div>
+
+                            <div class="upload-stats" id="uploadStats" style="display: none;">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span id="statsMessage"></span>
+                            </div>
+
+                            <div class="file-validation-error" id="validationError"></div>
+
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-primary" id="submitUploadBtn" onclick="uploadPhotos()">
+                                    <i class="fas fa-upload me-2"></i> Subir <span id="uploadCount">0</span> fotos
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="clearAllPreviews()">
+                                    <i class="fas fa-times me-2"></i> Cancelar
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="acceptTerms" required>
-                            <label class="form-check-label">
-                                Acepto que las fotos serán entregadas en un plazo máximo de 5 días hábiles después de confirmado el pago.
-                            </label>
+
+                        <!-- Barra de progreso -->
+                        <div id="uploadProgress" class="mt-3" style="display: none;">
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                            </div>
+                            <p class="text-center mt-2" id="progressText">Subiendo 0 de 0 fotos...</p>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn-outline-custom" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn-custom">Enviar Solicitud</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Fotos Recientes</h3>
                     </div>
-                </form>
+                    <div class="card-body">
+                        @if(isset($recentPhotos) && $recentPhotos->count() > 0)
+                            <div class="row" id="recentPhotosContainer">
+                                @foreach($recentPhotos as $photo)
+                                    <div class="col-md-3 mb-3" id="photo-card-{{ $photo->id }}">
+                                        <div class="card h-100">
+                                            <img src="/{{ $photo->thumbnail_path }}" class="card-img-top photo-card-img" alt="{{ $photo->original_name }}">
+                                            <div class="card-body">
+                                                <p class="mb-1"><strong>Etapa:</strong> {{ $photo->stage->name }}</p>
+                                                <p class="mb-1"><strong>Precio:</strong> ${{ number_format($photo->price, 2) }}</p>
+                                                <p class="mb-2"><small class="text-muted">{{ $photo->original_name }}</small></p>
+                                                <div class="btn-group-custom">
+                                                    <button class="btn btn-sm btn-warning" onclick="tagPhoto({{ $photo->id }})">
+                                                        <i class="fas fa-tag"></i> Etiquetar
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" onclick="deletePhoto({{ $photo->id }})">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No hay fotos subidas aún. ¡Sube tus primeras fotos usando el formulario de arriba!
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para etiquetar fotos -->
+    <div class="modal fade" id="tagPhotoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-tag me-2"></i> Etiquetar Foto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="currentPhotoId">
+                    <div class="mb-3">
+                        <label class="form-label">Dorsal</label>
+                        <input type="text" id="photoDorsal" class="form-control" placeholder="Ej: D0123">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del Ciclista</label>
+                        <input type="text" id="photoName" class="form-control" placeholder="Ej: Juan Pérez">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Equipo/Escuela</label>
+                        <input type="text" id="photoTeam" class="form-control" placeholder="Ej: Team Osorio">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea id="photoDescription" class="form-control" rows="2" placeholder="Descripción opcional"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveTags()">Guardar Etiquetas</button>
+                </div>
             </div>
         </div>
     </div>
@@ -552,487 +311,210 @@
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // ============================================
-        // CARRITO CON LOCALSTORAGE
-        // ============================================
+        // Variables globales
+        let selectedFiles = [];
+        let filePreviews = [];
 
-        let cart = [];
-        let currentStageId = null;
-        let currentPage = 1;
-        let isLoading = false;
-        let hasMore = true;
-        let currentSearchQuery = '';
+        // Configuración
+        const MAX_FILE_SIZE = 5 * 1024 * 1024;
+        const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
 
-        // Cargar carrito desde localStorage
-        function loadCart() {
-            const saved = localStorage.getItem('photoCart');
-            if (saved) {
-                cart = JSON.parse(saved);
-                cart = cart.map(item => ({
-                    ...item,
-                    price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 5
-                }));
-                updateCartUI();
+        // Elementos del DOM
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('photos');
+        const previewArea = document.getElementById('previewArea');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewCount = document.getElementById('previewCount');
+        const uploadCount = document.getElementById('uploadCount');
+        const stageSelect = document.getElementById('stageSelect');
+        const priceInput = document.getElementById('priceInput');
+        const validationError = document.getElementById('validationError');
+        const uploadStats = document.getElementById('uploadStats');
+        const statsMessage = document.getElementById('statsMessage');
+
+        function validateFile(file) {
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                return { valid: false, error: `Formato no válido: ${file.name}. Solo JPG, JPEG, PNG` };
             }
+            if (file.size > MAX_FILE_SIZE) {
+                return { valid: false, error: `Archivo muy grande: ${file.name}. Máximo 5MB` };
+            }
+            return { valid: true };
         }
 
-        // Guardar carrito en localStorage
-        function saveCart() {
-            const cleanCart = cart.map(item => ({
-                id: item.id,
-                filename: item.filename,
-                thumbnail: item.thumbnail,
-                price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 5
-            }));
-            localStorage.setItem('photoCart', JSON.stringify(cleanCart));
-            updateCartUI();
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // Agregar foto al carrito
-        function addToCart(photo) {
-            if (!cart.find(item => item.id === photo.id)) {
-                let price = photo.price;
-                if (typeof price === 'string') {
-                    price = parseFloat(price);
-                }
-                if (isNaN(price)) {
-                    price = 5;
-                }
+        function addFilesToSelection(files) {
+            const filesArray = Array.from(files);
+            const newFiles = [];
+            const errors = [];
 
-                cart.push({
-                    id: photo.id,
-                    filename: photo.filename,
-                    thumbnail: photo.thumbnail_path,
-                    price: price
-                });
-                saveCart();
-                showNotification('Foto agregada al carrito', 'success');
-                document.querySelector(`.gallery-photo-card[data-photo-id="${photo.id}"]`)?.classList.add('selected');
+            filesArray.forEach(file => {
+                const validation = validateFile(file);
+                if (validation.valid) {
+                    const isDuplicate = selectedFiles.some(existing =>
+                        existing.name === file.name && existing.size === file.size
+                    );
+                    if (!isDuplicate) {
+                        newFiles.push(file);
+                    }
+                } else {
+                    errors.push(validation.error);
+                }
+            });
+
+            if (errors.length > 0) {
+                validationError.style.display = 'block';
+                validationError.innerHTML = errors.join('<br>');
+                setTimeout(() => {
+                    validationError.style.display = 'none';
+                }, 5000);
             } else {
-                showNotification('Esta foto ya está en tu carrito', 'warning');
+                validationError.style.display = 'none';
             }
+
+            if (newFiles.length > 0) {
+                selectedFiles = [...selectedFiles, ...newFiles];
+                generatePreviews(newFiles);
+                updatePreviewUI();
+            }
+            showUploadStats();
         }
 
-        // Quitar foto del carrito
-        function removeFromCart(photoId) {
-            cart = cart.filter(item => item.id !== photoId);
-            saveCart();
-            document.querySelector(`.gallery-photo-card[data-photo-id="${photoId}"]`)?.classList.remove('selected');
-        }
+        function generatePreviews(files) {
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                const fileId = Date.now() + '_' + index + '_' + Math.random();
 
-        // Actualizar UI del carrito
-        function updateCartUI() {
-            const cartItems = document.getElementById('cartItemsList');
-            const cartCount = document.getElementById('cartItemCount');
-            const floatingCount = document.getElementById('floatingCartCount');
-            const cartTotalSpan = document.getElementById('cartTotal');
-            const cartToggleBtn = document.getElementById('cartToggleBtn');
-
-            let total = 0;
-            for (let i = 0; i < cart.length; i++) {
-                let price = cart[i].price;
-                if (typeof price === 'string') {
-                    price = parseFloat(price);
-                }
-                if (isNaN(price)) {
-                    price = 5;
-                }
-                total += price;
-            }
-
-            if (cartCount) cartCount.innerText = cart.length;
-            if (floatingCount) {
-                floatingCount.innerText = cart.length;
-                if (cart.length > 0) {
-                    cartToggleBtn.classList.add('has-items');
-                } else {
-                    cartToggleBtn.classList.remove('has-items');
-                }
-            }
-            if (cartTotalSpan) {
-                cartTotalSpan.innerText = `$${total.toFixed(2)} USD`;
-            }
-
-            if (cart.length === 0) {
-                if (cartItems) {
-                    cartItems.innerHTML = `
-                        <div class="text-center text-muted py-5">
-                            <i class="fas fa-camera fa-3x mb-3"></i>
-                            <p>No has seleccionado ninguna foto</p>
-                            <small>Haz clic en las fotos que te gusten para agregarlas</small>
+                reader.onload = function(e) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'preview-item';
+                    previewItem.setAttribute('data-file-id', fileId);
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}">
+                        <button class="remove-preview" onclick="removeFileFromSelection('${fileId}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="preview-info">
+                            <div class="fw-bold text-truncate" style="max-width: 140px;">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
                         </div>
                     `;
+                    previewContainer.appendChild(previewItem);
+
+                    filePreviews.push({
+                        id: fileId,
+                        file: file,
+                        element: previewItem
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeFileFromSelection(fileId) {
+            const previewIndex = filePreviews.findIndex(p => p.id === fileId);
+            if (previewIndex !== -1) {
+                const fileToRemove = filePreviews[previewIndex].file;
+                const fileIndex = selectedFiles.findIndex(f =>
+                    f.name === fileToRemove.name && f.size === fileToRemove.size
+                );
+                if (fileIndex !== -1) {
+                    selectedFiles.splice(fileIndex, 1);
                 }
+                filePreviews[previewIndex].element.remove();
+                filePreviews.splice(previewIndex, 1);
+                updatePreviewUI();
+                showUploadStats();
+            }
+        }
+
+        function clearAllPreviews() {
+            selectedFiles = [];
+            filePreviews = [];
+            previewContainer.innerHTML = '';
+            updatePreviewUI();
+            validationError.style.display = 'none';
+            uploadStats.style.display = 'none';
+            fileInput.value = '';
+        }
+
+        function updatePreviewUI() {
+            const count = selectedFiles.length;
+            previewCount.innerText = count;
+            uploadCount.innerText = count;
+            previewArea.style.display = count === 0 ? 'none' : 'block';
+        }
+
+        function showUploadStats() {
+            const validCount = selectedFiles.length;
+            const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+            if (validCount > 0) {
+                uploadStats.style.display = 'block';
+                statsMessage.innerHTML = `${validCount} foto(s) · Peso total: ${formatFileSize(totalSize)} · Precio: $${priceInput.value || 5} USD`;
             } else {
-                if (cartItems) {
-                    cartItems.innerHTML = cart.map(item => {
-                        let price = item.price;
-                        if (typeof price === 'string') {
-                            price = parseFloat(price);
-                        }
-                        if (isNaN(price)) {
-                            price = 5;
-                        }
-                        return `
-                            <div class="d-flex align-items-center mb-3 p-2 border rounded">
-                                <img src="/${item.thumbnail}" class="rounded" style="width: 60px; height: 50px; object-fit: cover;">
-                                <div class="ms-3 flex-grow-1">
-                                    <small class="text-muted d-block">Foto #${item.id}</small>
-                                    <strong>$${price.toFixed(2)} USD</strong>
-                                </div>
-                                <button class="btn btn-sm btn-danger" onclick="removeFromCart(${item.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        `;
-                    }).join('');
-                }
+                uploadStats.style.display = 'none';
             }
         }
 
-        // Limpiar carrito
-        function clearCart() {
-            if (cart.length > 0 && confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
-                cart = [];
-                saveCart();
-                showNotification('Carrito vaciado', 'info');
-                document.querySelectorAll('.gallery-photo-card').forEach(card => {
-                    card.classList.remove('selected');
-                });
-            }
-        }
-
-        // Mostrar estado de búsqueda
-        function showSearchStatus(status, message) {
-            const searchStatus = document.getElementById('searchStatus');
-            const searchResultsCount = document.getElementById('searchResultsCount');
-
-            if (status === 'loading') {
-                searchStatus.style.display = 'block';
-                searchStatus.innerHTML = `
-                    <div class="d-flex justify-content-center align-items-center">
-                        <div class="search-loading"></div>
-                        <span class="ms-2">${message || 'Buscando fotos...'}</span>
-                    </div>
-                `;
-                searchResultsCount.style.display = 'none';
-            } else if (status === 'results') {
-                searchStatus.style.display = 'block';
-                searchStatus.innerHTML = `
-                    <i class="fas fa-check-circle text-success"></i>
-                    <p>${message}</p>
-                `;
-                setTimeout(() => {
-                    if (searchStatus.style.display !== 'none') {
-                        searchStatus.style.display = 'none';
-                    }
-                }, 3000);
-                searchResultsCount.style.display = 'block';
-                searchResultsCount.innerHTML = message;
-                setTimeout(() => {
-                    if (searchResultsCount.style.display !== 'none') {
-                        searchResultsCount.style.display = 'none';
-                    }
-                }, 4000);
-            } else if (status === 'error') {
-                searchStatus.style.display = 'block';
-                searchStatus.innerHTML = `
-                    <i class="fas fa-exclamation-triangle text-warning"></i>
-                    <p>${message}</p>
-                `;
-                setTimeout(() => {
-                    searchStatus.style.display = 'none';
-                }, 3000);
-                searchResultsCount.style.display = 'none';
-            } else if (status === 'clear') {
-                searchStatus.style.display = 'none';
-                searchResultsCount.style.display = 'none';
-                searchStatus.innerHTML = '';
-                searchResultsCount.innerHTML = '';
-            }
-        }
-
-        // Limpiar búsqueda
-        function clearSearch() {
-            const searchInput = document.getElementById('searchPhotoInput');
-            searchInput.value = '';
-            currentSearchQuery = '';
-            document.getElementById('clearSearchBtn').style.display = 'none';
-            showSearchStatus('clear');
-            hasMore = true;
-            currentPage = 1;
-            if (currentStageId) {
-                loadPhotos(true);
-            }
-        }
-
-        // Actualizar badge de categoría activa
-        function updateActiveCategoryBadge() {
-            const select = document.getElementById('categorySelect');
-            const selectedOption = select.options[select.selectedIndex];
-            const categoryName = selectedOption.textContent.replace(/^[^\w]+/, '').trim();
-            const badge = document.getElementById('activeCategoryBadge');
-            const categoryNameSpan = document.getElementById('activeCategoryName');
-
-            if (categoryNameSpan) {
-                categoryNameSpan.textContent = categoryName;
-            }
-
-            if (badge) {
-                badge.style.display = 'block';
-                setTimeout(() => {
-                    if (badge) badge.style.display = 'none';
-                }, 3000);
-            }
-        }
-
-        // ============================================
-        // CARGAR FOTOS
-        // ============================================
-
-        async function loadPhotos(reset = true) {
-            if (currentSearchQuery && currentSearchQuery.length >= 2) return;
-            if (isLoading || !currentStageId) return;
-
-            if (reset) {
-                currentPage = 1;
-                hasMore = true;
-                document.getElementById('photosGrid').innerHTML = '';
-            }
-
-            isLoading = true;
-
-            if (reset) {
-                const grid = document.getElementById('photosGrid');
-                grid.innerHTML = `
-                    <div class="col-12 text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Cargando...</span>
-                        </div>
-                        <p class="mt-2 text-muted">Cargando fotos...</p>
-                    </div>
-                `;
-            }
-
-            try {
-                const response = await fetch(`/galeria/stage/${currentStageId}?page=${currentPage}`);
-                const photos = await response.json();
-                const grid = document.getElementById('photosGrid');
-
-                if (reset) grid.innerHTML = '';
-
-                if (!Array.isArray(photos)) {
-                    if (reset) {
-                        grid.innerHTML = `
-                            <div class="col-12 text-center py-5">
-                                <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
-                                <p>Error al cargar las fotos. Por favor, intenta de nuevo.</p>
-                            </div>
-                        `;
-                    }
-                    hasMore = false;
-                } else if (photos.length === 0) {
-                    if (reset) {
-                        grid.innerHTML = `
-                            <div class="col-12 text-center py-5">
-                                <i class="fas fa-camera-slash fa-4x text-muted mb-3"></i>
-                                <p>No hay fotos disponibles para esta categoría aún.</p>
-                                <small>Las fotos se irán subiendo durante el evento.</small>
-                            </div>
-                        `;
-                    }
-                    hasMore = false;
-                } else {
-                    photos.forEach(photo => {
-                        const isSelected = cart.some(item => item.id === photo.id);
-                        const col = document.createElement('div');
-                        col.className = 'gallery-photo-card';
-                        col.setAttribute('data-photo-id', photo.id);
-                        col.innerHTML = `
-                            <div class="position-relative">
-                                <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover; border-radius: 12px;" alt="Foto">
-                                <div class="photo-checkmark">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="photo-price-badge">
-                                    <i class="fas fa-dollar-sign"></i> ${photo.price || 5}
-                                </div>
-                            </div>
-                        `;
-
-                        if (isSelected) col.classList.add('selected');
-
-                        col.addEventListener('click', () => {
-                            if (isSelected) {
-                                removeFromCart(photo.id);
-                            } else {
-                                addToCart(photo);
-                            }
-                        });
-                        grid.appendChild(col);
-                    });
-
-                    if (photos.length < 20) hasMore = false;
-                    else currentPage++;
-                }
-            } catch (error) {
-                console.error('Error loading photos:', error);
-                const grid = document.getElementById('photosGrid');
-                if (reset) {
-                    grid.innerHTML = `
-                        <div class="col-12 text-center py-5">
-                            <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
-                            <p>Error de conexión. Por favor, intenta de nuevo.</p>
-                        </div>
-                    `;
-                }
-            } finally {
-                isLoading = false;
-            }
-        }
-
-        // Infinite scroll
-        function setupInfiniteScroll() {
-            const observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && hasMore && !isLoading && !currentSearchQuery) {
-                    loadPhotos(false);
-                }
-            }, { threshold: 0.1 });
-            const trigger = document.getElementById('loadMoreTrigger');
-            if (trigger) observer.observe(trigger);
-        }
-
-        // ============================================
-        // BÚSQUEDA
-        // ============================================
-
-        async function performSearch() {
-            const searchInput = document.getElementById('searchPhotoInput');
-            const query = searchInput.value.trim();
-
-            if (query.length === 0) {
-                if (currentSearchQuery) clearSearch();
+        async function uploadPhotos() {
+            // Validaciones
+            if (selectedFiles.length === 0) {
+                Swal.fire('Error', 'No has seleccionado ninguna foto', 'error');
                 return;
             }
 
-            if (query.length < 2) {
-                showSearchStatus('error', 'Ingresa al menos 2 caracteres para buscar');
+            const stageId = stageSelect.value;  // Cambiado: ahora es el ID
+            if (!stageId) {
+                Swal.fire('Error', 'Por favor selecciona una etapa', 'error');
                 return;
             }
 
-            currentSearchQuery = query;
-            showSearchStatus('loading', `Buscando "${query}"...`);
-
-            const select = document.getElementById('categorySelect');
-            select.style.opacity = '0.5';
-            select.style.pointerEvents = 'none';
-
-            currentPage = 1;
-            hasMore = false;
-
-            const grid = document.getElementById('photosGrid');
-            grid.innerHTML = `
-                <div class="col-12 text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
-                    <p class="mt-2 text-muted">Buscando fotos que coincidan con "${query}"...</p>
-                </div>
-            `;
-
-            try {
-                const response = await fetch(`/galeria/search?q=${encodeURIComponent(query)}`);
-                const photos = await response.json();
-                grid.innerHTML = '';
-
-                if (!Array.isArray(photos) || photos.length === 0) {
-                    grid.innerHTML = `
-                        <div class="col-12 text-center py-5">
-                            <i class="fas fa-camera-slash fa-4x text-muted mb-3"></i>
-                            <p>No se encontraron fotos con "${query}"</p>
-                            <small>Intenta con otro término de búsqueda (dorsal, nombre o equipo)</small>
-                            <div class="mt-3">
-                                <button class="btn-outline-custom" onclick="clearSearch()">
-                                    <i class="fas fa-arrow-left me-2"></i> Volver a la galería
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    showSearchStatus('results', `No se encontraron resultados para "${query}"`);
-                } else {
-                    photos.forEach(photo => {
-                        const isSelected = cart.some(item => item.id === photo.id);
-                        const col = document.createElement('div');
-                        col.className = 'gallery-photo-card';
-                        col.setAttribute('data-photo-id', photo.id);
-                        col.innerHTML = `
-                            <div class="position-relative">
-                                <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover; border-radius: 12px;" alt="Foto">
-                                <div class="photo-checkmark">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="photo-price-badge">
-                                    <i class="fas fa-dollar-sign"></i> ${photo.price || 5}
-                                </div>
-                            </div>
-                        `;
-
-                        if (isSelected) col.classList.add('selected');
-
-                        col.addEventListener('click', () => {
-                            if (isSelected) removeFromCart(photo.id);
-                            else addToCart(photo);
-                        });
-                        grid.appendChild(col);
-                    });
-                    showSearchStatus('results', `Se encontraron ${photos.length} foto(s) para "${query}"`);
-                }
-            } catch (error) {
-                console.error('Error en búsqueda:', error);
-                grid.innerHTML = `
-                    <div class="col-12 text-center py-5">
-                        <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
-                        <p>Error de conexión al buscar</p>
-                        <small>Por favor, intenta nuevamente</small>
-                    </div>
-                `;
-                showSearchStatus('error', 'Error de conexión. Intenta nuevamente.');
-            } finally {
-                select.style.opacity = '1';
-                select.style.pointerEvents = 'auto';
-            }
-        }
-
-        // ============================================
-        // CHECKOUT
-        // ============================================
-
-        async function submitOrder() {
-            if (cart.length === 0) {
-                showNotification('No has seleccionado ninguna foto', 'error');
+            const price = priceInput.value;
+            if (!price || price <= 0) {
+                Swal.fire('Error', 'Por favor ingresa un precio válido', 'error');
                 return;
             }
 
+            // Confirmar subida
+            const confirm = await Swal.fire({
+                title: '¿Subir fotos?',
+                html: `Vas a subir <strong>${selectedFiles.length}</strong> fotos para la etapa seleccionada con precio <strong>$${price} USD</strong> cada una.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, subir',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            // Preparar FormData
             const formData = new FormData();
-            formData.append('customer_name', document.getElementById('customer_name').value);
-            formData.append('customer_email', document.getElementById('customer_email').value || '');
-            formData.append('customer_phone', document.getElementById('customer_phone').value);
-            formData.append('payment_method', document.getElementById('payment_method').value);
-            formData.append('payment_reference', document.getElementById('payment_reference').value || '');
-            formData.append('photos', JSON.stringify(cart.map(p => ({ id: p.id }))));
+            formData.append('stage_id', stageId);  // Cambiado: stage_id
+            formData.append('price', price);
 
-            const proofFile = document.getElementById('payment_proof').files[0];
-            if (proofFile) {
-                formData.append('payment_proof', proofFile);
-            }
+            selectedFiles.forEach(file => {
+                formData.append('photos[]', file);
+            });
 
-            const submitBtn = document.querySelector('#checkoutForm button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Procesando...';
+            // Mostrar barra de progreso
+            const progressBar = document.querySelector('#uploadProgress .progress-bar');
+            const progressText = document.getElementById('progressText');
+            const uploadProgressDiv = document.getElementById('uploadProgress');
+
+            uploadProgressDiv.style.display = 'block';
+            submitUploadBtn.disabled = true;
+            progressBar.style.width = '0%';
+            progressText.innerText = `Subiendo 0 de ${selectedFiles.length} fotos...`;
 
             try {
-                const response = await fetch('/galeria/order', {
+                const response = await fetch('/admin/fotos/upload', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -1042,163 +524,101 @@
 
                 const result = await response.json();
 
-                if (result.success) {
-                    cart = [];
-                    saveCart();
-                    bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
-                    document.getElementById('checkoutForm').reset();
+                progressBar.style.width = '100%';
+                progressText.innerText = `¡Completado! ${result.success} fotos subidas correctamente.`;
 
+                if (result.success > 0) {
                     Swal.fire({
-                        title: '¡Pedido creado!',
-                        html: `
-                            <div class="text-center">
-                                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-                                <p><strong>Tu pedido ha sido creado exitosamente</strong></p>
-                                <div class="alert alert-info">
-                                    <strong>Código de pedido:</strong><br>
-                                    <code style="font-size: 18px;">${result.public_code}</code>
-                                </div>
-                                <p>Guarda este código para consultar el estado de tu pedido</p>
-                                <hr>
-                                <div class="mt-3">
-                                    <a href="${result.public_url}" class="btn btn-custom" target="_blank">
-                                        <i class="fas fa-external-link-alt me-2"></i> Ver mi pedido
-                                    </a>
-                                </div>
-                                ${result.qr_code ? `
-                                <div class="mt-3">
-                                    <img src="data:image/png;base64,${result.qr_code}" style="max-width: 150px;">
-                                </div>
-                                ` : ''}
-                            </div>
-                        `,
+                        title: '¡Subida completada!',
+                        html: `Se subieron <strong>${result.success}</strong> fotos correctamente.${result.errors.length > 0 ? `<br>${result.errors.length} fotos con error.` : ''}`,
                         icon: 'success',
-                        confirmButtonText: 'Aceptar',
-                        confirmButtonColor: '#00ecfe',
-                        width: '500px'
+                        timer: 3000
                     });
+
+                    // Recargar lista de fotos recientes
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
                 } else {
-                    showNotification(result.message || 'Error al procesar el pedido', 'error');
+                    Swal.fire('Error', 'No se pudo subir ninguna foto', 'error');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Error de conexión al subir las fotos', 'error');
+            } finally {
+                uploadProgressDiv.style.display = 'none';
+                submitUploadBtn.disabled = false;
+            }
+        }
+
+        function setupDragAndDrop() {
+            if (!dropZone) return;
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) addFilesToSelection(e.dataTransfer.files);
+            });
+            dropZone.addEventListener('click', () => fileInput.click());
+        }
+
+        function setupFileInput() {
+            if (!fileInput) return;
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) addFilesToSelection(e.target.files);
+                fileInput.value = '';
+            });
+        }
+
+        function tagPhoto(photoId) {
+            document.getElementById('currentPhotoId').value = photoId;
+            $('#tagPhotoModal').modal('show');
+        }
+
+        async function saveTags() {
+            const photoId = document.getElementById('currentPhotoId').value;
+            try {
+                const response = await fetch(`/admin/fotos/tag/${photoId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                    body: JSON.stringify({
+                        dorsal: document.getElementById('photoDorsal').value,
+                        name: document.getElementById('photoName').value,
+                        team: document.getElementById('photoTeam').value,
+                        description: document.getElementById('photoDescription').value
+                    })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    Swal.fire('Éxito', 'Etiquetas guardadas', 'success');
+                    $('#tagPhotoModal').modal('hide');
                 }
             } catch (error) {
-                showNotification('Error de conexión. Intenta nuevamente.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
+                Swal.fire('Error', 'Error de conexión', 'error');
             }
         }
 
-        // ============================================
-        // INICIALIZACIÓN
-        // ============================================
+        async function deletePhoto(photoId) {
+            const confirm = await Swal.fire({ title: '¿Eliminar foto?', text: 'No se puede deshacer', icon: 'warning', showCancelButton: true, confirmButtonText: 'Sí, eliminar' });
+            if (!confirm.isConfirmed) return;
+            try {
+                const response = await fetch(`/admin/fotos/${photoId}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } });
+                const result = await response.json();
+                if (result.success) {
+                    Swal.fire('Eliminada', 'Foto eliminada', 'success');
+                    document.getElementById(`photo-card-${photoId}`)?.remove();
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Error de conexión', 'error');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadCart();
-
-            // Obtener el valor inicial del select
-            const categorySelect = document.getElementById('categorySelect');
-            if (categorySelect && categorySelect.options.length > 0) {
-                currentStageId = categorySelect.value;
-                loadPhotos();
-                setupInfiniteScroll();
-                updateActiveCategoryBadge();
-            }
-
-            // Evento cambio de categoría
-            categorySelect.addEventListener('change', function() {
-                if (currentSearchQuery) clearSearch();
-                currentStageId = this.value;
-                loadPhotos(true);
-                updateActiveCategoryBadge();
-            });
-
-            // Búsqueda
-            const searchInput = document.getElementById('searchPhotoInput');
-            const searchBtn = document.getElementById('searchPhotoBtn');
-            const clearSearchBtn = document.getElementById('clearSearchBtn');
-
-            searchInput.addEventListener('input', function() {
-                if (this.value.length > 0) {
-                    clearSearchBtn.style.display = 'flex';
-                    if (this.value.length === 0 && currentSearchQuery) clearSearch();
-                } else {
-                    clearSearchBtn.style.display = 'none';
-                    if (currentSearchQuery) clearSearch();
-                }
-            });
-
-            clearSearchBtn.addEventListener('click', clearSearch);
-            searchBtn.addEventListener('click', performSearch);
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') performSearch();
-            });
-
-            // Carrito sidebar
-            const cartSidebar = document.getElementById('cartSidebar');
-            const cartOverlay = document.getElementById('cartOverlay');
-            const cartToggleBtn = document.getElementById('cartToggleBtn');
-            const closeCartBtn = document.getElementById('closeCartBtn');
-
-            function openCart() {
-                cartSidebar.classList.add('open');
-                cartOverlay.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeCart() {
-                cartSidebar.classList.remove('open');
-                cartOverlay.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-
-            cartToggleBtn.addEventListener('click', openCart);
-            closeCartBtn.addEventListener('click', closeCart);
-            cartOverlay.addEventListener('click', closeCart);
-
-            document.getElementById('clearCartBtn').addEventListener('click', clearCart);
-            document.getElementById('checkoutBtn').addEventListener('click', () => {
-                if (cart.length === 0) {
-                    showNotification('No has seleccionado ninguna foto', 'warning');
-                    return;
-                }
-                closeCart();
-                new bootstrap.Modal(document.getElementById('checkoutModal')).show();
-            });
-
-            // Métodos de pago
-            document.getElementById('payment_method').addEventListener('change', function() {
-                const bankAccounts = document.getElementById('bankAccountsInfo');
-                const referenceField = document.getElementById('referenceField');
-                const proofField = document.getElementById('proofField');
-                const method = this.value;
-
-                if (method === 'transferencia' || method === 'bancolombia' || method === 'usdt') {
-                    bankAccounts.style.display = 'block';
-                    referenceField.style.display = 'block';
-                    proofField.style.display = 'block';
-                } else {
-                    bankAccounts.style.display = 'none';
-                    referenceField.style.display = 'none';
-                    proofField.style.display = 'none';
-                }
-            });
-
-            document.getElementById('checkoutForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                submitOrder();
-            });
+            setupDragAndDrop();
+            setupFileInput();
+            if (priceInput) priceInput.addEventListener('input', () => showUploadStats());
         });
-
-        function showNotification(message, type = 'info') {
-            Swal.fire({
-                text: message,
-                icon: type,
-                toast: true,
-                position: 'bottom-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true
-            });
-        }
     </script>
 @endsection
