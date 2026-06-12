@@ -312,7 +312,10 @@
                 <p class="subtitulo" style="font-size: 20px;">LA VUELTA MENOR MÁS IMPORTANTE DE VENEZUELA</p>
                 <div>
                     <a href="#pricing" class="btn-custom">Ver Costos</a>
-                    <a href="#preinscripcion" class="btn-custom btn-outline-custom">Inscribirme Ahora</a>
+                    <a href="#preinscripcion" class="btn-custom btn-outline-custom" style="display: none">Inscribirme Ahora</a>
+                    <a href="/galeria" class="btn-custom btn-outline-custom"  >
+                        Ver Galer&iacute;a
+                    </a>
                 </div>
                 <div class="row mt-5">
                     <div class="col-12 mt-2 col-md-6">
@@ -745,7 +748,7 @@
     </section>
 
     <!-- Sección de Inscripción -->
-    <section id="preinscripcion" class="section" style="padding-top: 0 !important;">
+    <section id="preinscripcion" class="section" style="display: none; padding-top: 0 !important;">
         <div class="container">
             <div class="section-title d-none" data-aos="fade-up">
                 <h2>FORMULARIO DE INSCRIPCIÓN</h2>

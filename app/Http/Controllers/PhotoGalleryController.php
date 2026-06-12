@@ -16,14 +16,22 @@ class PhotoGalleryController extends Controller
     // Mostrar galería por etapas
     public function index()
     {
+        // Obtener etapas normales
         $stages = Stage::where('is_active', true)
+            ->where('type', 'stage')
             ->orderBy('stage_number', 'asc')
             ->get();
 
-        return view('home.gallery.index', compact('stages'));
+        // Obtener categorías especiales
+        $specials = Stage::where('is_active', true)
+            ->where('type', 'special')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        return view('home.gallery.index', compact('stages', 'specials'));
     }
 
-    // Obtener fotos de una etapa específica (para AJAX)
+    // Obtener fotos de una etapa o especial
     public function getStagePhotos($stageId)
     {
         $photos = Photo::where('stage_id', $stageId)
@@ -34,7 +42,6 @@ class PhotoGalleryController extends Controller
         return response()->json($photos->items());
     }
 
-    // Buscar fotos por dorsal o nombre
     public function searchPhotos(Request $request)
     {
         $query = $request->get('q');

@@ -7,34 +7,43 @@ use Illuminate\Database\Eloquent\Model;
 
 class Stage extends Model
 {
-    protected $table = 'stages';
-
     protected $fillable = [
-        'stage_number', 'date', 'name', 'description',
-        'start_location', 'finish_location', 'total_distance',
-        'route_details', 'sprints', 'mountain_prizes'
+        'name', 'type', 'stage_number', 'date', 'description',
+        'distance', 'start_location', 'end_location', 'icon',
+        'is_active', 'order'
     ];
 
     protected $casts = [
         'date' => 'date',
-        'total_distance' => 'decimal:2',
-        'sprints' => 'array',
-        'mountain_prizes' => 'array'
+        'is_active' => 'boolean'
     ];
 
-    public function schedules()
+    // Relación con fotos
+    public function photos()
     {
-        return $this->hasMany(Schedule::class);
+        return $this->hasMany(Photo::class, 'stage_id');
     }
 
-    public function results()
+    // Scopes para filtrar por tipo
+    public function scopeStages($query)
     {
-        return $this->hasMany(Result::class);
+        return $query->where('type', 'stage');
     }
 
-    // Accessor para nombre con número
-    public function getFullNameAttribute()
+    public function scopeSpecials($query)
     {
-        return "Etapa {$this->stage_number}: {$this->name}";
+        return $query->where('type', 'special');
+    }
+
+    // Verificar si es etapa normal
+    public function isStage()
+    {
+        return $this->type === 'stage';
+    }
+
+    // Verificar si es especial
+    public function isSpecial()
+    {
+        return $this->type === 'special';
     }
 }

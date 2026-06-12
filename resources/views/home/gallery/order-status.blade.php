@@ -156,6 +156,9 @@
             text-align: center;
             margin-bottom: 10px;
         }
+        .navbar {
+            background: rgba(0,0,0,0.9) !important;
+        }
     </style>
 @endsection
 

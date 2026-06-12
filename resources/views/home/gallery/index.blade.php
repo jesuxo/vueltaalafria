@@ -265,6 +265,9 @@
                 width: 100%;
             }
         }
+        .navbar {
+            background: rgba(0,0,0,0.9) !important;
+        }
     </style>
 @endsection
 
