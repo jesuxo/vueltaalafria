@@ -178,7 +178,7 @@
             margin-left: 0 !important;
         }
 
-        /* Estilos para el selector de categoría (menos invasivo) */
+        /* Estilos para el selector de categoría */
         .category-selector {
             max-width: 400px;
             margin: 0 auto 30px auto;
@@ -214,23 +214,6 @@
         .category-select option {
             padding: 10px;
             font-weight: normal;
-        }
-
-        /* Sección de etapas (compacta) */
-        .stages-section {
-            background: #f8f9fa;
-            border-radius: 20px;
-            padding: 15px 20px;
-            margin-bottom: 30px;
-        }
-
-        .stages-section-title {
-            font-size: 14px;
-            text-transform: uppercase;
-            color: #999;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            text-align: center;
         }
 
         /* Grid de fotos */
@@ -322,6 +305,71 @@
             text-align: center;
         }
 
+        /* Estilos para el modal de foto */
+        .photo-modal-img {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .photo-modal-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .modal-content {
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .zoom-icon {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .zoom-icon:hover {
+            background: #00ecfe;
+            transform: scale(1.1);
+        }
+
+        .gallery-photo-card {
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal.fade .modal-dialog {
+            animation: slideIn 0.3s ease-out;
+        }
+
         /* Responsive para móviles */
         @media (max-width: 768px) {
             .search-container {
@@ -340,10 +388,6 @@
             .category-selector {
                 max-width: 100%;
                 margin-bottom: 20px;
-            }
-
-            .stages-section {
-                padding: 10px 15px;
             }
         }
 
@@ -380,7 +424,7 @@
                 </div>
             </div>
 
-            <!-- Selector de categorías (menos invasivo) -->
+            <!-- Selector de categorías -->
             <div class="category-selector" data-aos="fade-up">
                 <select id="categorySelect" class="category-select">
                     @php
@@ -476,6 +520,44 @@
         <span class="cart-count" id="floatingCartCount">0</span>
     </div>
 
+    <!-- Modal para ver foto en grande -->
+    <div class="modal fade" id="photoModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #00ecfe 0%, #00c4d4 100%);">
+                    <h5 class="modal-title text-white">
+                        <i class="fas fa-camera me-2"></i>
+                        <span id="modalPhotoTitle">Foto</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalPhotoImage" src="" alt="Foto" class="photo-modal-img">
+                    <div class="photo-modal-info">
+                        <div class="row">
+                            <div class="col-md-6 text-start">
+                                <p><strong><i class="fas fa-tag me-2"></i>Código:</strong> <span id="modalPhotoId"></span></p>
+                                <p><strong><i class="fas fa-dollar-sign me-2"></i>Precio:</strong> $<span id="modalPhotoPrice">5</span> USD</p>
+                            </div>
+                            <div class="col-md-6 text-start">
+                                <p><strong><i class="fas fa-folder me-2"></i>Categoría:</strong> <span id="modalPhotoStage"></span></p>
+                                <p><strong><i class="fas fa-hashtag me-2"></i>Dorsal:</strong> <span id="modalPhotoDorsal">—</span></p>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn-custom" id="modalAddToCartBtn">
+                                <i class="fas fa-cart-plus me-2"></i> Agregar al Carrito
+                            </button>
+                            <button class="btn-outline-custom ms-2" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-2"></i> Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Checkout -->
     <div class="modal fade" id="checkoutModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -562,6 +644,7 @@
         let isLoading = false;
         let hasMore = true;
         let currentSearchQuery = '';
+        let currentModalPhoto = null;
 
         // Cargar carrito desde localStorage
         function loadCart() {
@@ -589,7 +672,7 @@
         }
 
         // Agregar foto al carrito
-        function addToCart(photo) {
+        function addToCart(photo, showNotificationMsg = true) {
             if (!cart.find(item => item.id === photo.id)) {
                 let price = photo.price;
                 if (typeof price === 'string') {
@@ -606,10 +689,16 @@
                     price: price
                 });
                 saveCart();
-                showNotification('Foto agregada al carrito', 'success');
+                if (showNotificationMsg) {
+                    showNotification('Foto agregada al carrito', 'success');
+                }
                 document.querySelector(`.gallery-photo-card[data-photo-id="${photo.id}"]`)?.classList.add('selected');
+                return true;
             } else {
-                showNotification('Esta foto ya está en tu carrito', 'warning');
+                if (showNotificationMsg) {
+                    showNotification('Esta foto ya está en tu carrito', 'warning');
+                }
+                return false;
             }
         }
 
@@ -727,7 +816,7 @@
                         searchStatus.style.display = 'none';
                     }
                 }, 3000);
-              //  searchResultsCount.style.display = 'block';
+                searchResultsCount.style.display = 'block';
                 searchResultsCount.innerHTML = message;
                 setTimeout(() => {
                     if (searchResultsCount.style.display !== 'none') {
@@ -784,6 +873,56 @@
                     if (badge) badge.style.display = 'none';
                 }, 3000);
             }
+        }
+
+        // Mostrar modal con foto en grande
+        function showPhotoModal(photo) {
+            currentModalPhoto = photo;
+
+            const modalTitle = document.getElementById('modalPhotoTitle');
+            const modalImage = document.getElementById('modalPhotoImage');
+            const modalPhotoId = document.getElementById('modalPhotoId');
+            const modalPhotoPrice = document.getElementById('modalPhotoPrice');
+            const modalPhotoStage = document.getElementById('modalPhotoStage');
+            const modalPhotoDorsal = document.getElementById('modalPhotoDorsal');
+
+            if (modalTitle) modalTitle.innerText = `Foto #${photo.id}`;
+            if (modalImage) modalImage.src = `/${photo.full_path || photo.thumbnail_path}`;
+            if (modalPhotoId) modalPhotoId.innerText = photo.id;
+            if (modalPhotoPrice) modalPhotoPrice.innerText = photo.price || 5;
+            if (modalPhotoStage) modalPhotoStage.innerText = photo.stage_name || 'General';
+
+            // Mostrar dorsal si existe en tags
+            let dorsalText = '—';
+            if (photo.tags) {
+                try {
+                    const tags = typeof photo.tags === 'string' ? JSON.parse(photo.tags) : photo.tags;
+                    if (tags.dorsal) dorsalText = tags.dorsal;
+                    if (tags.name && modalPhotoDorsal) {
+                        dorsalText = `${tags.dorsal || ''} - ${tags.name || ''}`;
+                    }
+                } catch(e) {}
+            }
+            if (modalPhotoDorsal) modalPhotoDorsal.innerText = dorsalText;
+
+            // Verificar si ya está en el carrito
+            const isInCart = cart.some(item => item.id === photo.id);
+            const addBtn = document.getElementById('modalAddToCartBtn');
+            if (addBtn) {
+                if (isInCart) {
+                    addBtn.innerHTML = '<i class="fas fa-check me-2"></i> Ya está en el carrito';
+                    addBtn.disabled = true;
+                    addBtn.style.opacity = '0.6';
+                    addBtn.style.cursor = 'not-allowed';
+                } else {
+                    addBtn.innerHTML = '<i class="fas fa-cart-plus me-2"></i> Agregar al Carrito';
+                    addBtn.disabled = false;
+                    addBtn.style.opacity = '1';
+                    addBtn.style.cursor = 'pointer';
+                }
+            }
+
+            new bootstrap.Modal(document.getElementById('photoModal')).show();
         }
 
         // ============================================
@@ -857,18 +996,29 @@
                                 <div class="photo-price-badge">
                                     <i class="fas fa-dollar-sign"></i> ${photo.price || 5}
                                 </div>
+                                <div class="zoom-icon">
+                                    <i class="fas fa-search-plus"></i>
+                                </div>
                             </div>
                         `;
 
                         if (isSelected) col.classList.add('selected');
 
-                        col.addEventListener('click', () => {
-                            if (isSelected) {
-                                removeFromCart(photo.id);
-                            } else {
-                                addToCart(photo);
-                            }
+                        // Evento para abrir modal (haciendo clic en la imagen o zona principal)
+                        const imgDiv = col.querySelector('.position-relative');
+                        imgDiv.addEventListener('click', (e) => {
+                            // Evitar que el click en el zoom icon también dispare el modal dos veces
+                            if (e.target.closest('.zoom-icon')) return;
+                            showPhotoModal(photo);
                         });
+
+                        // Evento para el ícono de zoom
+                        const zoomIcon = col.querySelector('.zoom-icon');
+                        zoomIcon.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showPhotoModal(photo);
+                        });
+
                         grid.appendChild(col);
                     });
 
@@ -974,15 +1124,26 @@
                                 <div class="photo-price-badge">
                                     <i class="fas fa-dollar-sign"></i> ${photo.price || 5}
                                 </div>
+                                <div class="zoom-icon">
+                                    <i class="fas fa-search-plus"></i>
+                                </div>
                             </div>
                         `;
 
                         if (isSelected) col.classList.add('selected');
 
-                        col.addEventListener('click', () => {
-                            if (isSelected) removeFromCart(photo.id);
-                            else addToCart(photo);
+                        const imgDiv = col.querySelector('.position-relative');
+                        imgDiv.addEventListener('click', (e) => {
+                            if (e.target.closest('.zoom-icon')) return;
+                            showPhotoModal(photo);
                         });
+
+                        const zoomIcon = col.querySelector('.zoom-icon');
+                        zoomIcon.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showPhotoModal(photo);
+                        });
+
                         grid.appendChild(col);
                     });
                     showSearchStatus('results', `Se encontraron ${photos.length} foto(s) para "${query}"`);
@@ -1132,6 +1293,28 @@
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') performSearch();
             });
+
+            // Botón de agregar al carrito desde el modal
+            const modalAddBtn = document.getElementById('modalAddToCartBtn');
+            if (modalAddBtn) {
+                modalAddBtn.addEventListener('click', () => {
+                    if (currentModalPhoto) {
+                        const added = addToCart(currentModalPhoto, true);
+                        if (added) {
+                            // Actualizar el botón del modal
+                            modalAddBtn.innerHTML = '<i class="fas fa-check me-2"></i> Ya está en el carrito';
+                            modalAddBtn.disabled = true;
+                            modalAddBtn.style.opacity = '0.6';
+                            modalAddBtn.style.cursor = 'not-allowed';
+
+                            // Cerrar modal después de un momento
+                            setTimeout(() => {
+                                bootstrap.Modal.getInstance(document.getElementById('photoModal')).hide();
+                            }, 1000);
+                        }
+                    }
+                });
+            }
 
             // Carrito sidebar
             const cartSidebar = document.getElementById('cartSidebar');
