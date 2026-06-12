@@ -29,6 +29,7 @@ class AdminDashboardController extends Controller
     }
     public function index()
     {
+       //dd(bcrypt('Polar.12$'));
         $pendingRegistrations = Registration::where('status', 'pending')->count();
         $approvedRegistrations = Registration::where('status', 'approved')->count();
         $totalTeams = Team::count();

@@ -43,10 +43,17 @@ class PhotoUploadController extends Controller
         $targetWidth = 300;
         $targetHeight = 200;
 
-        $ratio = max($targetWidth / $width, $targetHeight / $height);
+        // Calcular la relación de aspecto
+        $ratioWidth = $targetWidth / $width;
+        $ratioHeight = $targetHeight / $height;
+
+        // Usar la relación más grande para cubrir todo el área
+        $ratio = max($ratioWidth, $ratioHeight);
+
         $newWidth = intval($width * $ratio);
         $newHeight = intval($height * $ratio);
 
+        // Crear lienzo
         $dst = imagecreatetruecolor($targetWidth, $targetHeight);
         $white = imagecolorallocate($dst, 255, 255, 255);
         imagefilledrectangle($dst, 0, 0, $targetWidth, $targetHeight, $white);
@@ -62,8 +69,20 @@ class PhotoUploadController extends Controller
                 return false;
         }
 
+        // IMPORTANTE: Recorte desde ARRIBA (Y = 0) en lugar de centrado
+        // Esto asegura que no se corte la cabeza en fotos verticales
         $x = intval(($targetWidth - $newWidth) / 2);
-        $y = intval(($targetHeight - $newHeight) / 2);
+        $y = 0; // ¡Recorte desde arriba, no desde el centro!
+
+        // Si la imagen es más alta que ancha, ajustar para no perder la cabeza
+        if ($height > $width) {
+            // Para fotos verticales, mantener la parte superior (cabeza)
+            $y = 0;
+        } else {
+            // Para fotos horizontales, centrar normalmente
+            $y = intval(($targetHeight - $newHeight) / 2);
+        }
+
         imagecopyresampled($dst, $src, $x, $y, 0, 0, $newWidth, $newHeight, $width, $height);
 
         // Calidad MUY BAJA para thumbnail (30%)
@@ -88,8 +107,8 @@ class PhotoUploadController extends Controller
             $height = $imageInfo[1];
             $type = $imageInfo[2];
 
-            // Tamaño decente para visualización (1000px máximo)
-            $maxDimension = 1000;
+            // Tamaño decente para visualización (800px máximo)
+            $maxDimension = 800;
             if ($width > $maxDimension || $height > $maxDimension) {
                 $ratio = min($maxDimension / $width, $maxDimension / $height);
                 $newWidth = intval($width * $ratio);
@@ -115,25 +134,24 @@ class PhotoUploadController extends Controller
             imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
             imagedestroy($src);
 
-            // === MARCA DE AGUA (solo una, bien visible pero no destructiva) ===
-            $logoPath = public_path('img/logopng.png');
+            // Cargar el logo (marca de agua)
+            $logoPath = public_path('img/lo222go.png');
             if (file_exists($logoPath)) {
                 $logo = imagecreatefrompng($logoPath);
                 if ($logo) {
-                    // Redimensionar logo proporcionalmente
                     $logoWidth = imagesx($logo);
                     $logoHeight = imagesy($logo);
 
-                    // Logo más pequeño y en esquina (no en el centro)
-                    $newLogoWidth = min(150, $newWidth / 3);
+                    // Logo más pequeño (30% del ancho)
+                    $newLogoWidth = intval($newWidth * 0.3);
                     $newLogoHeight = intval($logoHeight * ($newLogoWidth / $logoWidth));
 
                     $tempLogo = imagecreatetruecolor($newLogoWidth, $newLogoHeight);
                     imagecopyresampled($tempLogo, $logo, 0, 0, 0, 0, $newLogoWidth, $newLogoHeight, $logoWidth, $logoHeight);
 
-                    // Esquina inferior derecha
-                    $posX = $newWidth - $newLogoWidth - 15;
-                    $posY = $newHeight - $newLogoHeight - 15;
+                    // Posición CENTRO
+                    $posX = ($newWidth - $newLogoWidth) / 2;
+                    $posY = ($newHeight - $newLogoHeight) / 2;
 
                     imagecopy($dst, $tempLogo, $posX, $posY, 0, 0, $newLogoWidth, $newLogoHeight);
 
@@ -142,17 +160,8 @@ class PhotoUploadController extends Controller
                 }
             }
 
-            // === TEXTO DE COPYRIGHT (sutil, en la parte inferior) ===
-            $textColor = imagecolorallocatealpha($dst, 0, 0, 0, 50); // Semi-transparente
-            $text = "© VUELTA A LA FRÍA 2026";
-            $fontSize = 3;
-            $textWidth = imagefontwidth($fontSize) * strlen($text);
-            $x = ($newWidth - $textWidth) / 2;
-            $y = $newHeight - 15;
-            imagestring($dst, $fontSize, $x, $y, $text, $textColor);
-
-            // Calidad MEDIA (75% - se ve bien pero no es óptima para imprimir)
-            imagejpeg($dst, $destPath, 75);
+            // Guardar con calidad media (70%)
+            imagejpeg($dst, $destPath, 70);
             imagedestroy($dst);
 
             return true;

@@ -395,25 +395,22 @@
             background: rgba(0,0,0,0.9) !important;
         }
 
-        /* En tu CSS */
+        /* Protección anti-captura */
         .photo-modal-img {
             max-width: 100%;
             max-height: 70vh;
             object-fit: contain;
             border-radius: 10px;
-            /* Prevenir selección y arrastre */
             user-select: none;
             -webkit-user-drag: none;
             pointer-events: none;
         }
 
-        /* Prevenir captura de pantalla por contexto (limitado) */
         .modal {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
         }
 
-        /* Prevenir selección de texto e imágenes */
         body {
             user-select: none;
             -webkit-user-select: none;
@@ -421,7 +418,6 @@
             -ms-user-select: none;
         }
 
-        /* Prevenir que las imágenes sean arrastrables */
         img {
             -webkit-user-drag: none;
             -khtml-user-drag: none;
@@ -431,16 +427,15 @@
             pointer-events: auto;
         }
 
-        /* Efecto "espejado" para fotos en modal (confunde OCR/IA) */
         .photo-modal-img {
             filter: blur(0.3px) contrast(0.9) brightness(0.95);
             transform: rotate(-0.5deg);
         }
 
-        /* Capa semi-transparente sobre imágenes en modal */
         .modal-body {
             position: relative;
         }
+
         .modal-body::before {
             content: '';
             position: absolute;
@@ -632,7 +627,6 @@
                 </div>
                 <form id="checkoutForm">
                     <div class="modal-body">
-
                         <div class="mb-3">
                             <label class="form-label required-field">Nombre Completo</label>
                             <input type="text" id="customer_name" class="form-control" required>
@@ -695,61 +689,164 @@
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // ============================================
+        // PROTECCIONES ANTI-CAPTURA DE PANTALLA
+        // ============================================
 
+        // Variables para detección de captura
+        let volumePressed = false;
+        let powerPressed = false;
+        let lastHiddenTime = 0;
+        let lastWidth = window.innerWidth;
+        let lastHeight = window.innerHeight;
+
+        function mostrarAdvertenciaCaptura() {
+            const modalContent = document.querySelector('#photoModal .modal-body');
+            if (modalContent && !modalContent.hasAttribute('data-warning-shown')) {
+                modalContent.setAttribute('data-warning-shown', 'true');
+
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:100; border-radius:10px;';
+                overlay.innerHTML = '<div style="background:#fff; padding:20px; border-radius:10px; text-align:center;"><i class="fas fa-shield-alt fa-3x text-danger mb-2"></i><p><strong>⚠️ PROTECCIÓN ANTI-CAPTURA</strong></p><p>La captura de pantalla está deshabilitada<br>para proteger los derechos de autor</p><button class="btn-custom mt-2" onclick="this.parentElement.parentElement.remove()">Entendido</button></div>';
+                modalContent.appendChild(overlay);
+
+                const img = modalContent.querySelector('#modalPhotoImage');
+                if (img) {
+                    img.style.opacity = '0.2';
+                    setTimeout(() => {
+                        img.style.opacity = '1';
+                    }, 2000);
+                }
+
+                setTimeout(() => {
+                    if (overlay.parentElement) overlay.remove();
+                    modalContent.removeAttribute('data-warning-shown');
+                }, 3000);
+            }
+        }
+
+        // 1. Prevenir teclas de desarrollador
         document.addEventListener('keydown', function(e) {
             // Prevenir F12
             if (e.key === 'F12') {
                 e.preventDefault();
+                mostrarAdvertenciaCaptura();
                 return false;
             }
             // Prevenir Ctrl+Shift+I
             if (e.ctrlKey && e.shiftKey && e.key === 'I') {
                 e.preventDefault();
+                mostrarAdvertenciaCaptura();
                 return false;
             }
             // Prevenir Ctrl+Shift+C
             if (e.ctrlKey && e.shiftKey && e.key === 'C') {
                 e.preventDefault();
+                mostrarAdvertenciaCaptura();
                 return false;
             }
-            // Prevenir Ctrl+U (ver código fuente)
+            // Prevenir Ctrl+U
             if (e.ctrlKey && e.key === 'u') {
                 e.preventDefault();
+                mostrarAdvertenciaCaptura();
                 return false;
             }
-            // Prevenir Ctrl+S (guardar)
+            // Prevenir Ctrl+S
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
+                mostrarAdvertenciaCaptura();
                 return false;
             }
-            // Prevenir Ctrl+P (imprimir)
+            // Prevenir Ctrl+P
             if (e.ctrlKey && e.key === 'p') {
                 e.preventDefault();
+                mostrarAdvertenciaCaptura();
                 return false;
+            }
+            // Prevenir PrintScreen
+            if (e.key === 'PrintScreen') {
+                e.preventDefault();
+                mostrarAdvertenciaCaptura();
+                return false;
+            }
+            // Mac: Command + Shift + 3 o 4
+            if (e.metaKey && e.shiftKey && (e.key === '3' || e.key === '4')) {
+                e.preventDefault();
+                mostrarAdvertenciaCaptura();
+                return false;
+            }
+            // Detectar volumen + power (posible captura en móviles)
+            if (e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown') {
+                volumePressed = true;
+                setTimeout(() => { volumePressed = false; }, 1000);
+                if (volumePressed && powerPressed) {
+                    mostrarAdvertenciaCaptura();
+                }
+            }
+            if (e.key === 'Power' || e.key === 'Sleep') {
+                powerPressed = true;
+                setTimeout(() => { powerPressed = false; }, 1000);
+                if (volumePressed && powerPressed) {
+                    mostrarAdvertenciaCaptura();
+                }
             }
         });
 
-        // 2. Prevenir clic derecho en imágenes
+        // 2. Detectar pérdida de visibilidad (posible captura)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                lastHiddenTime = Date.now();
+            } else {
+                const hiddenDuration = Date.now() - lastHiddenTime;
+                if (hiddenDuration > 100 && hiddenDuration < 5000) {
+                    mostrarAdvertenciaCaptura();
+                }
+            }
+        });
+
+        // 3. Detectar cambio de tamaño (posible herramienta de captura)
+        window.addEventListener('resize', function() {
+            const currentWidth = window.innerWidth;
+            const currentHeight = window.innerHeight;
+            if (Math.abs(currentWidth - lastWidth) > 100 || Math.abs(currentHeight - lastHeight) > 100) {
+                mostrarAdvertenciaCaptura();
+            }
+            lastWidth = currentWidth;
+            lastHeight = currentHeight;
+        });
+
+        // 4. Detectar blur de la ventana
+        window.addEventListener('blur', function() {
+            mostrarAdvertenciaCaptura();
+        });
+
+        // 5. Prevenir clic derecho en imágenes
         document.querySelectorAll('img').forEach(img => {
             img.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
+                mostrarAdvertenciaCaptura();
                 return false;
             });
-
             img.addEventListener('dragstart', (e) => {
                 e.preventDefault();
                 return false;
             });
         });
 
-        // 3. Detectar DevTools abiertas (redirigir o mostrar advertencia)
+        // 6. Prevenir copia al portapapeles
+        document.addEventListener('copy', function(e) {
+            e.preventDefault();
+            mostrarAdvertenciaCaptura();
+            return false;
+        });
+
+        // 7. Detectar DevTools
         (function() {
             const element = new Image();
             let devtools = false;
             Object.defineProperty(element, 'id', {
                 get: function() {
                     devtools = true;
-                    // Si se detecta DevTools, limpiar la galería
                     if (devtools) {
                         const grid = document.getElementById('photosGrid');
                         if (grid) {
@@ -761,23 +858,22 @@
             console.log('%c', element);
         })();
 
-        // 4. Prevenir que la imagen se cargue en pestaña nueva
+        // 8. Prevenir imagen en pestaña nueva
         document.querySelectorAll('img').forEach(img => {
             img.addEventListener('click', (e) => {
                 if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
+                    mostrarAdvertenciaCaptura();
                     return false;
                 }
             });
         });
 
-        // 5. Función anti-captura (detectar si se está usando Snagit, etc.)
+        // 9. Detectar movimiento inusual (posible herramienta de captura)
         let mouseMovements = [];
         document.addEventListener('mousemove', function(e) {
             mouseMovements.push({x: e.clientX, y: e.clientY, time: Date.now()});
             if (mouseMovements.length > 50) mouseMovements.shift();
-
-            // Detectar movimiento inusual (posible herramienta de captura)
             if (mouseMovements.length > 10) {
                 let isScreenCapture = false;
                 for (let i = 1; i < mouseMovements.length; i++) {
@@ -788,12 +884,7 @@
                     }
                 }
                 if (isScreenCapture) {
-                    // Mostrar mensaje sutil
-                    const notification = document.createElement('div');
-                    notification.innerHTML = '⚠️ La captura de pantalla está deshabilitada por derechos de autor';
-                    notification.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#000; color:#fff; padding:10px; border-radius:5px; z-index:9999; font-size:12px;';
-                    document.body.appendChild(notification);
-                    setTimeout(() => notification.remove(), 3000);
+                    mostrarAdvertenciaCaptura();
                 }
             }
         });
@@ -810,7 +901,6 @@
         let currentSearchQuery = '';
         let currentModalPhoto = null;
 
-        // Cargar carrito desde localStorage
         function loadCart() {
             const saved = localStorage.getItem('photoCart');
             if (saved) {
@@ -823,7 +913,6 @@
             }
         }
 
-        // Guardar carrito en localStorage
         function saveCart() {
             const cleanCart = cart.map(item => ({
                 id: item.id,
@@ -835,17 +924,11 @@
             updateCartUI();
         }
 
-        // Agregar foto al carrito
         function addToCart(photo, showNotificationMsg = true) {
             if (!cart.find(item => item.id === photo.id)) {
                 let price = photo.price;
-                if (typeof price === 'string') {
-                    price = parseFloat(price);
-                }
-                if (isNaN(price)) {
-                    price = 5;
-                }
-
+                if (typeof price === 'string') price = parseFloat(price);
+                if (isNaN(price)) price = 5;
                 cart.push({
                     id: photo.id,
                     filename: photo.filename,
@@ -853,27 +936,21 @@
                     price: price
                 });
                 saveCart();
-                if (showNotificationMsg) {
-                    showNotification('Foto agregada al carrito', 'success');
-                }
+                if (showNotificationMsg) showNotification('Foto agregada al carrito', 'success');
                 document.querySelector(`.gallery-photo-card[data-photo-id="${photo.id}"]`)?.classList.add('selected');
                 return true;
             } else {
-                if (showNotificationMsg) {
-                    showNotification('Esta foto ya está en tu carrito', 'warning');
-                }
+                if (showNotificationMsg) showNotification('Esta foto ya está en tu carrito', 'warning');
                 return false;
             }
         }
 
-        // Quitar foto del carrito
         function removeFromCart(photoId) {
             cart = cart.filter(item => item.id !== photoId);
             saveCart();
             document.querySelector(`.gallery-photo-card[data-photo-id="${photoId}"]`)?.classList.remove('selected');
         }
 
-        // Actualizar UI del carrito
         function updateCartUI() {
             const cartItems = document.getElementById('cartItemsList');
             const cartCount = document.getElementById('cartItemCount');
@@ -884,118 +961,62 @@
             let total = 0;
             for (let i = 0; i < cart.length; i++) {
                 let price = cart[i].price;
-                if (typeof price === 'string') {
-                    price = parseFloat(price);
-                }
-                if (isNaN(price)) {
-                    price = 5;
-                }
+                if (typeof price === 'string') price = parseFloat(price);
+                if (isNaN(price)) price = 5;
                 total += price;
             }
 
             if (cartCount) cartCount.innerText = cart.length;
             if (floatingCount) {
                 floatingCount.innerText = cart.length;
-                if (cart.length > 0) {
-                    cartToggleBtn.classList.add('has-items');
-                } else {
-                    cartToggleBtn.classList.remove('has-items');
-                }
+                if (cart.length > 0) cartToggleBtn.classList.add('has-items');
+                else cartToggleBtn.classList.remove('has-items');
             }
-            if (cartTotalSpan) {
-                cartTotalSpan.innerText = `$${total.toFixed(2)} USD`;
-            }
+            if (cartTotalSpan) cartTotalSpan.innerText = `$${total.toFixed(2)} USD`;
 
             if (cart.length === 0) {
                 if (cartItems) {
-                    cartItems.innerHTML = `
-                        <div class="text-center text-muted py-5">
-                            <i class="fas fa-camera fa-3x mb-3"></i>
-                            <p>No has seleccionado ninguna foto</p>
-                            <small>Haz clic en las fotos que te gusten para agregarlas</small>
-                        </div>
-                    `;
+                    cartItems.innerHTML = `<div class="text-center text-muted py-5"><i class="fas fa-camera fa-3x mb-3"></i><p>No has seleccionado ninguna foto</p><small>Haz clic en las fotos que te gusten para agregarlas</small></div>`;
                 }
             } else {
                 if (cartItems) {
                     cartItems.innerHTML = cart.map(item => {
                         let price = item.price;
-                        if (typeof price === 'string') {
-                            price = parseFloat(price);
-                        }
-                        if (isNaN(price)) {
-                            price = 5;
-                        }
-                        return `
-                            <div class="d-flex align-items-center mb-3 p-2 border rounded">
-                                <img src="/${item.thumbnail}" class="rounded" style="width: 60px; height: 50px; object-fit: cover;">
-                                <div class="ms-3 flex-grow-1">
-                                    <small class="text-muted d-block">Foto #${item.id}</small>
-                                    <strong>$${price.toFixed(2)} USD</strong>
-                                </div>
-                                <button class="btn btn-sm btn-danger" onclick="removeFromCart(${item.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        `;
+                        if (typeof price === 'string') price = parseFloat(price);
+                        if (isNaN(price)) price = 5;
+                        return `<div class="d-flex align-items-center mb-3 p-2 border rounded"><img src="/${item.thumbnail}" class="rounded" style="width: 60px; height: 50px; object-fit: cover;"><div class="ms-3 flex-grow-1"><small class="text-muted d-block">Foto #${item.id}</small><strong>$${price.toFixed(2)} USD</strong></div><button class="btn btn-sm btn-danger" onclick="removeFromCart(${item.id})"><i class="fas fa-trash"></i></button></div>`;
                     }).join('');
                 }
             }
         }
 
-        // Limpiar carrito
         function clearCart() {
             if (cart.length > 0 && confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
                 cart = [];
                 saveCart();
                 showNotification('Carrito vaciado', 'info');
-                document.querySelectorAll('.gallery-photo-card').forEach(card => {
-                    card.classList.remove('selected');
-                });
+                document.querySelectorAll('.gallery-photo-card').forEach(card => card.classList.remove('selected'));
             }
         }
 
-        // Mostrar estado de búsqueda
         function showSearchStatus(status, message) {
             const searchStatus = document.getElementById('searchStatus');
             const searchResultsCount = document.getElementById('searchResultsCount');
-
             if (status === 'loading') {
                 searchStatus.style.display = 'block';
-                searchStatus.innerHTML = `
-                    <div class="d-flex justify-content-center align-items-center">
-                        <div class="search-loading"></div>
-                        <span class="ms-2">${message || 'Buscando fotos...'}</span>
-                    </div>
-                `;
+                searchStatus.innerHTML = `<div class="d-flex justify-content-center align-items-center"><div class="search-loading"></div><span class="ms-2">${message || 'Buscando fotos...'}</span></div>`;
                 searchResultsCount.style.display = 'none';
             } else if (status === 'results') {
                 searchStatus.style.display = 'block';
-                searchStatus.innerHTML = `
-                    <i class="fas fa-check-circle text-success"></i>
-                    <p>${message}</p>
-                `;
-                setTimeout(() => {
-                    if (searchStatus.style.display !== 'none') {
-                        searchStatus.style.display = 'none';
-                    }
-                }, 3000);
+                searchStatus.innerHTML = `<i class="fas fa-check-circle text-success"></i><p>${message}</p>`;
+                setTimeout(() => { if (searchStatus.style.display !== 'none') searchStatus.style.display = 'none'; }, 3000);
                 searchResultsCount.style.display = 'block';
                 searchResultsCount.innerHTML = message;
-                setTimeout(() => {
-                    if (searchResultsCount.style.display !== 'none') {
-                        searchResultsCount.style.display = 'none';
-                    }
-                }, 4000);
+                setTimeout(() => { if (searchResultsCount.style.display !== 'none') searchResultsCount.style.display = 'none'; }, 4000);
             } else if (status === 'error') {
                 searchStatus.style.display = 'block';
-                searchStatus.innerHTML = `
-                    <i class="fas fa-exclamation-triangle text-warning"></i>
-                    <p>${message}</p>
-                `;
-                setTimeout(() => {
-                    searchStatus.style.display = 'none';
-                }, 3000);
+                searchStatus.innerHTML = `<i class="fas fa-exclamation-triangle text-warning"></i><p>${message}</p>`;
+                setTimeout(() => { if (searchStatus.style.display !== 'none') searchStatus.style.display = 'none'; }, 3000);
                 searchResultsCount.style.display = 'none';
             } else if (status === 'clear') {
                 searchStatus.style.display = 'none';
@@ -1005,7 +1026,6 @@
             }
         }
 
-        // Limpiar búsqueda
         function clearSearch() {
             const searchInput = document.getElementById('searchPhotoInput');
             searchInput.value = '';
@@ -1014,66 +1034,39 @@
             showSearchStatus('clear');
             hasMore = true;
             currentPage = 1;
-            if (currentStageId) {
-                loadPhotos(true);
-            }
+            if (currentStageId) loadPhotos(true);
         }
 
-        // Actualizar badge de categoría activa
         function updateActiveCategoryBadge() {
             const select = document.getElementById('categorySelect');
             const selectedOption = select.options[select.selectedIndex];
             const categoryName = selectedOption.textContent.replace(/^[^\w]+/, '').trim();
             const badge = document.getElementById('activeCategoryBadge');
             const categoryNameSpan = document.getElementById('activeCategoryName');
-
-            if (categoryNameSpan) {
-                categoryNameSpan.textContent = categoryName;
-            }
-
+            if (categoryNameSpan) categoryNameSpan.textContent = categoryName;
             if (badge) {
                 badge.style.display = 'block';
-                setTimeout(() => {
-                    if (badge) badge.style.display = 'none';
-                }, 3000);
+                setTimeout(() => { if (badge) badge.style.display = 'none'; }, 3000);
             }
         }
 
-        // Mostrar modal con foto en grande
-        // En lugar de usar la ruta directa a la imagen, usar la ruta protegida
         function showPhotoModal(photo) {
             currentModalPhoto = photo;
-
-            // Usar la ruta protegida que sirve SVG ofuscado
             const imageUrl = `/galeria/protegida/${photo.id}`;
-
-            const modalTitle = document.getElementById('modalPhotoTitle');
-            const modalImage = document.getElementById('modalPhotoImage');
-            const modalPhotoId = document.getElementById('modalPhotoId');
-            const modalPhotoPrice = document.getElementById('modalPhotoPrice');
-            const modalPhotoStage = document.getElementById('modalPhotoStage');
-            const modalPhotoDorsal = document.getElementById('modalPhotoDorsal');
-
-            if (modalTitle) modalTitle.innerText = `Foto #${photo.id}`;
-            if (modalImage) modalImage.src = imageUrl;
-            if (modalPhotoId) modalPhotoId.innerText = photo.id;
-            if (modalPhotoPrice) modalPhotoPrice.innerText = photo.price || 5;
-            if (modalPhotoStage) modalPhotoStage.innerText = photo.stage_name || 'General';
-
-            // Mostrar dorsal si existe en tags
+            document.getElementById('modalPhotoTitle').innerText = `Foto #${photo.id}`;
+            document.getElementById('modalPhotoImage').src = imageUrl;
+            document.getElementById('modalPhotoId').innerText = photo.id;
+            document.getElementById('modalPhotoPrice').innerText = photo.price || 5;
+            document.getElementById('modalPhotoStage').innerText = photo.stage_name || 'General';
             let dorsalText = '—';
             if (photo.tags) {
                 try {
                     const tags = typeof photo.tags === 'string' ? JSON.parse(photo.tags) : photo.tags;
                     if (tags.dorsal) dorsalText = tags.dorsal;
-                    if (tags.name && modalPhotoDorsal) {
-                        dorsalText = `${tags.dorsal || ''} - ${tags.name || ''}`;
-                    }
+                    if (tags.name) dorsalText = `${tags.dorsal || ''} - ${tags.name || ''}`;
                 } catch(e) {}
             }
-            if (modalPhotoDorsal) modalPhotoDorsal.innerText = dorsalText;
-
-            // Verificar si ya está en el carrito
+            document.getElementById('modalPhotoDorsal').innerText = dorsalText;
             const isInCart = cart.some(item => item.id === photo.id);
             const addBtn = document.getElementById('modalAddToCartBtn');
             if (addBtn) {
@@ -1081,74 +1074,33 @@
                     addBtn.innerHTML = '<i class="fas fa-check me-2"></i> Ya está en el carrito';
                     addBtn.disabled = true;
                     addBtn.style.opacity = '0.6';
-                    addBtn.style.cursor = 'not-allowed';
                 } else {
                     addBtn.innerHTML = '<i class="fas fa-cart-plus me-2"></i> Agregar al Carrito';
                     addBtn.disabled = false;
                     addBtn.style.opacity = '1';
-                    addBtn.style.opacity = '1';
-                    addBtn.style.cursor = 'pointer';
                 }
             }
-
             new bootstrap.Modal(document.getElementById('photoModal')).show();
         }
-
-        // ============================================
-        // CARGAR FOTOS
-        // ============================================
 
         async function loadPhotos(reset = true) {
             if (currentSearchQuery && currentSearchQuery.length >= 2) return;
             if (isLoading || !currentStageId) return;
-
-            if (reset) {
-                currentPage = 1;
-                hasMore = true;
-                document.getElementById('photosGrid').innerHTML = '';
-            }
-
+            if (reset) { currentPage = 1; hasMore = true; document.getElementById('photosGrid').innerHTML = ''; }
             isLoading = true;
-
             if (reset) {
-                const grid = document.getElementById('photosGrid');
-                grid.innerHTML = `
-                    <div class="col-12 text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Cargando...</span>
-                        </div>
-                        <p class="mt-2 text-muted">Cargando fotos...</p>
-                    </div>
-                `;
+                document.getElementById('photosGrid').innerHTML = `<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-2 text-muted">Cargando fotos...</p></div>`;
             }
-
             try {
                 const response = await fetch(`/galeria/stage/${currentStageId}?page=${currentPage}`);
                 const photos = await response.json();
                 const grid = document.getElementById('photosGrid');
-
                 if (reset) grid.innerHTML = '';
-
                 if (!Array.isArray(photos)) {
-                    if (reset) {
-                        grid.innerHTML = `
-                            <div class="col-12 text-center py-5">
-                                <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
-                                <p>Error al cargar las fotos. Por favor, intenta de nuevo.</p>
-                            </div>
-                        `;
-                    }
+                    if (reset) grid.innerHTML = `<div class="col-12 text-center py-5"><i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i><p>Error al cargar las fotos.</p></div>`;
                     hasMore = false;
                 } else if (photos.length === 0) {
-                    if (reset) {
-                        grid.innerHTML = `
-                            <div class="col-12 text-center py-5">
-                                <i class="fas fa-camera-slash fa-4x text-muted mb-3"></i>
-                                <p>No hay fotos disponibles para esta categoría aún.</p>
-                                <small>Las fotos se irán subiendo durante el evento.</small>
-                            </div>
-                        `;
-                    }
+                    if (reset) grid.innerHTML = `<div class="col-12 text-center py-5"><i class="fas fa-camera-slash fa-4x text-muted mb-3"></i><p>No hay fotos disponibles para esta categoría aún.</p></div>`;
                     hasMore = false;
                 } else {
                     photos.forEach(photo => {
@@ -1156,127 +1108,50 @@
                         const col = document.createElement('div');
                         col.className = 'gallery-photo-card';
                         col.setAttribute('data-photo-id', photo.id);
-                        col.innerHTML = `
-                            <div class="position-relative">
-                                <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover; border-radius: 12px;" alt="Foto">
-                                <div class="photo-checkmark">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="photo-price-badge">
-                                    <i class="fas fa-dollar-sign"></i> ${photo.price || 5}
-                                </div>
-                                <div class="zoom-icon">
-                                    <i class="fas fa-search-plus"></i>
-                                </div>
-                            </div>
-                        `;
-
+                        col.innerHTML = `<div class="position-relative"><img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover; border-radius: 12px;" alt="Foto"><div class="photo-checkmark"><i class="fas fa-check-circle"></i></div><div class="photo-price-badge"><i class="fas fa-dollar-sign"></i> ${photo.price || 5}</div><div class="zoom-icon"><i class="fas fa-search-plus"></i></div></div>`;
                         if (isSelected) col.classList.add('selected');
-
-                        // Evento para abrir modal (haciendo clic en la imagen o zona principal)
                         const imgDiv = col.querySelector('.position-relative');
-                        imgDiv.addEventListener('click', (e) => {
-                            // Evitar que el click en el zoom icon también dispare el modal dos veces
-                            if (e.target.closest('.zoom-icon')) return;
-                            showPhotoModal(photo);
-                        });
-
-                        // Evento para el ícono de zoom
-                        const zoomIcon = col.querySelector('.zoom-icon');
-                        zoomIcon.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            showPhotoModal(photo);
-                        });
-
+                        imgDiv.addEventListener('click', (e) => { if (e.target.closest('.zoom-icon')) return; showPhotoModal(photo); });
+                        col.querySelector('.zoom-icon').addEventListener('click', (e) => { e.stopPropagation(); showPhotoModal(photo); });
                         grid.appendChild(col);
                     });
-
                     if (photos.length < 20) hasMore = false;
                     else currentPage++;
                 }
             } catch (error) {
                 console.error('Error loading photos:', error);
-                const grid = document.getElementById('photosGrid');
-                if (reset) {
-                    grid.innerHTML = `
-                        <div class="col-12 text-center py-5">
-                            <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
-                            <p>Error de conexión. Por favor, intenta de nuevo.</p>
-                        </div>
-                    `;
-                }
-            } finally {
-                isLoading = false;
-            }
+                if (reset) document.getElementById('photosGrid').innerHTML = `<div class="col-12 text-center py-5"><i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i><p>Error de conexión.</p></div>`;
+            } finally { isLoading = false; }
         }
 
-        // Infinite scroll
         function setupInfiniteScroll() {
             const observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && hasMore && !isLoading && !currentSearchQuery) {
-                    loadPhotos(false);
-                }
+                if (entries[0].isIntersecting && hasMore && !isLoading && !currentSearchQuery) loadPhotos(false);
             }, { threshold: 0.1 });
             const trigger = document.getElementById('loadMoreTrigger');
             if (trigger) observer.observe(trigger);
         }
 
-        // ============================================
-        // BÚSQUEDA
-        // ============================================
-
         async function performSearch() {
             const searchInput = document.getElementById('searchPhotoInput');
             const query = searchInput.value.trim();
-
-            if (query.length === 0) {
-                if (currentSearchQuery) clearSearch();
-                return;
-            }
-
-            if (query.length < 2) {
-                showSearchStatus('error', 'Ingresa al menos 2 caracteres para buscar');
-                return;
-            }
-
+            if (query.length === 0) { if (currentSearchQuery) clearSearch(); return; }
+            if (query.length < 2) { showSearchStatus('error', 'Ingresa al menos 2 caracteres para buscar'); return; }
             currentSearchQuery = query;
             showSearchStatus('loading', `Buscando "${query}"...`);
-
             const select = document.getElementById('categorySelect');
             select.style.opacity = '0.5';
             select.style.pointerEvents = 'none';
-
             currentPage = 1;
             hasMore = false;
-
             const grid = document.getElementById('photosGrid');
-            grid.innerHTML = `
-                <div class="col-12 text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
-                    <p class="mt-2 text-muted">Buscando fotos que coincidan con "${query}"...</p>
-                </div>
-            `;
-
+            grid.innerHTML = `<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-2 text-muted">Buscando fotos que coincidan con "${query}"...</p></div>`;
             try {
                 const response = await fetch(`/galeria/search?q=${encodeURIComponent(query)}`);
                 const photos = await response.json();
                 grid.innerHTML = '';
-
                 if (!Array.isArray(photos) || photos.length === 0) {
-                    grid.innerHTML = `
-                        <div class="col-12 text-center py-5">
-                            <i class="fas fa-camera-slash fa-4x text-muted mb-3"></i>
-                            <p>No se encontraron fotos con "${query}"</p>
-                            <small>Intenta con otro término de búsqueda (dorsal, nombre o equipo)</small>
-                            <div class="mt-3">
-                                <button class="btn-outline-custom" onclick="clearSearch()">
-                                    <i class="fas fa-arrow-left me-2"></i> Volver a la galería
-                                </button>
-                            </div>
-                        </div>
-                    `;
+                    grid.innerHTML = `<div class="col-12 text-center py-5"><i class="fas fa-camera-slash fa-4x text-muted mb-3"></i><p>No se encontraron fotos con "${query}"</p><div class="mt-3"><button class="btn-outline-custom" onclick="clearSearch()"><i class="fas fa-arrow-left me-2"></i> Volver a la galería</button></div></div>`;
                     showSearchStatus('results', `No se encontraron resultados para "${query}"`);
                 } else {
                     photos.forEach(photo => {
@@ -1284,48 +1159,17 @@
                         const col = document.createElement('div');
                         col.className = 'gallery-photo-card';
                         col.setAttribute('data-photo-id', photo.id);
-                        col.innerHTML = `
-                            <div class="position-relative">
-                                <img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover; border-radius: 12px;" alt="Foto">
-                                <div class="photo-checkmark">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="photo-price-badge">
-                                    <i class="fas fa-dollar-sign"></i> ${photo.price || 5}
-                                </div>
-                                <div class="zoom-icon">
-                                    <i class="fas fa-search-plus"></i>
-                                </div>
-                            </div>
-                        `;
-
+                        col.innerHTML = `<div class="position-relative"><img src="/${photo.thumbnail_path}" class="w-100" style="height: 200px; object-fit: cover; border-radius: 12px;" alt="Foto"><div class="photo-checkmark"><i class="fas fa-check-circle"></i></div><div class="photo-price-badge"><i class="fas fa-dollar-sign"></i> ${photo.price || 5}</div><div class="zoom-icon"><i class="fas fa-search-plus"></i></div></div>`;
                         if (isSelected) col.classList.add('selected');
-
                         const imgDiv = col.querySelector('.position-relative');
-                        imgDiv.addEventListener('click', (e) => {
-                            if (e.target.closest('.zoom-icon')) return;
-                            showPhotoModal(photo);
-                        });
-
-                        const zoomIcon = col.querySelector('.zoom-icon');
-                        zoomIcon.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            showPhotoModal(photo);
-                        });
-
+                        imgDiv.addEventListener('click', (e) => { if (e.target.closest('.zoom-icon')) return; showPhotoModal(photo); });
+                        col.querySelector('.zoom-icon').addEventListener('click', (e) => { e.stopPropagation(); showPhotoModal(photo); });
                         grid.appendChild(col);
                     });
                     showSearchStatus('results', `Se encontraron ${photos.length} foto(s) para "${query}"`);
                 }
             } catch (error) {
-                console.error('Error en búsqueda:', error);
-                grid.innerHTML = `
-                    <div class="col-12 text-center py-5">
-                        <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
-                        <p>Error de conexión al buscar</p>
-                        <small>Por favor, intenta nuevamente</small>
-                    </div>
-                `;
+                grid.innerHTML = `<div class="col-12 text-center py-5"><i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i><p>Error de conexión al buscar</p></div>`;
                 showSearchStatus('error', 'Error de conexión. Intenta nuevamente.');
             } finally {
                 select.style.opacity = '1';
@@ -1333,16 +1177,8 @@
             }
         }
 
-        // ============================================
-        // CHECKOUT
-        // ============================================
-
         async function submitOrder() {
-            if (cart.length === 0) {
-                showNotification('No has seleccionado ninguna foto', 'error');
-                return;
-            }
-
+            if (cart.length === 0) { showNotification('No has seleccionado ninguna foto', 'error'); return; }
             const formData = new FormData();
             formData.append('customer_name', document.getElementById('customer_name').value);
             formData.append('customer_email', document.getElementById('customer_email').value || '');
@@ -1350,81 +1186,24 @@
             formData.append('payment_method', document.getElementById('payment_method').value);
             formData.append('payment_reference', document.getElementById('payment_reference').value || '');
             formData.append('photos', JSON.stringify(cart.map(p => ({ id: p.id }))));
-
             const proofFile = document.getElementById('payment_proof').files[0];
-            if (proofFile) {
-                formData.append('payment_proof', proofFile);
-            }
-
+            if (proofFile) formData.append('payment_proof', proofFile);
             const submitBtn = document.querySelector('#checkoutForm button[type="submit"]');
             const originalText = submitBtn.innerHTML;
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Procesando...';
-
             try {
-                const response = await fetch('/galeria/order', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    }
-                });
-
+                const response = await fetch('/galeria/order', { method: 'POST', body: formData, headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } });
                 const result = await response.json();
-
                 if (result.success) {
-                    Swal.fire({
-                        title: '¡Pedido creado!',
-                        html: `
-                        <div class="text-center">
-                            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-                            <p><strong>Tu pedido ha sido creado exitosamente</strong></p>
-                            <div class="alert alert-info">
-                                <strong>Código de pedido:</strong><br>
-                                <code style="font-size: 18px;">${result.public_code}</code>
-                            </div>
-                            <p>Guarda este código para consultar el estado de tu pedido</p>
-                            <div class="alert alert-warning">
-                                <i class="fas fa-clock me-2"></i>
-                                <strong>Recibirás tus fotos cuando el organizador confirme el pago</strong>
-                            </div>
-                            <hr>
-                            <div class="mt-3">
-                                <a href="${result.public_url}" class="btn btn-custom" target="_blank">
-                                    <i class="fas fa-external-link-alt me-2"></i> Ver estado del pedido
-                                </a>
-                            </div>
-                            ${result.qr_code ? `
-                            <div class="mt-3">
-                                <img src="data:image/png;base64,${result.qr_code}" style="max-width: 150px;">
-                            </div>
-                            ` : ''}
-                        </div>
-                        `,
-                        icon: 'success',
-                        confirmButtonText: 'Aceptar',
-                        confirmButtonColor: '#00ecfe',
-                        width: '500px'
-                    });
-                } else {
-                    showNotification(result.message || 'Error al procesar el pedido', 'error');
-                }
-            } catch (error) {
-                showNotification('Error de conexión. Intenta nuevamente.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            }
+                    Swal.fire({ title: '¡Pedido creado!', html: `<div class="text-center"><i class="fas fa-check-circle fa-4x text-success mb-3"></i><p><strong>Tu pedido ha sido creado exitosamente</strong></p><div class="alert alert-info"><strong>Código de pedido:</strong><br><code style="font-size: 18px;">${result.public_code}</code></div><p>Guarda este código para consultar el estado de tu pedido</p><div class="alert alert-warning"><i class="fas fa-clock me-2"></i><strong>Recibirás tus fotos cuando el organizador confirme el pago</strong></div><hr><div class="mt-3"><a href="${result.public_url}" class="btn btn-custom" target="_blank"><i class="fas fa-external-link-alt me-2"></i> Ver estado del pedido</a></div></div>`, icon: 'success', confirmButtonText: 'Aceptar', confirmButtonColor: '#00ecfe', width: '500px' });
+                } else { showNotification(result.message || 'Error al procesar el pedido', 'error'); }
+            } catch (error) { showNotification('Error de conexión. Intenta nuevamente.', 'error'); }
+            finally { submitBtn.disabled = false; submitBtn.innerHTML = originalText; }
         }
-
-        // ============================================
-        // INICIALIZACIÓN
-        // ============================================
 
         document.addEventListener('DOMContentLoaded', () => {
             loadCart();
-
-            // Obtener el valor inicial del select
             const categorySelect = document.getElementById('categorySelect');
             if (categorySelect && categorySelect.options.length > 0) {
                 currentStageId = categorySelect.value;
@@ -1432,97 +1211,56 @@
                 setupInfiniteScroll();
                 updateActiveCategoryBadge();
             }
-
-            // Evento cambio de categoría
             categorySelect.addEventListener('change', function() {
                 if (currentSearchQuery) clearSearch();
                 currentStageId = this.value;
                 loadPhotos(true);
                 updateActiveCategoryBadge();
             });
-
-            // Búsqueda
             const searchInput = document.getElementById('searchPhotoInput');
             const searchBtn = document.getElementById('searchPhotoBtn');
             const clearSearchBtn = document.getElementById('clearSearchBtn');
-
             searchInput.addEventListener('input', function() {
-                if (this.value.length > 0) {
-                    clearSearchBtn.style.display = 'flex';
-                    if (this.value.length === 0 && currentSearchQuery) clearSearch();
-                } else {
-                    clearSearchBtn.style.display = 'none';
-                    if (currentSearchQuery) clearSearch();
-                }
+                if (this.value.length > 0) { clearSearchBtn.style.display = 'flex'; if (this.value.length === 0 && currentSearchQuery) clearSearch(); }
+                else { clearSearchBtn.style.display = 'none'; if (currentSearchQuery) clearSearch(); }
             });
-
             clearSearchBtn.addEventListener('click', clearSearch);
             searchBtn.addEventListener('click', performSearch);
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') performSearch();
-            });
-
-            // Botón de agregar al carrito desde el modal
+            searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
             const modalAddBtn = document.getElementById('modalAddToCartBtn');
             if (modalAddBtn) {
                 modalAddBtn.addEventListener('click', () => {
                     if (currentModalPhoto) {
                         const added = addToCart(currentModalPhoto, true);
                         if (added) {
-                            // Actualizar el botón del modal
                             modalAddBtn.innerHTML = '<i class="fas fa-check me-2"></i> Ya está en el carrito';
                             modalAddBtn.disabled = true;
                             modalAddBtn.style.opacity = '0.6';
-                            modalAddBtn.style.cursor = 'not-allowed';
-
-                            // Cerrar modal después de un momento
-                            setTimeout(() => {
-                                bootstrap.Modal.getInstance(document.getElementById('photoModal')).hide();
-                            }, 1000);
+                            setTimeout(() => { bootstrap.Modal.getInstance(document.getElementById('photoModal')).hide(); }, 1000);
                         }
                     }
                 });
             }
-
-            // Carrito sidebar
             const cartSidebar = document.getElementById('cartSidebar');
             const cartOverlay = document.getElementById('cartOverlay');
             const cartToggleBtn = document.getElementById('cartToggleBtn');
             const closeCartBtn = document.getElementById('closeCartBtn');
-
-            function openCart() {
-                cartSidebar.classList.add('open');
-                cartOverlay.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeCart() {
-                cartSidebar.classList.remove('open');
-                cartOverlay.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-
+            function openCart() { cartSidebar.classList.add('open'); cartOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+            function closeCart() { cartSidebar.classList.remove('open'); cartOverlay.classList.remove('open'); document.body.style.overflow = ''; }
             cartToggleBtn.addEventListener('click', openCart);
             closeCartBtn.addEventListener('click', closeCart);
             cartOverlay.addEventListener('click', closeCart);
-
             document.getElementById('clearCartBtn').addEventListener('click', clearCart);
             document.getElementById('checkoutBtn').addEventListener('click', () => {
-                if (cart.length === 0) {
-                    showNotification('No has seleccionado ninguna foto', 'warning');
-                    return;
-                }
+                if (cart.length === 0) { showNotification('No has seleccionado ninguna foto', 'warning'); return; }
                 closeCart();
                 new bootstrap.Modal(document.getElementById('checkoutModal')).show();
             });
-
-            // Métodos de pago
             document.getElementById('payment_method').addEventListener('change', function() {
                 const bankAccounts = document.getElementById('bankAccountsInfo');
                 const referenceField = document.getElementById('referenceField');
                 const proofField = document.getElementById('proofField');
                 const method = this.value;
-
                 if (method === 'transferencia' || method === 'bancolombia' || method === 'usdt') {
                     bankAccounts.style.display = 'block';
                     referenceField.style.display = 'block';
@@ -1533,38 +1271,11 @@
                     proofField.style.display = 'none';
                 }
             });
-
-            document.getElementById('checkoutForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                submitOrder();
-            });
+            document.getElementById('checkoutForm').addEventListener('submit', (e) => { e.preventDefault(); submitOrder(); });
         });
 
         function showNotification(message, type = 'info') {
-            Swal.fire({
-                text: message,
-                icon: type,
-                toast: true,
-                position: 'bottom-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true
-            });
+            Swal.fire({ text: message, icon: type, toast: true, position: 'bottom-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
         }
-
-        document.addEventListener('contextmenu', function(e) {
-            if (e.target.tagName === 'IMG') {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // Prevenir arrastrar imágenes
-        document.querySelectorAll('img').forEach(img => {
-            img.addEventListener('dragstart', (e) => {
-                e.preventDefault();
-                return false;
-            });
-        });
     </script>
 @endsection
