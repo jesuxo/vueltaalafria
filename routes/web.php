@@ -13,16 +13,13 @@ use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TeamPanelController;
 use App\Http\Controllers\SiteController;
+use App\Http\Controllers\PhotoGalleryController;
+use App\Http\Controllers\Admin\PhotoUploadController;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
 */
 
 /* Auth Route::get('signup', 'App\Http\Controllers\Auth\RegisterController@signup')->name('signup');*/
@@ -52,18 +49,37 @@ Route::get('/inicio', [SiteController::class, 'index'])->name('inicio');
 Route::get('/informacion', [HomeController::class, 'info'])->name('info');
 Route::get('/etapas', [HomeController::class, 'stages'])->name('public.stages');
 Route::get('/resultados', [HomeController::class, 'results'])->name('public.results');
-Route::get('/galeria', [HomeController::class, 'gallery'])->name('public.gallery');
 
-// Inscripciones públicas
+// ============================================
+// GALERÍA DE FOTOS PÚBLICA (UN SOLO /galeria)
+// ============================================
+Route::get('/galeria', [PhotoGalleryController::class, 'index'])->name('gallery.index');
+Route::get('/galeria/stage/{stage}', [PhotoGalleryController::class, 'getStagePhotos']);
+Route::get('/galeria/search', [PhotoGalleryController::class, 'searchPhotos']);
+Route::post('/galeria/order', [PhotoGalleryController::class, 'createOrder']);
+Route::get('/pedido/{publicCode}', [PhotoGalleryController::class, 'showPublicOrder'])->name('public.order.show');
+Route::get('/pedido/{publicCode}/status', [PhotoGalleryController::class, 'checkOrderStatus'])->name('public.order.status');
+
+// ============================================
+// INSCRIPCIONES PÚBLICAS
+// ============================================
 Route::get('/inscripcion/individual', [RegistrationController::class, 'individualForm'])->name('registration.individual.form');
 Route::post('/inscripcion/individual', [RegistrationController::class, 'individualSubmit'])->name('registration.individual.submit');
 Route::get('/inscripcion/verificar', [RegistrationController::class, 'checkStatus'])->name('registration.check');
 Route::post('/inscripcion/verificar', [RegistrationController::class, 'checkStatus'])->name('registration.check.submit');
 Route::get('/buscar-estructuras', [TeamController::class, 'searchStructures'])->name('search.structures');
 Route::get('/verificar-estructura', [TeamController::class, 'checkStructureExists'])->name('check.structure');
-// Ruta para descargar plantilla Excel
-Route::get('/inscripcion/equipo/plantilla', [App\Http\Controllers\PublicRegistrationController::class, 'downloadTemplate'])
-    ->name('registration.team.download-template');
+Route::get('/inscripcion/equipo/plantilla', [PublicRegistrationController::class, 'downloadTemplate'])->name('registration.team.download-template');
+
+// ============================================
+// INSCRIPCIÓN POR EQUIPOS (PÚBLICA)
+// ============================================
+Route::prefix('inscripcion')->name('registration.team.')->group(function () {
+    Route::get('/equipo', [PublicRegistrationController::class, 'showForm'])->name('form');
+    Route::get('/equipo/plantilla', [PublicRegistrationController::class, 'downloadTemplate'])->name('download-template');
+    Route::post('/equipo', [PublicRegistrationController::class, 'submitRegistration'])->name('submit');
+    Route::get('/exito', [PublicRegistrationController::class, 'success'])->name('success');
+});
 
 // ============================================
 // PANEL DE EQUIPOS (Acceso con código)
@@ -75,39 +91,38 @@ Route::prefix('equipo')->name('team.')->group(function () {
 
     Route::middleware('team.auth')->group(function () {
         Route::get('/dashboard', [TeamPanelController::class, 'dashboard'])->name('dashboard');
-
-        // Personal del equipo (Staff)
         Route::get('/staff', [TeamPanelController::class, 'staffIndex'])->name('staff');
         Route::post('/staff', [TeamPanelController::class, 'staffStore'])->name('staff.store');
         Route::delete('/staff/{id}', [TeamPanelController::class, 'staffDestroy'])->name('staff.destroy');
-
-        // Vehículos
         Route::get('/vehiculos', [TeamPanelController::class, 'vehiclesIndex'])->name('vehicles');
         Route::post('/vehiculos', [TeamPanelController::class, 'vehiclesStore'])->name('vehicles.store');
         Route::delete('/vehiculos/{id}', [TeamPanelController::class, 'vehiclesDestroy'])->name('vehicles.destroy');
-
-        // Fotos
         Route::get('/fotos', [TeamPanelController::class, 'photosIndex'])->name('photos');
         Route::post('/fotos', [TeamPanelController::class, 'photosStore'])->name('photos.store');
         Route::delete('/fotos/{id}', [TeamPanelController::class, 'photosDestroy'])->name('photos.destroy');
-
-        // Inscripción del equipo
         Route::get('/inscripcion', [TeamPanelController::class, 'registrationForm'])->name('registration');
         Route::post('/inscripcion', [TeamPanelController::class, 'registrationSubmit'])->name('registration.submit');
-
-        // Importar atletas desde Excel
         Route::get('/descargar-plantilla', [TeamPanelController::class, 'downloadTemplate'])->name('download.template');
         Route::post('/importar-atletas', [TeamPanelController::class, 'importAthletes'])->name('import.athletes');
-
-        // Ver atletas del equipo
         Route::get('/atletas', [TeamPanelController::class, 'athletesIndex'])->name('athletes');
     });
 });
 
 // ============================================
-// PANEL ADMINISTRATIVO
+// PANEL ADMINISTRATIVO DE FOTOS (SIN MIDDLEWARE COMPLEJO - SOLO AUTH)
 // ============================================
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+// IMPORTANTE: Este grupo debe estar ANTES que el grupo admin general
+Route::middleware(['auth'])->prefix('admin/fotos')->name('admin.photos.')->group(function () {
+    Route::get('/', [PhotoUploadController::class, 'index'])->name('index');
+    Route::post('/upload', [PhotoUploadController::class, 'upload']);
+    Route::post('/tag/{id}', [PhotoUploadController::class, 'tag']);  // Nota: es 'tag', no 'tagPhoto'
+    Route::delete('/{id}', [PhotoUploadController::class, 'destroy']);
+});
+
+// ============================================
+// PANEL ADMINISTRATIVO GENERAL
+// ============================================
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
     // Dashboard principal
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
@@ -126,14 +141,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // ========== GESTIÓN DE ETAPAS ==========
     Route::resource('stages', StageController::class);
-
-    // Horarios de etapas
     Route::get('/stages/{stageId}/schedules', [StageController::class, 'schedules'])->name('stages.schedules');
     Route::post('/stages/{stageId}/schedules', [StageController::class, 'addSchedule'])->name('stages.add-schedule');
     Route::put('/schedules/{scheduleId}', [StageController::class, 'updateSchedule'])->name('stages.update-schedule');
     Route::delete('/schedules/{scheduleId}', [StageController::class, 'deleteSchedule'])->name('stages.delete-schedule');
-
-    // Resultados de etapas
     Route::get('/stages/{stageId}/results', [StageController::class, 'enterResults'])->name('stages.enter-results');
     Route::post('/stages/{stageId}/results', [StageController::class, 'saveResults'])->name('stages.save-results');
     Route::get('/stages/{stageId}/results/export', [StageController::class, 'exportResults'])->name('stages.export-results');
@@ -161,13 +172,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('/{id}/mark-paid', [AdminDashboardController::class, 'markAsPaid'])->name('mark-paid');
         Route::delete('/{id}', [AdminDashboardController::class, 'deleteRegistration'])->name('delete');
         Route::get('/export', [AdminDashboardController::class, 'exportRegistrations'])->name('export');
+        Route::get('/{id}', [AdminDashboardController::class, 'showRegistration'])->name('show');
+        Route::post('/{id}/status', [AdminDashboardController::class, 'updateRegistrationStatus'])->name('status');
     });
 
-    // Dentro del grupo admin, agrega:
-    Route::get('/registrations/{id}', [AdminDashboardController::class, 'showRegistration'])->name('registrations.show');
-    Route::post('/registrations/{id}/status', [AdminDashboardController::class, 'updateRegistrationStatus'])->name('registrations.status');
-
-    // ========== GESTIÓN DE FOTOS ==========
+    // ========== GESTIÓN DE FOTOS (ADMIN) ==========
     Route::prefix('photos')->name('photos.')->group(function () {
         Route::get('/pending', [AdminDashboardController::class, 'pendingPhotos'])->name('pending');
         Route::get('/approved', [AdminDashboardController::class, 'approvedPhotos'])->name('approved');
@@ -193,19 +202,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/categories', [AdminDashboardController::class, 'categories'])->name('categories');
         Route::post('/categories', [AdminDashboardController::class, 'updateCategories'])->name('categories.update');
     });
+
+    Route::get('/registrations/pending/count', [AdminDashboardController::class, 'pendingCount'])->name('registrations.pending.count');
 });
 
 // ============================================
 // RUTAS ADICIONALES DE SUCURSALES Y PERMISOS (Sistema existente)
 // ============================================
-
-// Estas rutas son de tu sistema existente, las mantengo
 Route::resource('permissions', PermissionController::class);
 Route::resource('user-sucursal', UserSucursalController::class);
-
-Route::prefix('inscripcion')->name('registration.team.')->group(function () {
-    Route::get('/equipo', [PublicRegistrationController::class, 'showForm'])->name('form');
-    Route::get('/equipo/plantilla', [PublicRegistrationController::class, 'downloadTemplate'])->name('download-template');
-    Route::post('/equipo', [PublicRegistrationController::class, 'submitRegistration'])->name('submit');
-    Route::get('/exito', [PublicRegistrationController::class, 'success'])->name('success');
-});

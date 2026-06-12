@@ -17,6 +17,11 @@ class AdminDashboardController extends Controller
         $this->middleware(['auth', 'admin']);
     }
 
+    public function pendingCount()
+    {
+        $count = Registration::where('status', 'pending')->count();
+        return response()->json(['count' => $count]);
+    }
     public function index()
     {
         $pendingRegistrations = Registration::where('status', 'pending')->count();
