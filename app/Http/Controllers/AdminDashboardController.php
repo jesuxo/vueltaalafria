@@ -3,13 +3,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PhotoRevenueExport;
+use App\Models\Photo;
 use App\Models\PhotoOrder;
 use App\Models\Registration;
 use App\Models\Team;
 use App\Models\Athlete;
 use App\Models\TeamPhoto;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdminDashboardController extends Controller
 {
@@ -176,21 +180,59 @@ class AdminDashboardController extends Controller
         ));
     }
 
-    /**
-     * Exportar reporte de ingresos a Excel
-     */
+
+
     public function exportPhotoRevenue(Request $request)
     {
-        // Similar al método anterior pero para exportar
-        $query = PhotoOrder::with(['items.photo.stage'])
-            ->whereIn('status', ['completed', 'paid']);
+        // Filtros
+        $period = $request->get('period', 'month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $status = $request->get('status', 'completed');
 
-        // Aplicar mismos filtros...
+        // Construir consulta base
+        $query = PhotoOrder::with(['items.photo.stage']);
+
+        // Filtrar por estado
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        } else {
+            $query->whereIn('status', ['completed', 'paid']);
+        }
+
+        // Filtrar por fecha
+        if ($period === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('created_at', [
+                Carbon::parse($startDate)->startOfDay(),
+                Carbon::parse($endDate)->endOfDay()
+            ]);
+        } elseif ($period === 'today') {
+            $query->whereDate('created_at', Carbon::today());
+        } elseif ($period === 'week') {
+            $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+        } elseif ($period === 'month') {
+            $query->whereMonth('created_at', Carbon::now()->month)
+                ->whereYear('created_at', Carbon::now()->year);
+        } elseif ($period === 'year') {
+            $query->whereYear('created_at', Carbon::now()->year);
+        }
 
         $orders = $query->orderBy('created_at', 'desc')->get();
 
-        // Generar Excel
-        return Excel::download(new PhotoRevenueExport($orders), 'reporte_ingresos_fotos.xlsx');
+        // Estadísticas para el resumen
+        $summary = [
+            'total_revenue' => $orders->sum('total'),
+            'total_orders' => $orders->count(),
+            'total_photos_sold' => $orders->sum(function($order) {
+                return $order->items->count();
+            }),
+            'avg_order_value' => $orders->count() > 0 ? $orders->sum('total') / $orders->count() : 0,
+        ];
+
+        // Generar nombre del archivo
+        $fileName = 'reporte_ingresos_fotos_' . Carbon::now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(new PhotoRevenueExport($orders, $summary), $fileName);
     }
 
     /**
