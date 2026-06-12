@@ -75,6 +75,9 @@ class PhotoUploadController extends Controller
         return true;
     }
 
+    /**
+     * Crear preview con protección extrema contra IA
+     */
     private function createWatermarkedPreview($sourcePath, $destPath)
     {
         try {
@@ -85,8 +88,8 @@ class PhotoUploadController extends Controller
             $height = $imageInfo[1];
             $type = $imageInfo[2];
 
-            // Redimensionar a tamaño pequeño (max 800px - calidad baja)
-            $maxDimension = 800;
+            // REDUCIR TAMAÑO A 600px (máximo) - inútil para impresión
+            $maxDimension = 600;
             if ($width > $maxDimension || $height > $maxDimension) {
                 $ratio = min($maxDimension / $width, $maxDimension / $height);
                 $newWidth = intval($width * $ratio);
@@ -112,64 +115,76 @@ class PhotoUploadController extends Controller
             imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
             imagedestroy($src);
 
-            // === CAPA 1: MARCA DE AGUA GRANDE EN EL CENTRO ===
-            $logoPath = public_path('img/lo222go.png');
+            // === CAPA 1: MÚLTIPLES MARCAS DE AGUA ===
+            $logoPath = public_path('img/logopng.png');
             if (file_exists($logoPath)) {
                 $logo = imagecreatefrompng($logoPath);
                 if ($logo) {
                     $logoWidth = imagesx($logo);
                     $logoHeight = imagesy($logo);
 
-                    // Calcular posición CENTRO
+                    // Marca 1: Centro
                     $posX = ($newWidth - $logoWidth) / 2;
                     $posY = ($newHeight - $logoHeight) / 2;
-
                     if ($posX < 0) $posX = 10;
                     if ($posY < 0) $posY = 10;
-
-                    // Aplicar logo con transparencia
                     imagecopy($dst, $logo, $posX, $posY, 0, 0, $logoWidth, $logoHeight);
+
+                    // Marca 2: Esquina superior izquierda
+                    imagecopy($dst, $logo, 10, 10, 0, 0, $logoWidth, $logoHeight);
+
+                    // Marca 3: Esquina superior derecha
+                    imagecopy($dst, $logo, $newWidth - $logoWidth - 10, 10, 0, 0, $logoWidth, $logoHeight);
+
+                    // Marca 4: Esquina inferior izquierda
+                    imagecopy($dst, $logo, 10, $newHeight - $logoHeight - 10, 0, 0, $logoWidth, $logoHeight);
+
+                    // Marca 5: Esquina inferior derecha
+                    imagecopy($dst, $logo, $newWidth - $logoWidth - 10, $newHeight - $logoHeight - 10, 0, 0, $logoWidth, $logoHeight);
+
                     imagedestroy($logo);
                 }
             }
 
-            // === CAPA 2: TEXTO DE COPYRIGHT REPETIDO ===
-            $textColor = imagecolorallocate($dst, 255, 255, 255);
-            $shadowColor = imagecolorallocate($dst, 0, 0, 0);
-            $fontSize = 5; // Tamaño fijo de fuente integrada
+            // === CAPA 2: TEXTO DE COPYRIGHT EN TODA LA IMAGEN ===
+            $textColor = imagecolorallocate($dst, 200, 200, 200);
+            $fontSize = 3;
+            $text = "© VUELTA A LA FRÍA 2026 - PROHIBIDA SU REPRODUCCIÓN";
 
-            // Textos de copyright
-            $copyrights = [
-                " VUELTA A LA FRIA 2026",
-                "PROHIBIDA SU REPRODUCCION",
-                "VENTA AUTORIZADA - COMPRA EN VUELTALAFRIA.COM"
-            ];
+            // Texto repetido en mosaico
+            $textWidth = imagefontwidth($fontSize) * strlen($text);
+            $textHeight = imagefontheight($fontSize);
 
-            $yPositions = [10, $newHeight - 30, $newHeight - 50];
-            $xCenter = $newWidth / 2;
-
-            foreach ($copyrights as $index => $text) {
-                $textWidth = imagefontwidth($fontSize) * strlen($text);
-                $x = $xCenter - ($textWidth / 2);
-                $y = $yPositions[$index] ?? ($newHeight - 20);
-
-                // Sombra
-                imagestring($dst, $fontSize, $x + 1, $y + 1, $text, $shadowColor);
-                // Texto
-                imagestring($dst, $fontSize, $x, $y, $text, $textColor);
-            }
-
-            // === CAPA 3: PATRÓN SEMITRANSPARENTE (opcional) ===
-            // Crear un patrón de puntos en toda la imagen
-            $patternColor = imagecolorallocatealpha($dst, 255, 255, 255, 70); // Blanco semitransparente
-            for ($i = 0; $i < $newWidth; $i += 30) {
-                for ($j = 0; $j < $newHeight; $j += 30) {
-                    imagefilledellipse($dst, $i, $j, 4, 4, $patternColor);
+            for ($x = -$textWidth; $x < $newWidth + $textWidth; $x += $textWidth + 20) {
+                for ($y = -$textHeight; $y < $newHeight + $textHeight; $y += $textHeight + 30) {
+                    imagestring($dst, $fontSize, $x, $y, $text, $textColor);
                 }
             }
 
-            // Guardar con CALIDAD MUY BAJA (30%)
-            imagejpeg($dst, $destPath, 30);
+            // === CAPA 3: DAÑO DE PÍXELES (PIXELACIÓN INTENCIONAL) ===
+            // Crear efecto de pixeleación para dificultar restauración por IA
+            $pixelSize = 4; // Tamaño del pixel
+            for ($y = 0; $y < $newHeight; $y += $pixelSize) {
+                for ($x = 0; $x < $newWidth; $x += $pixelSize) {
+                    $rgb = imagecolorat($dst, $x, $y);
+                    imagefilledrectangle($dst, $x, $y, $x + $pixelSize - 1, $y + $pixelSize - 1, $rgb);
+                }
+            }
+
+            // === CAPA 4: RUIDO (NOISE) ===
+            $noiseColor = imagecolorallocate($dst, 255, 255, 255);
+            for ($i = 0; $i < ($newWidth * $newHeight) / 100; $i++) {
+                imagesetpixel($dst, rand(0, $newWidth - 1), rand(0, $newHeight - 1), $noiseColor);
+            }
+
+            // === CAPA 5: BANDA DE COLOR DISTORSIONADA ===
+            $bandColor = imagecolorallocate($dst, 0, 150, 200);
+            for ($i = 0; $i < $newHeight; $i += 50) {
+                imagefilledrectangle($dst, 0, $i, $newWidth, $i + 2, $bandColor);
+            }
+
+            // Guardar con CALIDAD EXTREMADAMENTE BAJA (15%)
+            imagejpeg($dst, $destPath, 15);
             imagedestroy($dst);
 
             return true;

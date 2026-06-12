@@ -23,7 +23,12 @@
 
     <script src="https://www.google.com/recaptcha/api.js"></script>
 
+    <meta name="robots" content="noindex, nofollow, noimageindex">
+    <meta name="googlebot" content="noindex, nofollow, noimageindex">
+
     <style>
+
+
         .text-danger {
             --bs-text-opacity: 1;
             color: rgba(var(--primary),var(--bs-text-opacity)) !important;

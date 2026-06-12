@@ -61,6 +61,7 @@ Route::get('/galeria/search', [PhotoGalleryController::class, 'searchPhotos']);
 Route::post('/galeria/order', [PhotoGalleryController::class, 'createOrder']);
 Route::get('/pedido/{publicCode}', [PhotoGalleryController::class, 'showPublicOrder'])->name('public.order.show');
 Route::get('/pedido/{publicCode}/status', [PhotoGalleryController::class, 'checkOrderStatus'])->name('public.order.status');
+Route::get('/galeria/protegida/{id}', [PhotoGalleryController::class, 'serveProtectedImage'])->name('photo.protected');
 
 // ============================================
 // RUTAS DE DESCARGA DE FOTOS (PÚBLICAS - SIN AUTENTICACIÓN)

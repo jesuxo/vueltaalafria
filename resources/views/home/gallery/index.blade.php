@@ -412,6 +412,52 @@
             -webkit-touch-callout: none;
             -webkit-user-select: none;
         }
+
+        /* Prevenir selección de texto e imágenes */
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* Prevenir que las imágenes sean arrastrables */
+        img {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+            pointer-events: auto;
+        }
+
+        /* Efecto "espejado" para fotos en modal (confunde OCR/IA) */
+        .photo-modal-img {
+            filter: blur(0.3px) contrast(0.9) brightness(0.95);
+            transform: rotate(-0.5deg);
+        }
+
+        /* Capa semi-transparente sobre imágenes en modal */
+        .modal-body {
+            position: relative;
+        }
+        .modal-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(0,0,0,0.03) 0px,
+                rgba(0,0,0,0.03) 2px,
+                transparent 2px,
+                transparent 8px
+            );
+            pointer-events: none;
+            z-index: 10;
+        }
     </style>
 @endsection
 
@@ -649,6 +695,109 @@
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+
+        document.addEventListener('keydown', function(e) {
+            // Prevenir F12
+            if (e.key === 'F12') {
+                e.preventDefault();
+                return false;
+            }
+            // Prevenir Ctrl+Shift+I
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                e.preventDefault();
+                return false;
+            }
+            // Prevenir Ctrl+Shift+C
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                e.preventDefault();
+                return false;
+            }
+            // Prevenir Ctrl+U (ver código fuente)
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+                return false;
+            }
+            // Prevenir Ctrl+S (guardar)
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                return false;
+            }
+            // Prevenir Ctrl+P (imprimir)
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // 2. Prevenir clic derecho en imágenes
+        document.querySelectorAll('img').forEach(img => {
+            img.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                return false;
+            });
+
+            img.addEventListener('dragstart', (e) => {
+                e.preventDefault();
+                return false;
+            });
+        });
+
+        // 3. Detectar DevTools abiertas (redirigir o mostrar advertencia)
+        (function() {
+            const element = new Image();
+            let devtools = false;
+            Object.defineProperty(element, 'id', {
+                get: function() {
+                    devtools = true;
+                    // Si se detecta DevTools, limpiar la galería
+                    if (devtools) {
+                        const grid = document.getElementById('photosGrid');
+                        if (grid) {
+                            grid.innerHTML = '<div class="col-12 text-center py-5"><i class="fas fa-shield-alt fa-4x text-danger mb-3"></i><p>Por seguridad, las imágenes no se muestran con herramientas de desarrollo abiertas</p></div>';
+                        }
+                    }
+                }
+            });
+            console.log('%c', element);
+        })();
+
+        // 4. Prevenir que la imagen se cargue en pestaña nueva
+        document.querySelectorAll('img').forEach(img => {
+            img.addEventListener('click', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
+
+        // 5. Función anti-captura (detectar si se está usando Snagit, etc.)
+        let mouseMovements = [];
+        document.addEventListener('mousemove', function(e) {
+            mouseMovements.push({x: e.clientX, y: e.clientY, time: Date.now()});
+            if (mouseMovements.length > 50) mouseMovements.shift();
+
+            // Detectar movimiento inusual (posible herramienta de captura)
+            if (mouseMovements.length > 10) {
+                let isScreenCapture = false;
+                for (let i = 1; i < mouseMovements.length; i++) {
+                    if (Math.abs(mouseMovements[i].x - mouseMovements[i-1].x) > 200 &&
+                        Math.abs(mouseMovements[i].y - mouseMovements[i-1].y) > 200) {
+                        isScreenCapture = true;
+                        break;
+                    }
+                }
+                if (isScreenCapture) {
+                    // Mostrar mensaje sutil
+                    const notification = document.createElement('div');
+                    notification.innerHTML = '⚠️ La captura de pantalla está deshabilitada por derechos de autor';
+                    notification.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#000; color:#fff; padding:10px; border-radius:5px; z-index:9999; font-size:12px;';
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 3000);
+                }
+            }
+        });
+
         // ============================================
         // CARRITO CON LOCALSTORAGE
         // ============================================
@@ -891,10 +1040,13 @@
         }
 
         // Mostrar modal con foto en grande
+        // En lugar de usar la ruta directa a la imagen, usar la ruta protegida
         function showPhotoModal(photo) {
             currentModalPhoto = photo;
 
-            const imageUrl = photo.preview_path || photo.thumbnail_path;
+            // Usar la ruta protegida que sirve SVG ofuscado
+            const imageUrl = `/galeria/protegida/${photo.id}`;
+
             const modalTitle = document.getElementById('modalPhotoTitle');
             const modalImage = document.getElementById('modalPhotoImage');
             const modalPhotoId = document.getElementById('modalPhotoId');
@@ -903,7 +1055,7 @@
             const modalPhotoDorsal = document.getElementById('modalPhotoDorsal');
 
             if (modalTitle) modalTitle.innerText = `Foto #${photo.id}`;
-            if (modalImage) modalImage.src = `/${imageUrl}`;
+            if (modalImage) modalImage.src = imageUrl;
             if (modalPhotoId) modalPhotoId.innerText = photo.id;
             if (modalPhotoPrice) modalPhotoPrice.innerText = photo.price || 5;
             if (modalPhotoStage) modalPhotoStage.innerText = photo.stage_name || 'General';
