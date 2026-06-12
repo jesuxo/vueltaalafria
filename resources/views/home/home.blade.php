@@ -313,7 +313,7 @@
                 <div>
                     <a href="#pricing" class="btn-custom">Ver Costos</a>
                     <a href="#preinscripcion" class="btn-custom btn-outline-custom" style="display: none">Inscribirme Ahora</a>
-                    <a href="/galeria" class="btn-custom btn-outline-custom"  >
+                    <a href="/galeria" class="btn-custom btn-outline-custom">
                         Ver Galer&iacute;a
                     </a>
                 </div>
