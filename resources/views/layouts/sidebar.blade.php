@@ -60,7 +60,7 @@
                                         <i class="ri-image-line me-2"></i> Ver Galería
                                     </a>
                                 </li>
-                                <li class="nav-item">
+                                <li class="nav-item d-none">
                                     <a href="{{ url('/admin/photos/pending') }}" class="nav-link" data-key="t-pending-photos">
                                         <i class="ri-time-line me-2"></i> Fotos Pendientes
                                     </a>

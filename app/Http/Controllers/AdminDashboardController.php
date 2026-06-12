@@ -3,6 +3,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PhotoOrder;
 use App\Models\Registration;
 use App\Models\Team;
 use App\Models\Athlete;
@@ -41,7 +42,59 @@ class AdminDashboardController extends Controller
             'recentRegistrations'
         ));
     }
+    public function photoOrders()
+    {
+        $orders = PhotoOrder::with(['items.photo', 'items.photo.stage'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
 
+        return view('photos.orders', compact('orders'));
+    }
+
+    /**
+     * Ver detalle de un pedido de fotos
+     */
+    public function showPhotoOrder($id)
+    {
+        $order = PhotoOrder::with(['items.photo', 'items.photo.stage'])
+            ->findOrFail($id);
+
+        // Si es una petición AJAX, devolver solo la vista parcial
+        if (request()->ajax()) {
+            return view('photos.order-detail', compact('order'));
+        }
+
+        return view('photos.order-detail-full', compact('order'));
+    }
+
+    /**
+     * Actualizar estado de un pedido de fotos
+     */
+    public function updatePhotoOrderStatus(Request $request, $id)
+    {
+        $order = PhotoOrder::findOrFail($id);
+
+        $request->validate([
+            'status' => 'required|in:pending,paid,processing,completed,cancelled'
+        ]);
+
+        $order->status = $request->status;
+
+        if ($request->status == 'paid' && !$order->paid_at) {
+            $order->paid_at = now();
+        }
+
+        if ($request->status == 'completed' && !$order->delivered_at) {
+            $order->delivered_at = now();
+        }
+
+        $order->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Estado actualizado correctamente'
+        ]);
+    }
     public function registrations(Request $request)
     {
         $query = Registration::with(['athlete', 'team']);

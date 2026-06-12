@@ -53,7 +53,7 @@ Route::get('/etapas', [HomeController::class, 'stages'])->name('public.stages');
 Route::get('/resultados', [HomeController::class, 'results'])->name('public.results');
 
 // ============================================
-// GALERÍA DE FOTOS PÚBLICA (UN SOLO /galeria)
+// GALERÍA DE FOTOS PÚBLICA
 // ============================================
 Route::get('/galeria', [PhotoGalleryController::class, 'index'])->name('gallery.index');
 Route::get('/galeria/stage/{stage}', [PhotoGalleryController::class, 'getStagePhotos']);
@@ -61,6 +61,13 @@ Route::get('/galeria/search', [PhotoGalleryController::class, 'searchPhotos']);
 Route::post('/galeria/order', [PhotoGalleryController::class, 'createOrder']);
 Route::get('/pedido/{publicCode}', [PhotoGalleryController::class, 'showPublicOrder'])->name('public.order.show');
 Route::get('/pedido/{publicCode}/status', [PhotoGalleryController::class, 'checkOrderStatus'])->name('public.order.status');
+
+// ============================================
+// RUTAS DE DESCARGA DE FOTOS (PÚBLICAS - SIN AUTENTICACIÓN)
+// ============================================
+Route::get('/descargar/foto/{photoId}/{code}', [PhotoDownloadController::class, 'download'])->name('photo.download');
+Route::get('/descargar/todas/{code}', [PhotoDownloadController::class, 'downloadAll'])->name('photo.download.all');
+Route::get('/verificar-pedido/{code}', [PhotoDownloadController::class, 'checkAndGetLinks'])->name('photo.check');
 
 // ============================================
 // INSCRIPCIONES PÚBLICAS
@@ -111,13 +118,12 @@ Route::prefix('equipo')->name('team.')->group(function () {
 });
 
 // ============================================
-// PANEL ADMINISTRATIVO DE FOTOS (SIN MIDDLEWARE COMPLEJO - SOLO AUTH)
+// PANEL ADMINISTRATIVO DE FOTOS
 // ============================================
-// IMPORTANTE: Este grupo debe estar ANTES que el grupo admin general
 Route::middleware(['auth'])->prefix('admin/fotos')->name('admin.photos.')->group(function () {
     Route::get('/', [PhotoUploadController::class, 'index'])->name('index');
     Route::post('/upload', [PhotoUploadController::class, 'upload']);
-    Route::post('/tag/{id}', [PhotoUploadController::class, 'tag']);  // Nota: es 'tag', no 'tagPhoto'
+    Route::post('/tag/{id}', [PhotoUploadController::class, 'tag']);
     Route::delete('/{id}', [PhotoUploadController::class, 'destroy']);
 });
 
@@ -125,37 +131,20 @@ Route::middleware(['auth'])->prefix('admin/fotos')->name('admin.photos.')->group
 // PANEL ADMINISTRATIVO GENERAL
 // ============================================
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-
-    // Descarga de fotos (requiere autenticación o código)
-    Route::get('/descargar/foto/{photoId}/{code}', [PhotoDownloadController::class, 'download'])
-        ->name('photo.download');
-
-    Route::get('/descargar/todas/{code}', [PhotoDownloadController::class, 'downloadAll'])
-        ->name('photo.download.all');
-
-    Route::get('/verificar-pedido/{code}', [PhotoDownloadController::class, 'checkAndGetLinks'])
-        ->name('photo.check');
-
-    Route::get('/descargar-foto/{photoId}/{code}', [PhotoDownloadController::class, 'download'])
-        ->name('photo.download')
-        ->middleware('signed'); // URL firmada por seguridad
-
     // Dashboard principal
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-
-    // routes/web.php - Agregar dentro del grupo admin
-
+    // Momentos Especiales
     Route::prefix('specials')->name('specials.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Admin\SpecialController::class, 'index'])->name('index');
-        Route::get('/create', [App\Http\Controllers\Admin\SpecialController::class, 'create'])->name('create');
-        Route::post('/', [App\Http\Controllers\Admin\SpecialController::class, 'store'])->name('store');
-        Route::get('/{id}/edit', [App\Http\Controllers\Admin\SpecialController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [App\Http\Controllers\Admin\SpecialController::class, 'update'])->name('update');
-        Route::delete('/{id}', [App\Http\Controllers\Admin\SpecialController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/toggle-status', [App\Http\Controllers\Admin\SpecialController::class, 'toggleStatus'])->name('toggle-status');
-        Route::get('/list', [App\Http\Controllers\Admin\SpecialController::class, 'getList'])->name('list');
+        Route::get('/', [SpecialController::class, 'index'])->name('index');
+        Route::get('/create', [SpecialController::class, 'create'])->name('create');
+        Route::post('/', [SpecialController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [SpecialController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [SpecialController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SpecialController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/toggle-status', [SpecialController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/list', [SpecialController::class, 'getList'])->name('list');
     });
 
     // ========== GESTIÓN DE EQUIPOS ==========
@@ -214,6 +203,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/{id}/reject', [AdminDashboardController::class, 'rejectPhoto'])->name('reject');
         Route::delete('/{id}', [AdminDashboardController::class, 'deletePhoto'])->name('delete');
         Route::get('/gallery', [AdminDashboardController::class, 'gallery'])->name('gallery');
+        Route::get('/orders', [AdminDashboardController::class, 'photoOrders'])->name('orders');
+        Route::get('/order/{id}', [AdminDashboardController::class, 'showPhotoOrder'])->name('order.show');
+        Route::post('/order/{id}/status', [AdminDashboardController::class, 'updatePhotoOrderStatus'])->name('order.status');
     });
 
     // ========== REPORTES ==========
