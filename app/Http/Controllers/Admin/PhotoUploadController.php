@@ -75,9 +75,6 @@ class PhotoUploadController extends Controller
         return true;
     }
 
-    /**
-     * Crear preview con marca de agua (para mostrar en el modal)
-     */
     private function createWatermarkedPreview($sourcePath, $destPath)
     {
         try {
@@ -88,8 +85,8 @@ class PhotoUploadController extends Controller
             $height = $imageInfo[1];
             $type = $imageInfo[2];
 
-            // Redimensionar a un tamaño manejable (max 1200px)
-            $maxDimension = 1200;
+            // Redimensionar a tamaño pequeño (max 800px - calidad baja)
+            $maxDimension = 800;
             if ($width > $maxDimension || $height > $maxDimension) {
                 $ratio = min($maxDimension / $width, $maxDimension / $height);
                 $newWidth = intval($width * $ratio);
@@ -115,39 +112,70 @@ class PhotoUploadController extends Controller
             imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
             imagedestroy($src);
 
-            // Cargar el logo (marca de agua)
-            $logoPath = public_path('img/lo222go.png');
-
+            // === CAPA 1: MARCA DE AGUA GRANDE EN EL CENTRO ===
+            $logoPath = public_path('img/logopng.png');
             if (file_exists($logoPath)) {
                 $logo = imagecreatefrompng($logoPath);
-
                 if ($logo) {
                     $logoWidth = imagesx($logo);
                     $logoHeight = imagesy($logo);
 
-                    // Calcular posición CENTRO de la imagen
+                    // Calcular posición CENTRO
                     $posX = ($newWidth - $logoWidth) / 2;
                     $posY = ($newHeight - $logoHeight) / 2;
 
-                    // Asegurar que no quede fuera
                     if ($posX < 0) $posX = 10;
                     if ($posY < 0) $posY = 10;
 
-                    // Hacer el logo semi-transparente (opcional)
-                    // imagecopymerge($dst, $logo, $posX, $posY, 0, 0, $logoWidth, $logoHeight, 50);
+                    // Aplicar logo con transparencia
                     imagecopy($dst, $logo, $posX, $posY, 0, 0, $logoWidth, $logoHeight);
                     imagedestroy($logo);
                 }
             }
 
-            // Guardar con calidad media (para preview)
-            imagejpeg($dst, $destPath, 70);
+            // === CAPA 2: TEXTO DE COPYRIGHT REPETIDO ===
+            $textColor = imagecolorallocate($dst, 255, 255, 255);
+            $shadowColor = imagecolorallocate($dst, 0, 0, 0);
+            $fontSize = 5; // Tamaño fijo de fuente integrada
+
+            // Textos de copyright
+            $copyrights = [
+                "© VUELTA A LA FRÍA 2026",
+                "PROHIBIDA SU REPRODUCCIÓN",
+                "VENTA AUTORIZADA - COMPRA EN VUELTALAFRIA.COM"
+            ];
+
+            $yPositions = [10, $newHeight - 30, $newHeight - 50];
+            $xCenter = $newWidth / 2;
+
+            foreach ($copyrights as $index => $text) {
+                $textWidth = imagefontwidth($fontSize) * strlen($text);
+                $x = $xCenter - ($textWidth / 2);
+                $y = $yPositions[$index] ?? ($newHeight - 20);
+
+                // Sombra
+                imagestring($dst, $fontSize, $x + 1, $y + 1, $text, $shadowColor);
+                // Texto
+                imagestring($dst, $fontSize, $x, $y, $text, $textColor);
+            }
+
+            // === CAPA 3: PATRÓN SEMITRANSPARENTE (opcional) ===
+            // Crear un patrón de puntos en toda la imagen
+            $patternColor = imagecolorallocatealpha($dst, 255, 255, 255, 70); // Blanco semitransparente
+            for ($i = 0; $i < $newWidth; $i += 30) {
+                for ($j = 0; $j < $newHeight; $j += 30) {
+                    imagefilledellipse($dst, $i, $j, 4, 4, $patternColor);
+                }
+            }
+
+            // Guardar con CALIDAD MUY BAJA (30%)
+            imagejpeg($dst, $destPath, 30);
             imagedestroy($dst);
 
             return true;
 
         } catch (\Exception $e) {
-            \Log::error('Error creando preview con marca de agua: ' . $e->getMessage());
+            \Log::error('Error creando preview: ' . $e->getMessage());
             return false;
         }
     }

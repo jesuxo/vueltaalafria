@@ -173,6 +173,10 @@ class PhotoGalleryController extends Controller
             ->with(['items.photo'])
             ->firstOrFail();
 
+        foreach ($order->items as $item) {
+            $item->photo->display_path = $item->photo->preview_path;
+        }
+
         return view('home.gallery.order-status', compact('order'));
     }
 

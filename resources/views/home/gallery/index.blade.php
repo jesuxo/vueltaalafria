@@ -394,6 +394,24 @@
         .navbar {
             background: rgba(0,0,0,0.9) !important;
         }
+
+        /* En tu CSS */
+        .photo-modal-img {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 10px;
+            /* Prevenir selección y arrastre */
+            user-select: none;
+            -webkit-user-drag: none;
+            pointer-events: none;
+        }
+
+        /* Prevenir captura de pantalla por contexto (limitado) */
+        .modal {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+        }
     </style>
 @endsection
 
@@ -1380,5 +1398,20 @@
                 timerProgressBar: true
             });
         }
+
+        document.addEventListener('contextmenu', function(e) {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Prevenir arrastrar imágenes
+        document.querySelectorAll('img').forEach(img => {
+            img.addEventListener('dragstart', (e) => {
+                e.preventDefault();
+                return false;
+            });
+        });
     </script>
 @endsection
