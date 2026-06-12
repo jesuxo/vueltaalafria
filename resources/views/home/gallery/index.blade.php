@@ -1086,6 +1086,7 @@
                     addBtn.innerHTML = '<i class="fas fa-cart-plus me-2"></i> Agregar al Carrito';
                     addBtn.disabled = false;
                     addBtn.style.opacity = '1';
+                    addBtn.style.opacity = '1';
                     addBtn.style.cursor = 'pointer';
                 }
             }

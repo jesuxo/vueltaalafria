@@ -88,8 +88,8 @@ class PhotoUploadController extends Controller
             $height = $imageInfo[1];
             $type = $imageInfo[2];
 
-            // REDUCIR TAMAÑO A 600px (máximo) - inútil para impresión
-            $maxDimension = 600;
+            // Tamaño decente para visualización (1000px máximo)
+            $maxDimension = 1000;
             if ($width > $maxDimension || $height > $maxDimension) {
                 $ratio = min($maxDimension / $width, $maxDimension / $height);
                 $newWidth = intval($width * $ratio);
@@ -115,75 +115,44 @@ class PhotoUploadController extends Controller
             imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
             imagedestroy($src);
 
-            $logoPath = public_path('img/lo222go.png');
+            // === MARCA DE AGUA (solo una, bien visible pero no destructiva) ===
+            $logoPath = public_path('img/logopng.png');
             if (file_exists($logoPath)) {
                 $logo = imagecreatefrompng($logoPath);
                 if ($logo) {
+                    // Redimensionar logo proporcionalmente
                     $logoWidth = imagesx($logo);
                     $logoHeight = imagesy($logo);
 
-                    // Marca 1: Centro
-                    $posX = ($newWidth - $logoWidth) / 2;
-                    $posY = ($newHeight - $logoHeight) / 2;
-                    if ($posX < 0) $posX = 10;
-                    if ($posY < 0) $posY = 10;
-                    imagecopy($dst, $logo, $posX, $posY, 0, 0, $logoWidth, $logoHeight);
+                    // Logo más pequeño y en esquina (no en el centro)
+                    $newLogoWidth = min(150, $newWidth / 3);
+                    $newLogoHeight = intval($logoHeight * ($newLogoWidth / $logoWidth));
 
-                    // Marca 2: Esquina superior izquierda
-                    imagecopy($dst, $logo, 10, 10, 0, 0, $logoWidth, $logoHeight);
+                    $tempLogo = imagecreatetruecolor($newLogoWidth, $newLogoHeight);
+                    imagecopyresampled($tempLogo, $logo, 0, 0, 0, 0, $newLogoWidth, $newLogoHeight, $logoWidth, $logoHeight);
 
-                    // Marca 3: Esquina superior derecha
-                    imagecopy($dst, $logo, $newWidth - $logoWidth - 10, 10, 0, 0, $logoWidth, $logoHeight);
+                    // Esquina inferior derecha
+                    $posX = $newWidth - $newLogoWidth - 15;
+                    $posY = $newHeight - $newLogoHeight - 15;
 
-                    // Marca 4: Esquina inferior izquierda
-                    imagecopy($dst, $logo, 10, $newHeight - $logoHeight - 10, 0, 0, $logoWidth, $logoHeight);
-
-                    // Marca 5: Esquina inferior derecha
-                    imagecopy($dst, $logo, $newWidth - $logoWidth - 10, $newHeight - $logoHeight - 10, 0, 0, $logoWidth, $logoHeight);
+                    imagecopy($dst, $tempLogo, $posX, $posY, 0, 0, $newLogoWidth, $newLogoHeight);
 
                     imagedestroy($logo);
+                    imagedestroy($tempLogo);
                 }
             }
 
-            // === CAPA 2: TEXTO DE COPYRIGHT EN TODA LA IMAGEN ===
-            $textColor = imagecolorallocate($dst, 200, 200, 200);
+            // === TEXTO DE COPYRIGHT (sutil, en la parte inferior) ===
+            $textColor = imagecolorallocatealpha($dst, 0, 0, 0, 50); // Semi-transparente
+            $text = "© VUELTA A LA FRÍA 2026";
             $fontSize = 3;
-            $text = " VUELTA A LA FRIA 2026 - PROHIBIDA SU REPRODUCCIÓN";
-
-            // Texto repetido en mosaico
             $textWidth = imagefontwidth($fontSize) * strlen($text);
-            $textHeight = imagefontheight($fontSize);
+            $x = ($newWidth - $textWidth) / 2;
+            $y = $newHeight - 15;
+            imagestring($dst, $fontSize, $x, $y, $text, $textColor);
 
-            for ($x = -$textWidth; $x < $newWidth + $textWidth; $x += $textWidth + 20) {
-                for ($y = -$textHeight; $y < $newHeight + $textHeight; $y += $textHeight + 30) {
-                    imagestring($dst, $fontSize, $x, $y, $text, $textColor);
-                }
-            }
-
-            // === CAPA 3: DAÑO DE PÍXELES (PIXELACIÓN INTENCIONAL) ===
-            // Crear efecto de pixeleación para dificultar restauración por IA
-            $pixelSize = 4; // Tamaño del pixel
-            for ($y = 0; $y < $newHeight; $y += $pixelSize) {
-                for ($x = 0; $x < $newWidth; $x += $pixelSize) {
-                    $rgb = imagecolorat($dst, $x, $y);
-                    imagefilledrectangle($dst, $x, $y, $x + $pixelSize - 1, $y + $pixelSize - 1, $rgb);
-                }
-            }
-
-            // === CAPA 4: RUIDO (NOISE) ===
-            $noiseColor = imagecolorallocate($dst, 255, 255, 255);
-            for ($i = 0; $i < ($newWidth * $newHeight) / 100; $i++) {
-                imagesetpixel($dst, rand(0, $newWidth - 1), rand(0, $newHeight - 1), $noiseColor);
-            }
-
-            // === CAPA 5: BANDA DE COLOR DISTORSIONADA ===
-            $bandColor = imagecolorallocate($dst, 0, 150, 200);
-            for ($i = 0; $i < $newHeight; $i += 50) {
-                imagefilledrectangle($dst, 0, $i, $newWidth, $i + 2, $bandColor);
-            }
-
-            // Guardar con CALIDAD EXTREMADAMENTE BAJA (15%)
-            imagejpeg($dst, $destPath, 15);
+            // Calidad MEDIA (75% - se ve bien pero no es óptima para imprimir)
+            imagejpeg($dst, $destPath, 75);
             imagedestroy($dst);
 
             return true;

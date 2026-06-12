@@ -36,9 +36,11 @@ class PhotoGalleryController extends Controller
     {
         $photo = Photo::findOrFail($id);
 
+        // Usar preview_path (con marca de agua)
         $imagePath = public_path($photo->preview_path);
 
         if (!file_exists($imagePath)) {
+            // Si no existe preview, usar thumbnail
             $imagePath = public_path($photo->thumbnail_path);
         }
 
@@ -46,7 +48,7 @@ class PhotoGalleryController extends Controller
             abort(404);
         }
 
-        // Headers para prevenir caché y descarga
+        // Headers de protección (sin distorsión visual)
         return response()->file($imagePath, [
             'Cache-Control' => 'no-cache, no-store, must-revalidate, private',
             'Pragma' => 'no-cache',
