@@ -796,12 +796,13 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="#inicio">Inicio</a></li>
-                <li class="nav-item"><a class="nav-link" href="#informacion">La Carrera</a></li>
-                <li class="nav-item"><a class="nav-link" href="#programa">Etapas</a></li>
-                <li class="nav-item d-none"><a class="nav-link" href="#categorias">Categorías</a></li>
-                <li class="nav-item d-none"><a class="nav-link" href="#clasificaciones">Premios</a></li>
-                <li class="nav-item"><a class="nav-link" href="#contacto">Contacto</a></li>
+                <li class="nav-item"><a class="nav-link" href="http://vueltaalafria.com/">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link" href="http://vueltaalafria.com/galeria">Galeria</a></li>
+                <li class="nav-item"><a class="nav-link" href="http://vueltaalafria.com/#informacion">La Carrera</a></li>
+                <li class="nav-item"><a class="nav-link" href="http://vueltaalafria.com/#programa">Etapas</a></li>
+                <li class="nav-item d-none"><a class="nav-link" href="http://vueltaalafria.com/#categorias">Categorías</a></li>
+                <li class="nav-item d-none"><a class="nav-link" href="http://vueltaalafria.com/#clasificaciones">Premios</a></li>
+                <li class="nav-item"><a class="nav-link" href="http://vueltaalafria.com/#contacto">Contacto</a></li>
             </ul>
 
             <!-- Fecha del evento -->

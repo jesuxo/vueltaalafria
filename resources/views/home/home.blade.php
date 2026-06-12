@@ -469,7 +469,7 @@
                 </div>
                 <div class="schedule-item" data-aos="fade-up">
                     <div class="schedule-time">Sábado 13/06 - 9:00 am</div>
-                    <div class="schedule-event">2da Etapa: Ruta La Fría - Umuquena (Llegada en Alto) - Distancias variables por categoría</div>
+                    <div class="schedule-event">2da Etapa: Ruta La Fría - Las Mesas   Distancias variables por categoría</div>
                 </div>
                 <div class="schedule-item" data-aos="fade-up">
                     <div class="schedule-time">Domingo 14/06 - 8:00 am</div>

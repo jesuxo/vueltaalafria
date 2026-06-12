@@ -437,12 +437,15 @@
                         <a class="dropdown-item"  style="display: none" href="javascript:void(0)"><span class="badge bg-success-subtle text-success float-end ms-2">New</span><i class="bi bi-cassette text-muted fs-15 align-middle me-1"></i> <span class="align-middle">Frontend</span></a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="account-setting"  style="display: none"><i class="bi bi-gear text-muted fs-15 align-middle me-1"></i> <span class="align-middle">Settings</span></a>
-                        <a class="dropdown-item" href="{{ url('logout') }}"><i class="bi bi-box-arrow-right text-muted fs-15 align-middle me-1"></i> <span class="align-middle" data-key="t-logout">{{ __('t-logout') }}</span></a>
+                        <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="bi bi-box-arrow-right text-muted fs-15 align-middle me-1"></i> <span class="align-middle" data-key="t-logout">{{ __('t-logout') }}</span></a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <form  method="POST" style="display: none;"  action="{{ route('logout') }}" id="logout-form">
+        @csrf
+    </form>
 </header>
 
 
