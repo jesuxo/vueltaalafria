@@ -13,6 +13,7 @@ use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TeamPanelController;
 use App\Http\Controllers\SiteController;
+use App\Http\Controllers\SpecialController;
 use App\Http\Controllers\PhotoGalleryController;
 use App\Http\Controllers\Admin\PhotoUploadController;
 
@@ -127,6 +128,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Dashboard principal
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+
+    Route::prefix('specials')->name('specials.')->group(function () {
+        Route::get('/', [SpecialController::class, 'index'])->name('index');
+        Route::post('/', [SpecialController::class, 'store'])->name('store');
+        Route::delete('/{id}', [SpecialController::class, 'destroy'])->name('destroy');
+    });
 
     // ========== GESTIÓN DE EQUIPOS ==========
     Route::resource('teams', TeamController::class);

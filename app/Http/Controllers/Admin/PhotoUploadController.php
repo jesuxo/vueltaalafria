@@ -14,20 +14,20 @@ class PhotoUploadController extends Controller
     {
         // Obtener todas las etapas (incluyendo especiales)
         $stages = Stage::where('is_active', true)
-            ->orderBy('type', 'desc')  // Primero stages, luego specials
+            ->orderBy('type', 'desc')
             ->orderBy('stage_number', 'asc')
             ->get();
 
-        // Separar por tipo para la vista
+        // Separar por tipo
         $regularStages = $stages->where('type', 'stage');
-        $specialStages = $stages->where('type', 'special');
+        $specials      = $stages->where('type', 'special');
 
-        $recentPhotos = Photo::with('stage')
+        $recentPhotos  = Photo::with('stage')
             ->orderBy('id', 'desc')
             ->limit(20)
             ->get();
 
-        return view('photos.index', compact('stages', 'regularStages', 'specialStages', 'recentPhotos'));
+        return view('photos.index', compact('stages', 'regularStages', 'specials', 'recentPhotos'));
     }
 
     private function resizeImage($sourcePath, $destPath, $maxWidth, $maxHeight = null, $isThumbnail = false)

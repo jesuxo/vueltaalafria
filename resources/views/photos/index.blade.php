@@ -177,7 +177,6 @@
                                         <optgroup label="📸 Momentos Especiales">
                                             @foreach($specials as $special)
                                                 <option value="{{ $special->id }}">
-                                                    {{ $special->icon ? '<i class="'.$special->icon.'"></i>' : '📸' }}
                                                     {{ $special->name }}
                                                 </option>
                                             @endforeach

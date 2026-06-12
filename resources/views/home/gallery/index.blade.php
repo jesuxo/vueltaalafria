@@ -406,7 +406,7 @@
                         <optgroup label="✨ MOMENTOS ESPECIALES">
                             @foreach($specials as $special)
                                 <option value="{{ $special->id }}" data-type="special">
-                                    📸 {{ $special->name }}
+                                    {{ $special->name }}
                                     @if($special->date) - {{ \Carbon\Carbon::parse($special->date)->format('d/m/Y') }} @endif
                                 </option>
                             @endforeach
