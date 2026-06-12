@@ -36,11 +36,9 @@ class PhotoGalleryController extends Controller
     {
         $photo = Photo::findOrFail($id);
 
-        // Usar el preview_path (con marca de agua)
         $imagePath = public_path($photo->preview_path);
 
         if (!file_exists($imagePath)) {
-            // Fallback al thumbnail si no existe preview
             $imagePath = public_path($photo->thumbnail_path);
         }
 
@@ -48,43 +46,15 @@ class PhotoGalleryController extends Controller
             abort(404);
         }
 
-        // Leer la imagen y convertir a base64
-        $imageData = base64_encode(file_get_contents($imagePath));
-        $imageType = 'image/jpeg';
-
-        // Crear SVG ofuscado con la imagen embebida
-        $svg = '<?xml version="1.0" encoding="UTF-8"?>
-        <svg width="100%" height="100%" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-            <defs>
-                <filter id="blur">
-                    <feGaussianBlur stdDeviation="0.8"/>
-                </filter>
-                <filter id="noise">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" result="noise"/>
-                    <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.15 0" in="noise" result="coloredNoise"/>
-                    <feComposite operator="in" in="coloredNoise" in2="SourceGraphic" result="composite"/>
-                    <feBlend mode="multiply" in="composite" in2="SourceGraphic"/>
-                </filter>
-            </defs>
-            <image width="100%" height="100%" preserveAspectRatio="xMidYMid meet"
-                   xlink:href="data:' . $imageType . ';base64,' . $imageData . '"
-                   filter="url(#blur)"/>
-            <rect width="100%" height="100%" fill="rgba(0,0,0,0.2)"/>
-            <text x="50%" y="30%" text-anchor="middle" font-size="28" fill="rgba(0,0,0,0.6)" font-weight="bold" transform="rotate(-10, 400, 200)">© VUELTA A LA FRÍA 2026</text>
-            <text x="50%" y="40%" text-anchor="middle" font-size="20" fill="rgba(0,0,0,0.5)" transform="rotate(-5, 400, 250)">PROHIBIDA SU REPRODUCCIÓN</text>
-            <text x="50%" y="50%" text-anchor="middle" font-size="16" fill="rgba(0,0,0,0.4)">www.vueltaalafria.com</text>
-            <text x="50%" y="60%" text-anchor="middle" font-size="14" fill="rgba(0,0,0,0.3)">COMPRA TUS FOTOS EN ALTA RESOLUCIÓN</text>
-        </svg>';
-
-        // Ofuscar un poco el SVG para que sea más difícil de procesar
-        $svg = str_replace(['svg', 'image', 'text'], ['svｇ', 'ｉｍａｇｅ', 'ｔｅｘｔ'], $svg);
-
-        return response($svg)
-            ->header('Content-Type', 'image/svg+xml')
-            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-            ->header('Pragma', 'no-cache')
-            ->header('Expires', '0')
-            ->header('X-Content-Type-Options', 'nosniff');
+        // Headers para prevenir caché y descarga
+        return response()->file($imagePath, [
+            'Cache-Control' => 'no-cache, no-store, must-revalidate, private',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'Content-Disposition' => 'inline',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; img-src 'self'",
+        ]);
     }
 
     // Obtener fotos de una etapa o especial
