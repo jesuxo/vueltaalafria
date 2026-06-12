@@ -1205,34 +1205,33 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    cart = [];
-                    saveCart();
-                    bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
-                    document.getElementById('checkoutForm').reset();
-
                     Swal.fire({
                         title: '¡Pedido creado!',
                         html: `
-                            <div class="text-center">
-                                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-                                <p><strong>Tu pedido ha sido creado exitosamente</strong></p>
-                                <div class="alert alert-info">
-                                    <strong>Código de pedido:</strong><br>
-                                    <code style="font-size: 18px;">${result.public_code}</code>
-                                </div>
-                                <p>Guarda este código para consultar el estado de tu pedido</p>
-                                <hr>
-                                <div class="mt-3">
-                                    <a href="${result.public_url}" class="btn btn-custom" target="_blank">
-                                        <i class="fas fa-external-link-alt me-2"></i> Ver mi pedido
-                                    </a>
-                                </div>
-                                ${result.qr_code ? `
-                                <div class="mt-3">
-                                    <img src="data:image/png;base64,${result.qr_code}" style="max-width: 150px;">
-                                </div>
-                                ` : ''}
+                        <div class="text-center">
+                            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                            <p><strong>Tu pedido ha sido creado exitosamente</strong></p>
+                            <div class="alert alert-info">
+                                <strong>Código de pedido:</strong><br>
+                                <code style="font-size: 18px;">${result.public_code}</code>
                             </div>
+                            <p>Guarda este código para consultar el estado de tu pedido</p>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-clock me-2"></i>
+                                <strong>Recibirás tus fotos cuando el organizador confirme el pago</strong>
+                            </div>
+                            <hr>
+                            <div class="mt-3">
+                                <a href="${result.public_url}" class="btn btn-custom" target="_blank">
+                                    <i class="fas fa-external-link-alt me-2"></i> Ver estado del pedido
+                                </a>
+                            </div>
+                            ${result.qr_code ? `
+                            <div class="mt-3">
+                                <img src="data:image/png;base64,${result.qr_code}" style="max-width: 150px;">
+                            </div>
+                            ` : ''}
+                        </div>
                         `,
                         icon: 'success',
                         confirmButtonText: 'Aceptar',

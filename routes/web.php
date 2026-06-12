@@ -125,6 +125,16 @@ Route::middleware(['auth'])->prefix('admin/fotos')->name('admin.photos.')->group
 // ============================================
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
+    // Descarga de fotos (requiere autenticación o código)
+    Route::get('/descargar/foto/{photoId}/{code}', [PhotoDownloadController::class, 'download'])
+        ->name('photo.download');
+
+    Route::get('/descargar/todas/{code}', [PhotoDownloadController::class, 'downloadAll'])
+        ->name('photo.download.all');
+
+    Route::get('/verificar-pedido/{code}', [PhotoDownloadController::class, 'checkAndGetLinks'])
+        ->name('photo.check');
+
     Route::get('/descargar-foto/{photoId}/{code}', [PhotoDownloadController::class, 'download'])
         ->name('photo.download')
         ->middleware('signed'); // URL firmada por seguridad

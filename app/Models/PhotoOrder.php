@@ -54,4 +54,11 @@ class PhotoOrder extends Model
             $order->public_code = self::generatePublicCode();
         });
     }
+
+    public function markAsCompleted()
+    {
+        $this->status = 'completed';
+        $this->delivered_at = now();
+        $this->save();
+    }
 }

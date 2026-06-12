@@ -60,6 +60,7 @@
             border-radius: 10px;
             overflow: hidden;
             transition: transform 0.3s;
+            cursor: pointer;
         }
 
         .photo-thumb:hover {
@@ -152,12 +153,82 @@
         .step.completed .step-label {
             color: #28a745;
         }
+
+        .download-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .download-all-btn {
+            background: #00ecfe;
+            color: #000;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            margin: 10px 0;
+        }
+
+        .download-all-btn:hover {
+            background: #00c4d4;
+            transform: translateY(-2px);
+            color: #000;
+        }
+
+        .single-download-btn {
+            background: #007bff;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+
+        .single-download-btn:hover {
+            background: #0056b3;
+            color: white;
+        }
+
         .section-title {
             text-align: center;
             margin-bottom: 10px;
         }
+
         .navbar {
             background: rgba(0,0,0,0.9) !important;
+        }
+
+        /* Modal para ver foto */
+        .photo-modal-img {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .modal-content {
+            border-radius: 20px;
+            overflow: hidden;
         }
     </style>
 @endsection
@@ -243,24 +314,50 @@
                                 <div class="col-md-6">
                                     <p><strong><i class="fas fa-user me-2"></i> Cliente:</strong> {{ $order->customer_name }}</p>
                                     <p><strong><i class="fas fa-phone me-2"></i> Teléfono:</strong> {{ $order->customer_phone }}</p>
+                                    @if($order->customer_email)
+                                        <p><strong><i class="fas fa-envelope me-2"></i> Email:</strong> {{ $order->customer_email }}</p>
+                                    @endif
                                 </div>
                                 <div class="col-md-6">
                                     <p><strong><i class="fas fa-calendar me-2"></i> Fecha:</strong> {{ $order->created_at->format('d/m/Y H:i') }}</p>
                                     <p><strong><i class="fas fa-tag me-2"></i> Código:</strong> <code>{{ $order->public_code }}</code></p>
+                                    @if($order->payment_method)
+                                        <p><strong><i class="fas fa-credit-card me-2"></i> Método de pago:</strong> {{ ucfirst($order->payment_method) }}</p>
+                                    @endif
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Botón de descarga masiva (solo si está completado) -->
+                        @if($order->status == 'completed')
+                            <div class="text-center mb-4">
+                                <a href="{{ route('photo.download.all', $order->public_code) }}" class="download-all-btn">
+                                    <i class="fas fa-download"></i> Descargar todas las fotos (ZIP)
+                                </a>
+                                <p class="text-muted small mt-2">
+                                    <i class="fas fa-info-circle"></i> Las fotos se descargarán en un archivo comprimido ZIP
+                                </p>
+                            </div>
+                        @endif
 
                         <!-- Lista de fotos -->
                         <h5 class="mb-3"><i class="fas fa-images me-2"></i> Fotos seleccionadas ({{ $order->items->count() }})</h5>
                         <div class="row g-3 mb-4">
                             @foreach($order->items as $item)
                                 <div class="col-md-3 col-6">
-                                    <div class="photo-thumb">
-                                        <img src="/{{ $item->photo->thumbnail_path }}" class="img-fluid rounded" alt="Foto">
+                                    <div class="photo-thumb" onclick="showPhotoModal({{ $item->photo->id }}, '{{ $item->photo->preview_path ?? $item->photo->thumbnail_path }}', '{{ $item->photo->price }}')">
+                                        <img src="/{{ $item->photo->thumbnail_path }}" class="img-fluid rounded" alt="Foto" style="width: 100%; height: 150px; object-fit: cover;">
                                         <div class="text-center mt-1">
                                             <small class="text-muted">${{ number_format($item->price, 2) }}</small>
                                         </div>
+                                        @if($order->status == 'completed')
+                                            <div class="text-center mt-1">
+                                                <a href="{{ route('photo.download', ['photoId' => $item->photo->id, 'code' => $order->public_code]) }}"
+                                                   class="single-download-btn">
+                                                    <i class="fas fa-download"></i> Descargar
+                                                </a>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
@@ -308,24 +405,63 @@
                     @if($order->status == 'pending')
                         <div class="alert alert-warning mt-3">
                             <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>¡Pendiente!</strong>   Pedido de fotos en lista de espera
+                            <strong>¡Pendiente!</strong> Pedido de fotos en lista de espera.
+                            <br><small>Una vez confirmado el pago, comenzaremos a procesar tus fotos.</small>
                         </div>
                     @elseif($order->status == 'paid')
                         <div class="alert alert-info mt-3">
                             <i class="fas fa-check-circle me-2"></i>
                             <strong>Pago confirmado.</strong> Estamos procesando tus fotos.
+                            <br><small>En breve recibirás un aviso cuando estén listas para descargar.</small>
+                        </div>
+                    @elseif($order->status == 'processing')
+                        <div class="alert alert-primary mt-3">
+                            <i class="fas fa-cogs me-2"></i>
+                            <strong>Fotos en proceso.</strong> Estamos preparando tus fotos.
+                            <br><small>Pronto estarán disponibles para descarga.</small>
                         </div>
                     @elseif($order->status == 'completed')
                         <div class="alert alert-success mt-3">
                             <i class="fas fa-download me-2"></i>
                             <strong>¡Tus fotos están listas!</strong>
-                            <a href="{{ route('public.order.download', $order->public_code) }}" class="alert-link">Haz clic aquí para descargarlas</a>
+                            <br>Puedes descargarlas individualmente o todas juntas en un archivo ZIP.
+                        </div>
+                    @elseif($order->status == 'cancelled')
+                        <div class="alert alert-danger mt-3">
+                            <i class="fas fa-ban me-2"></i>
+                            <strong>Pedido cancelado.</strong>
+                            <br>Si tienes alguna duda, contacta con el organizador.
                         </div>
                     @endif
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Modal para ver foto en grande -->
+    <div class="modal fade" id="photoModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #00ecfe 0%, #00c4d4 100%);">
+                    <h5 class="modal-title text-white">
+                        <i class="fas fa-camera me-2"></i> Foto
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalPhotoImage" src="" alt="Foto" class="photo-modal-img">
+                    <div class="mt-3">
+                        <p><strong><i class="fas fa-dollar-sign me-2"></i> Precio:</strong> $<span id="modalPhotoPrice">5</span> USD</p>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn-outline-custom" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i> Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -345,6 +481,20 @@
                 showConfirmButton: false,
                 timer: 3000
             });
+        }
+
+        function showPhotoModal(photoId, imageUrl, price) {
+            const modalImage = document.getElementById('modalPhotoImage');
+            const modalPrice = document.getElementById('modalPhotoPrice');
+
+            if (modalImage) {
+                modalImage.src = '/' + imageUrl;
+            }
+            if (modalPrice) {
+                modalPrice.innerText = price || 5;
+            }
+
+            new bootstrap.Modal(document.getElementById('photoModal')).show();
         }
     </script>
 @endsection
