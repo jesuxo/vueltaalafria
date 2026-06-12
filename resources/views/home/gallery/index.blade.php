@@ -879,6 +879,7 @@
         function showPhotoModal(photo) {
             currentModalPhoto = photo;
 
+            const imageUrl = photo.preview_path || photo.thumbnail_path;
             const modalTitle = document.getElementById('modalPhotoTitle');
             const modalImage = document.getElementById('modalPhotoImage');
             const modalPhotoId = document.getElementById('modalPhotoId');
@@ -887,7 +888,7 @@
             const modalPhotoDorsal = document.getElementById('modalPhotoDorsal');
 
             if (modalTitle) modalTitle.innerText = `Foto #${photo.id}`;
-            if (modalImage) modalImage.src = `/${photo.full_path || photo.thumbnail_path}`;
+            if (modalImage) modalImage.src = `/${imageUrl}`;
             if (modalPhotoId) modalPhotoId.innerText = photo.id;
             if (modalPhotoPrice) modalPhotoPrice.innerText = photo.price || 5;
             if (modalPhotoStage) modalPhotoStage.innerText = photo.stage_name || 'General';

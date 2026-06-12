@@ -12,13 +12,11 @@ class PhotoUploadController extends Controller
 {
     public function index()
     {
-        // Obtener todas las etapas (incluyendo especiales)
         $stages = Stage::where('is_active', true)
             ->orderBy('type', 'desc')
             ->orderBy('stage_number', 'asc')
             ->get();
 
-        // Separar por tipo
         $regularStages = $stages->where('type', 'stage');
         $specials      = $stages->where('type', 'special');
 
@@ -31,190 +29,164 @@ class PhotoUploadController extends Controller
     }
 
     /**
-     * Aplicar marca de agua a una imagen
+     * Redimensionar imagen thumbnail (sin marca de agua, baja calidad)
      */
-    private function applyWatermark($imagePath, $destPath)
+    private function resizeThumbnail($sourcePath, $destPath)
+    {
+        $imageInfo = getimagesize($sourcePath);
+        if (!$imageInfo) return false;
+
+        $width = $imageInfo[0];
+        $height = $imageInfo[1];
+        $type = $imageInfo[2];
+
+        $targetWidth = 300;
+        $targetHeight = 200;
+
+        $ratio = max($targetWidth / $width, $targetHeight / $height);
+        $newWidth = intval($width * $ratio);
+        $newHeight = intval($height * $ratio);
+
+        $dst = imagecreatetruecolor($targetWidth, $targetHeight);
+        $white = imagecolorallocate($dst, 255, 255, 255);
+        imagefilledrectangle($dst, 0, 0, $targetWidth, $targetHeight, $white);
+
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $src = imagecreatefromjpeg($sourcePath);
+                break;
+            case IMAGETYPE_PNG:
+                $src = imagecreatefrompng($sourcePath);
+                break;
+            default:
+                return false;
+        }
+
+        $x = intval(($targetWidth - $newWidth) / 2);
+        $y = intval(($targetHeight - $newHeight) / 2);
+        imagecopyresampled($dst, $src, $x, $y, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        // Calidad MUY BAJA para thumbnail (30%)
+        imagejpeg($dst, $destPath, 30);
+
+        imagedestroy($src);
+        imagedestroy($dst);
+
+        return true;
+    }
+
+    /**
+     * Crear preview con marca de agua (para mostrar en el modal)
+     */
+    private function createWatermarkedPreview($sourcePath, $destPath)
     {
         try {
-            // Cargar la imagen original
-            $imageInfo = getimagesize($imagePath);
+            $imageInfo = getimagesize($sourcePath);
             if (!$imageInfo) return false;
 
             $width = $imageInfo[0];
             $height = $imageInfo[1];
             $type = $imageInfo[2];
 
-            // Crear la imagen según el tipo
+            // Redimensionar a un tamaño manejable (max 1200px)
+            $maxDimension = 1200;
+            if ($width > $maxDimension || $height > $maxDimension) {
+                $ratio = min($maxDimension / $width, $maxDimension / $height);
+                $newWidth = intval($width * $ratio);
+                $newHeight = intval($height * $ratio);
+            } else {
+                $newWidth = $width;
+                $newHeight = $height;
+            }
+
+            $dst = imagecreatetruecolor($newWidth, $newHeight);
+
             switch ($type) {
                 case IMAGETYPE_JPEG:
-                    $image = imagecreatefromjpeg($imagePath);
+                    $src = imagecreatefromjpeg($sourcePath);
                     break;
                 case IMAGETYPE_PNG:
-                    $image = imagecreatefrompng($imagePath);
+                    $src = imagecreatefrompng($sourcePath);
                     break;
                 default:
                     return false;
             }
 
-            // Cargar el logo (marca de agua) - ajusta la ruta según tu estructura
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagedestroy($src);
+
+            // Cargar el logo (marca de agua)
             $logoPath = public_path('img/logopng.png');
             if (!file_exists($logoPath)) {
-                // Intentar otras posibles rutas
                 $logoPath = public_path('img/logo.png');
-                if (!file_exists($logoPath)) {
-                    $logoPath = public_path('build/images/logo.png');
-                }
             }
 
             if (file_exists($logoPath)) {
                 $logo = imagecreatefrompng($logoPath);
 
                 if ($logo) {
-                    // Obtener dimensiones del logo
                     $logoWidth = imagesx($logo);
                     $logoHeight = imagesy($logo);
 
-                    // Calcular posición (esquina inferior derecha con margen)
-                    $margin = 15;
-                    $posX = $width - $logoWidth - $margin;
-                    $posY = $height - $logoHeight - $margin;
+                    // Calcular posición CENTRO de la imagen
+                    $posX = ($newWidth - $logoWidth) / 2;
+                    $posY = ($newHeight - $logoHeight) / 2;
 
-                    // Asegurar que no quede fuera de la imagen
-                    if ($posX < 0) $posX = $margin;
-                    if ($posY < 0) $posY = $margin;
+                    // Asegurar que no quede fuera
+                    if ($posX < 0) $posX = 10;
+                    if ($posY < 0) $posY = 10;
 
-                    // Fusionar el logo con la imagen (manteniendo transparencia)
-                    imagecopy($image, $logo, $posX, $posY, 0, 0, $logoWidth, $logoHeight);
+                    // Hacer el logo semi-transparente (opcional)
+                    // imagecopymerge($dst, $logo, $posX, $posY, 0, 0, $logoWidth, $logoHeight, 50);
+                    imagecopy($dst, $logo, $posX, $posY, 0, 0, $logoWidth, $logoHeight);
                     imagedestroy($logo);
                 }
             }
 
-            // Guardar la imagen con marca de agua
-            imagejpeg($image, $destPath, 60); // Calidad 60% para thumbnail
+            // Guardar con calidad media (para preview)
+            imagejpeg($dst, $destPath, 70);
+            imagedestroy($dst);
 
-            imagedestroy($image);
             return true;
 
         } catch (\Exception $e) {
-            \Log::error('Error aplicando marca de agua: ' . $e->getMessage());
-            // Si falla la marca de agua, al menos guardar la imagen sin ella
-            return $this->resizeImageDirect($imagePath, $destPath, 300, 200, true);
+            \Log::error('Error creando preview con marca de agua: ' . $e->getMessage());
+            return false;
         }
     }
 
     /**
-     * Redimensionar imagen sin marca de agua (fallback)
+     * Guardar imagen FULL original (en carpeta privada)
      */
-    private function resizeImageDirect($sourcePath, $destPath, $maxWidth, $maxHeight = null, $isThumbnail = false)
+    private function saveOriginalImage($sourcePath, $destPath)
     {
         $imageInfo = getimagesize($sourcePath);
         if (!$imageInfo) return false;
 
-        $width = $imageInfo[0];
-        $height = $imageInfo[1];
         $type = $imageInfo[2];
-
-        if ($isThumbnail && $maxHeight) {
-            $targetWidth = $maxWidth;
-            $targetHeight = $maxHeight;
-
-            $ratio = max($targetWidth / $width, $targetHeight / $height);
-            $newWidth = intval($width * $ratio);
-            $newHeight = intval($height * $ratio);
-
-            $dst = imagecreatetruecolor($targetWidth, $targetHeight);
-            $white = imagecolorallocate($dst, 255, 255, 255);
-            imagefilledrectangle($dst, 0, 0, $targetWidth, $targetHeight, $white);
-        } else {
-            if ($width > $maxWidth) {
-                $ratio = $maxWidth / $width;
-                $newWidth = $maxWidth;
-                $newHeight = intval($height * $ratio);
-            } else {
-                $newWidth = $width;
-                $newHeight = $height;
-            }
-            $dst = imagecreatetruecolor($newWidth, $newHeight);
-        }
 
         switch ($type) {
             case IMAGETYPE_JPEG:
                 $src = imagecreatefromjpeg($sourcePath);
+                imagejpeg($src, $destPath, 90); // Alta calidad
                 break;
             case IMAGETYPE_PNG:
                 $src = imagecreatefrompng($sourcePath);
+                imagepng($src, $destPath, 9); // Máxima calidad PNG
                 break;
             default:
                 return false;
         }
 
-        if ($isThumbnail && isset($targetWidth)) {
-            $x = intval(($targetWidth - $newWidth) / 2);
-            $y = intval(($targetHeight - $newHeight) / 2);
-            imagecopyresampled($dst, $src, $x, $y, 0, 0, $newWidth, $newHeight, $width, $height);
-        } else {
-            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-        }
-
-        imagejpeg($dst, $destPath, 75);
-
         imagedestroy($src);
-        imagedestroy($dst);
-
-        return true;
-    }
-
-    /**
-     * Redimensionar imagen para FULL (sin marca de agua)
-     */
-    private function resizeImageFull($sourcePath, $destPath, $maxWidth = 1200)
-    {
-        $imageInfo = getimagesize($sourcePath);
-        if (!$imageInfo) return false;
-
-        $width = $imageInfo[0];
-        $height = $imageInfo[1];
-        $type = $imageInfo[2];
-
-        if ($width > $maxWidth) {
-            $ratio = $maxWidth / $width;
-            $newWidth = $maxWidth;
-            $newHeight = intval($height * $ratio);
-        } else {
-            $newWidth = $width;
-            $newHeight = $height;
-        }
-
-        $dst = imagecreatetruecolor($newWidth, $newHeight);
-
-        switch ($type) {
-            case IMAGETYPE_JPEG:
-                $src = imagecreatefromjpeg($sourcePath);
-                break;
-            case IMAGETYPE_PNG:
-                $src = imagecreatefrompng($sourcePath);
-                break;
-            default:
-                return false;
-        }
-
-        imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-
-        // Calidad 80% para imágenes completas
-        imagejpeg($dst, $destPath, 80);
-
-        imagedestroy($src);
-        imagedestroy($dst);
-
         return true;
     }
 
     public function upload(Request $request)
     {
-        // Validar request
         $request->validate([
             'photos' => 'required|array',
-            'photos.*' => 'image|mimes:jpeg,png,jpg|max:5120',
+            'photos.*' => 'image|mimes:jpeg,png,jpg|max:10240', // Aumentado a 10MB
             'stage_id' => 'required|integer|exists:stages,id',
             'price' => 'required|numeric|min:0'
         ]);
@@ -222,46 +194,48 @@ class PhotoUploadController extends Controller
         $uploaded = [];
         $errors = [];
 
-        // Crear directorios si no existen
+        // Directorios
         $thumbDir = public_path('img/galeria/thumbs');
-        $fullDir = public_path('img/galeria/full');
+        $previewDir = public_path('img/galeria/previews');
+        $originalDir = storage_path('app/private/fotos_originales'); // Carpeta PRIVADA
 
+        // Crear directorios si no existen
         if (!file_exists($thumbDir)) mkdir($thumbDir, 0777, true);
-        if (!file_exists($fullDir)) mkdir($fullDir, 0777, true);
+        if (!file_exists($previewDir)) mkdir($previewDir, 0777, true);
+        if (!file_exists($originalDir)) mkdir($originalDir, 0777, true);
 
         foreach ($request->file('photos') as $file) {
             try {
                 $originalName = $file->getClientOriginalName();
-                $baseName = time() . '_' . uniqid();
+                $baseName = date('Ymd_His') . '_' . uniqid();
 
-                // Nombres diferentes para thumb y full
+                // Nombres de archivos
                 $thumbFilename = $baseName . '_thumb.jpg';
-                $fullFilename = $baseName . '_full.jpg';
+                $previewFilename = $baseName . '_preview.jpg';
+                $originalFilename = $baseName . '_original.' . $file->getClientOriginalExtension();
 
-                // Rutas completas
+                // Rutas
                 $thumbPath = $thumbDir . '/' . $thumbFilename;
-                $fullPath = $fullDir . '/' . $fullFilename;
+                $previewPath = $previewDir . '/' . $previewFilename;
+                $originalPath = $originalDir . '/' . $originalFilename;
 
-                // Guardar temporalmente la imagen redimensionada para thumbnail
-                $tempThumbPath = $thumbDir . '/temp_' . $thumbFilename;
-                $this->resizeImageDirect($file->getPathname(), $tempThumbPath, 300, 200, true);
+                // 1. Crear thumbnail (baja calidad, sin marca de agua)
+                $this->resizeThumbnail($file->getPathname(), $thumbPath);
 
-                // Aplicar marca de agua al thumbnail (calidad baja)
-                $this->applyWatermark($tempThumbPath, $thumbPath);
+                // 2. Crear preview con marca de agua (para mostrar en el modal)
+                $this->createWatermarkedPreview($file->getPathname(), $previewPath);
 
-                // Eliminar archivo temporal
-                if (file_exists($tempThumbPath)) unlink($tempThumbPath);
-
-                // Procesar imagen completa (sin marca de agua, calidad media-alta)
-                $this->resizeImageFull($file->getPathname(), $fullPath, 1200);
+                // 3. Guardar imagen original en carpeta PRIVADA (solo para descarga después de compra)
+                $this->saveOriginalImage($file->getPathname(), $originalPath);
 
                 // Guardar en BD
                 $photo = Photo::create([
                     'stage_id' => $request->stage_id,
-                    'filename' => $fullFilename,
+                    'filename' => $originalFilename,
                     'original_name' => $originalName,
                     'thumbnail_path' => 'img/galeria/thumbs/' . $thumbFilename,
-                    'full_path' => 'img/galeria/full/' . $fullFilename,
+                    'preview_path' => 'img/galeria/previews/' . $previewFilename,
+                    'original_path' => 'fotos_originales/' . $originalFilename, // Ruta relativa para storage
                     'price' => $request->price,
                     'is_active' => true
                 ]);
@@ -308,11 +282,14 @@ class PhotoUploadController extends Controller
     {
         $photo = Photo::findOrFail($id);
 
+        // Eliminar archivos físicos
         $thumbPath = public_path($photo->thumbnail_path);
-        $fullPath = public_path($photo->full_path);
+        $previewPath = public_path($photo->preview_path);
+        $originalPath = storage_path('app/private/' . $photo->original_path);
 
         if (file_exists($thumbPath)) unlink($thumbPath);
-        if (file_exists($fullPath)) unlink($fullPath);
+        if (file_exists($previewPath)) unlink($previewPath);
+        if (file_exists($originalPath)) unlink($originalPath);
 
         $photo->delete();
 

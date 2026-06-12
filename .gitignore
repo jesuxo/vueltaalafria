@@ -4,7 +4,8 @@
 /public/img/comprobantes
 /public/img/comprobantes_fotos
 /public/img/galeria
-/public/img/galeria/full
+/public/img/app/private/fotos_originales
+/public/img/galeria/previews
 /public/img/galeria/thumbs
 /public/img/galeria/*
 /public/comprobantes

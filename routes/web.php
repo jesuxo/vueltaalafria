@@ -125,6 +125,10 @@ Route::middleware(['auth'])->prefix('admin/fotos')->name('admin.photos.')->group
 // ============================================
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
+    Route::get('/descargar-foto/{photoId}/{code}', [PhotoDownloadController::class, 'download'])
+        ->name('photo.download')
+        ->middleware('signed'); // URL firmada por seguridad
+
     // Dashboard principal
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');

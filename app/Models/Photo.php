@@ -10,11 +10,12 @@ class Photo extends Model
     protected $table = 'photos';
 
     protected $fillable = [
-        'stage_id',  // Cambiado: stage_id
+        'stage_id',
         'filename',
         'original_name',
         'thumbnail_path',
-        'full_path',
+        'preview_path',
+        'original_path',
         'description',
         'tags',
         'price',
@@ -28,14 +29,19 @@ class Photo extends Model
         'price' => 'decimal:2'
     ];
 
-    // Relación con Stage
     public function stage()
     {
-        return $this->belongsTo(Stage::class, 'stage_id');  // Cambiado: stage_id
+        return $this->belongsTo(Stage::class, 'stage_id');
     }
 
     public function orderItems()
     {
         return $this->hasMany(PhotoOrderItem::class);
+    }
+
+    // Obtener la ruta completa del archivo original (para descarga)
+    public function getOriginalFullPathAttribute()
+    {
+        return storage_path('app/private/' . $this->original_path);
     }
 }
